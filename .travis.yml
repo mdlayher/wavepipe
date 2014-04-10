@@ -2,8 +2,13 @@ language: go
 go:
   - 1.1
   - 1.2
-script:
+before_install:
+  - sudo apt-get update
+install:
+  - sudo apt-get install libtagc0-dev
+before_script:
   - go get github.com/wtolson/go-taglib
+script:
   - make
   - make test
   - ./bin/wavepipe -test
