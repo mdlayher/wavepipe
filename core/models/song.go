@@ -16,6 +16,7 @@ var (
 // Song represents a song known to wavepipe, and contains metadata regarding
 // the song, and where it resides in the filsystem
 type Song struct {
+	ID         int64
 	Album      string
 	Artist     string
 	Bitrate    int

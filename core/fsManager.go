@@ -55,7 +55,9 @@ func fsManager(mediaFolder string, fsKillChan chan struct{}) {
 		defer file.Close()
 
 		// Generate a song model from the file
+		// TODO: insert song into database, and get ID
 		song, err := models.SongFromFile(file)
+		song.ID = int64(songSet.Size()) + 1
 		if err != nil {
 			return err
 		}
@@ -65,9 +67,10 @@ func fsManager(mediaFolder string, fsKillChan chan struct{}) {
 			// Generate the artist model from this song's metadata
 			// TODO: insert artist into database, and get ID
 			artist := models.ArtistFromSong(song)
+			artist.ID = int64(artistSet.Size()) + 1
 
 			// Add artist to set
-			log.Printf("New artist: %s", song.Artist)
+			log.Printf("New artist: [%02d] %s", artist.ID, artist.Title)
 			artistSet.Add(artist)
 		}
 
@@ -76,15 +79,17 @@ func fsManager(mediaFolder string, fsKillChan chan struct{}) {
 			// Generate the album model from this song's metadata
 			// TODO: insert album into database, and get ID, as well as artist ID
 			album := models.AlbumFromSong(song)
+			album.ArtistID = int64(artistSet.Size())
+			album.ID = int64(albumSet.Size()) + 1
 
 			// Add album to set
-			log.Printf("New album: %s", song.Album)
+			log.Printf("New album: [%02d] %s", album.ID, album.Title)
 			albumSet.Add(album)
 		}
 
 		// Check for new song (struct, no need to worry about name overlap)
 		if songSet.Add(song) {
-			log.Printf("Song: %s - %s - %s", song.Artist, song.Album, song.Title)
+			log.Printf("Song: [%02d] %s - %s - %s", song.ID, song.Artist, song.Album, song.Title)
 		}
 
 		return nil
