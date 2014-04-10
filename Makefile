@@ -20,6 +20,10 @@ fmt:
 	errcheck ${WPPATH}
 	errcheck ${WPPATH}/core
 
+# Run all tests
+test:
+	go test -v ./...
+
 # Cross-compile the binary
 
 all:
