@@ -26,6 +26,10 @@ func Manager(killChan chan struct{}, exitChan chan int) {
 		log.Printf("manager: %s - %s_%s (%d CPU) [pid: %d]", stat.Hostname, stat.Platform, stat.Architecture, stat.NumCPU, stat.PID)
 	}
 
+	// Launch cron manager to handle timed events
+	killCronChan := make(chan struct{})
+	go cronManager(killCronChan)
+
 	// Launch HTTP server
 	log.Println("manager: starting HTTP server")
 
@@ -36,7 +40,12 @@ func Manager(killChan chan struct{}, exitChan chan int) {
 		case <-killChan:
 			log.Println("manager: triggering graceful shutdown, press Ctrl+C again to force halt")
 
+			// Stop cron, wait for confirmation
+			killCronChan <- struct{}{}
+			<-killCronChan
+
 			// Exit gracefully
+			log.Println("manager: stopped!")
 			exitChan <- 0
 		}
 	}
