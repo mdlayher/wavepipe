@@ -5,35 +5,42 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-)
 
-// app is the name of the application, as printed in logs
-const app = "wavepipe"
+	"github.com/mdlayher/wavepipe/core"
+)
 
 func main() {
 	// Set up logging
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 
 	// Application entry point
-	log.Println(app, ": hello, world!")
+	log.Println(core.App, ": starting...")
+
+	// Invoke the manager, with graceful termination and core.Application exit code channels
+	killChan := make(chan struct{})
+	exitChan := make(chan int)
+	go core.Manager(killChan, exitChan)
 
 	// Gracefully handle termination via UNIX signal
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, os.Interrupt)
 	signal.Notify(sigChan, syscall.SIGTERM)
 	for sig := range sigChan {
-		log.Println(app, ": caught signal:", sig)
+		log.Println(core.App, ": caught signal:", sig)
+		killChan <- struct{}{}
 		break
 	}
 
 	// Force terminate if signaled twice
 	go func() {
 		for sig := range sigChan {
-			log.Println(app, ": caught signal:", sig, ", force halting now!")
+			log.Println(core.App, ": caught signal:", sig, ", force halting now!")
+			os.Exit(1)
 		}
 	}()
 
 	// Graceful exit
-	log.Println(app, ": graceful shutdown complete")
-	os.Exit(0)
+	code := <-exitChan
+	log.Println(core.App, ": graceful shutdown complete")
+	os.Exit(code)
 }
