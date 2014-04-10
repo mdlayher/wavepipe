@@ -2,6 +2,7 @@ package core
 
 import (
 	"log"
+	"time"
 )
 
 // App is the application's name
@@ -9,6 +10,9 @@ const App = "wavepipe"
 
 // Version is the application's version
 const Version = "git-master"
+
+// StartTime is the application's starting UNIX timestamp
+var StartTime = time.Now().Unix()
 
 // Manager is responsible for coordinating the application
 func Manager(killChan chan struct{}, exitChan chan int) {
