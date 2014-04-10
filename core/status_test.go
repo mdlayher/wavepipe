@@ -7,6 +7,8 @@ import (
 )
 
 // TestOSInfo verifies that correctness of the OSInfo() function
+// NOTE: This also covers the Status() function, since all information generated there
+// is dynamic except for what is provided by OSInfo()
 func TestOSInfo(t *testing.T) {
 	// Retrieve information about the operating system
 	osStat, err := OSInfo()
