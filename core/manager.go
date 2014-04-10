@@ -30,6 +30,10 @@ func Manager(killChan chan struct{}, exitChan chan int) {
 	killCronChan := make(chan struct{})
 	go cronManager(killCronChan)
 
+	// Launch filesystem manager to handle file scanning
+	killFSChan := make(chan struct{})
+	go fsManager(killFSChan)
+
 	// Launch HTTP server
 	log.Println("manager: starting HTTP server")
 
