@@ -17,7 +17,7 @@ var validSet = set.New(".flac", ".mp3")
 
 // fsManager scans for media files in a specified path, and queues them up for inclusion
 // in the wavepipe database
-func fsManager(mediaFolder string, killFSChan chan struct{}) {
+func fsManager(mediaFolder string, fsKillChan chan struct{}) {
 	log.Println("fs: starting...")
 
 	// Invoke a recursive file walk on the given media folder
@@ -25,6 +25,18 @@ func fsManager(mediaFolder string, killFSChan chan struct{}) {
 	if err != nil {
 		log.Println(err)
 		return
+	}
+
+	// Trigger events via channel
+	for {
+		select {
+		// Stop filesystem manager
+		case <-fsKillChan:
+			// Inform manager that shutodwn is complete
+			log.Println("fs: stopped!")
+			fsKillChan <- struct{}{}
+			return
+		}
 	}
 }
 

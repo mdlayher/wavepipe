@@ -30,13 +30,13 @@ func Manager(killChan chan struct{}, exitChan chan int) {
 	}
 
 	// Launch cron manager to handle timed events
-	killCronChan := make(chan struct{})
-	go cronManager(killCronChan)
+	cronKillChan := make(chan struct{})
+	go cronManager(cronKillChan)
 
 	// Launch filesystem manager to handle file scanning
 	// TODO: make this an actual path later on via configuration
-	killFSChan := make(chan struct{})
-	go fsManager(MediaFolder, killFSChan)
+	fsKillChan := make(chan struct{})
+	go fsManager(MediaFolder, fsKillChan)
 
 	// Launch HTTP server
 	log.Println("manager: starting HTTP server")
@@ -49,9 +49,14 @@ func Manager(killChan chan struct{}, exitChan chan int) {
 			log.Println("manager: triggering graceful shutdown, press Ctrl+C again to force halt")
 
 			// Stop cron, wait for confirmation
-			killCronChan <- struct{}{}
-			<-killCronChan
-			close(killCronChan)
+			cronKillChan <- struct{}{}
+			<-cronKillChan
+			close(cronKillChan)
+
+			// Stop filesystem, wait for confirmation
+			fsKillChan <- struct{}{}
+			<-fsKillChan
+			close(fsKillChan)
 
 			// Exit gracefully
 			log.Println("manager: stopped!")
