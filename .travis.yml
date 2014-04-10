@@ -11,4 +11,4 @@ before_script:
 script:
   - make
   - make test
-  - ./bin/wavepipe -test
+  - ./bin/wavepipe -test .
