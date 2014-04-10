@@ -6,3 +6,12 @@ type Artist struct {
 	ID    int64
 	Title string
 }
+
+// ArtistFromSong creates a new Artist from a Song model, extracting its
+// fields as needed to build the struct
+func ArtistFromSong(song *Song) *Artist {
+	// Copy the artist name to title
+	return &Artist{
+		Title: song.Artist,
+	}
+}

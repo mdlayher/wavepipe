@@ -9,3 +9,13 @@ type Album struct {
 	Title string
 	Year  int
 }
+
+// AlbumFromSong creates a new Album from a Song model, extracting its
+// fields as needed to build the struct
+func AlbumFromSong(song *Song) *Album {
+	return &Album{
+		Artist: song.Artist,
+		Title:  song.Album,
+		Year:   song.Year,
+	}
+}

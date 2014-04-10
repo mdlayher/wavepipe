@@ -23,6 +23,8 @@ func fsManager(mediaFolder string, fsKillChan chan struct{}) {
 	log.Println("fs: starting...")
 
 	// Keep sets of unique artists, albums, and songs encountered
+	artistStringSet := set.New()
+	albumStringSet := set.New()
 	artistSet := set.New()
 	albumSet := set.New()
 	songSet := set.New()
@@ -58,13 +60,33 @@ func fsManager(mediaFolder string, fsKillChan chan struct{}) {
 			return err
 		}
 
-		// Keep track of unique sets
-		artistSet.Add(song.Artist)
-		albumSet.Add(song.Album)
-		songSet.Add(song)
+		// Check for new artist
+		if artistStringSet.Add(song.Artist) {
+			// Generate the artist model from this song's metadata
+			// TODO: insert artist into database, and get ID
+			artist := models.ArtistFromSong(song)
 
-		// Print tags
-		log.Printf("%s - %s", song.Artist, song.Title)
+			// Add artist to set
+			log.Printf("New artist: %s", song.Artist)
+			artistSet.Add(artist)
+		}
+
+		// Check for new artist/album combination
+		if albumStringSet.Add(song.Artist + "-" + song.Album) {
+			// Generate the album model from this song's metadata
+			// TODO: insert album into database, and get ID, as well as artist ID
+			album := models.AlbumFromSong(song)
+
+			// Add album to set
+			log.Printf("New album: %s", song.Album)
+			albumSet.Add(album)
+		}
+
+		// Check for new song (struct, no need to worry about name overlap)
+		if songSet.Add(song) {
+			log.Printf("Song: %s - %s - %s", song.Artist, song.Album, song.Title)
+		}
+
 		return nil
 	})
 
@@ -89,4 +111,3 @@ func fsManager(mediaFolder string, fsKillChan chan struct{}) {
 		}
 	}
 }
-
