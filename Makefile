@@ -17,8 +17,6 @@ fmt:
 	go fmt ${WPPATH}/core
 	golint .
 	golint ./core
-	errcheck ${WPPATH}
-	errcheck ${WPPATH}/core
 
 # Run all tests
 test:
