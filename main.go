@@ -12,7 +12,7 @@ import (
 )
 
 // testFlag invokes wavepipe in "test" mode, where it will start and exit shortly after.  Used for testing.
-var testFlag = flag.Bool("test", false, "Starts " + core.App + " in test mode, causing it to exit shortly after starting.")
+var testFlag = flag.Bool("test", false, "Starts "+core.App+" in test mode, causing it to exit shortly after starting.")
 
 func main() {
 	// Set up logging, parse flags
@@ -26,7 +26,7 @@ func main() {
 
 	// Get the last argument as the media path
 	// TODO: replace with configuration later
-	core.MediaFolder = os.Args[len(os.Args) - 1]
+	core.MediaFolder = os.Args[len(os.Args)-1]
 
 	// Application entry point
 	log.Println(core.App, ": starting...")

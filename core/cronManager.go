@@ -40,4 +40,3 @@ func cronPrintCurrentStatus() {
 	// Regular status banner
 	log.Printf("cron: status - [uptime: %d] [goroutines: %d] [memory: %02.3f MB]", stat.Uptime, stat.NumGoroutine, stat.MemoryMB)
 }
-
