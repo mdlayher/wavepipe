@@ -4,3 +4,4 @@ go:
   - 1.2
 script:
   - make
+  - make test
