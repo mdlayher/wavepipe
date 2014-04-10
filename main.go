@@ -19,6 +19,15 @@ func main() {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 	flag.Parse()
 
+	// Check command-line arguments, last one should be the media path to scan
+	if len(os.Args) < 2 || (*testFlag && len(os.Args) < 3) {
+		log.Fatalf("usage: %s [-test] /media/path", core.App)
+	}
+
+	// Get the last argument as the media path
+	// TODO: replace with configuration later
+	core.MediaFolder = os.Args[len(os.Args) - 1]
+
 	// Application entry point
 	log.Println(core.App, ": starting...")
 

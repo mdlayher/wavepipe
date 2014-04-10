@@ -11,6 +11,9 @@ const App = "wavepipe"
 // Version is the application's version
 const Version = "git-master"
 
+// MediaFolder is the folder which we will recursively scan for media
+var MediaFolder string
+
 // StartTime is the application's starting UNIX timestamp
 var StartTime = time.Now().Unix()
 
@@ -31,8 +34,9 @@ func Manager(killChan chan struct{}, exitChan chan int) {
 	go cronManager(killCronChan)
 
 	// Launch filesystem manager to handle file scanning
+	// TODO: make this an actual path later on via configuration
 	killFSChan := make(chan struct{})
-	go fsManager(killFSChan)
+	go fsManager(MediaFolder, killFSChan)
 
 	// Launch HTTP server
 	log.Println("manager: starting HTTP server")
