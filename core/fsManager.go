@@ -15,11 +15,11 @@ func fsManager(killFSChan chan struct{}) {
 
 	// For now, this file just tests taglib
 	file, err := taglib.Read("/tmp/test.flac")
-	defer file.Close()
 	if err != nil {
 		log.Println(err)
 		return
 	}
+	defer file.Close()
 
 	// Generate a song model from the file
 	song, err := models.SongFromFile(file)
