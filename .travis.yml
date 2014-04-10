@@ -3,6 +3,7 @@ go:
   - 1.1
   - 1.2
 script:
+  - go get github.com/wtolson/go-taglib
   - make
   - make test
   - ./bin/wavepipe -test
