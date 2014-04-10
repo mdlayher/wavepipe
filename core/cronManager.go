@@ -21,6 +21,7 @@ func cronManager(cronKillChan chan struct{}) {
 			// Inform manager that shutdown is complete
 			log.Println("cron: stopped!")
 			cronKillChan <- struct{}{}
+			return
 		case <-status.C:
 			go cronPrintCurrentStatus()
 		}

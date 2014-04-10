@@ -43,6 +43,7 @@ func Manager(killChan chan struct{}, exitChan chan int) {
 			// Stop cron, wait for confirmation
 			killCronChan <- struct{}{}
 			<-killCronChan
+			close(killCronChan)
 
 			// Exit gracefully
 			log.Println("manager: stopped!")
