@@ -2,6 +2,9 @@ package core
 
 import (
 	"errors"
+	"os"
+	"path"
+	"strings"
 
 	"github.com/wtolson/go-taglib"
 )
@@ -36,9 +39,9 @@ type Song struct {
 	Year         int
 }
 
-// SongFromFile creates a new Song from a TagLib file, extracting its tags
-// and properties to build the struct
-func SongFromFile(file *taglib.File) (*Song, error) {
+// SongFromFile creates a new Song from a TagLib file and an os.FileInfo, as created during
+// a filesystem walk. Tags and filesystem information are extracted into the struct.
+func SongFromFile(file *taglib.File, info os.FileInfo) (*Song, error) {
 	// Retrieve some tags needed by wavepipe, check for empty
 	// At minimum, we will need an artist and title to do anything useful with this file
 	title := file.Title()
@@ -59,19 +62,26 @@ func SongFromFile(file *taglib.File) (*Song, error) {
 		return nil, ErrSongProperties
 	}
 
-	// Copy over fields from TagLib tags and properties
+	// Extract file type from the extension, capitalize, drop the dot
+	fileType := strings.ToUpper(path.Ext(info.Name()))[1:]
+
+	// Copy over fields from TagLib tags and properties, as well as OS information
 	return &Song{
-		Album:      file.Album(),
-		Artist:     artist,
-		Bitrate:    bitrate,
-		Channels:   channels,
-		Comment:    file.Comment(),
-		Genre:      file.Genre(),
-		Length:     length,
-		SampleRate: sampleRate,
-		Title:      title,
-		Track:      file.Track(),
-		Year:       file.Year(),
+		Album:        file.Album(),
+		Artist:       artist,
+		Bitrate:      bitrate,
+		Channels:     channels,
+		Comment:      file.Comment(),
+		FileName:     info.Name(),
+		FileSize:     info.Size(),
+		FileType:     fileType,
+		Genre:        file.Genre(),
+		LastModified: info.ModTime().Unix(),
+		Length:       length,
+		SampleRate:   sampleRate,
+		Title:        title,
+		Track:        file.Track(),
+		Year:         file.Year(),
 	}, nil
 }
 

@@ -104,8 +104,8 @@ func fsWalker(mediaFolder string, walkCancelChan chan struct{}) chan error {
 			}
 			defer file.Close()
 
-			// Generate a song model from the file
-			song, err := SongFromFile(file)
+			// Generate a song model from the TagLib file, and the OS file
+			song, err := SongFromFile(file, info)
 			if err != nil {
 				return err
 			}
