@@ -4,16 +4,19 @@ PRAGMA synchronous = OFF;
 BEGIN TRANSACTION;
 /* albums */
 CREATE TABLE "albums" (
+	"id"        INTEGER PRIMARY KEY AUTOINCREMENT,
 	"artist_id" INTEGER NOT NULL,
 	"title"     TEXT,
 	"year"      INTEGER
 );
 /* artists */
 CREATE TABLE "artists" (
+	"id"    INTEGER PRIMARY KEY AUTOINCREMENT,
 	"title" TEXT
 );
 /* songs */
 CREATE TABLE "songs" (
+	"id"            INTEGER PRIMARY KEY AUTOINCREMENT,
 	"album_id"      INTEGER NOT NULL,
 	"artist_id"     INTEGER NOT NULL,
 	"bitrate"       INTEGER NOT NULL,
