@@ -3,11 +3,11 @@ package models
 // Album represents an album known to wavepipe, and contains information
 // extracted from song tags
 type Album struct {
-	ID       int64
-	Artist   string
-	ArtistID int64
-	Title    string
-	Year     int
+	ID       int64  `beedb:"PK" sql:"id" tname:"albums"`
+	Artist   string `sql:"-"`
+	ArtistID int64  `sql:"artist_id"`
+	Title    string `sql:"title"`
+	Year     int    `sql:"year"`
 }
 
 // AlbumFromSong creates a new Album from a Song model, extracting its

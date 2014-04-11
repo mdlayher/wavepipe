@@ -16,21 +16,23 @@ var (
 // Song represents a song known to wavepipe, and contains metadata regarding
 // the song, and where it resides in the filsystem
 type Song struct {
-	ID           int64
-	Album        string
-	Artist       string
-	Bitrate      int
-	Channels     int
-	Comment      string
-	FileName     string
-	FileSize     int64
-	Genre        string
-	LastModified int64
-	Length       int
-	SampleRate   int
-	Title        string
-	Track        int
-	Year         int
+	ID           int64  `beedb:"PK" sql:"id" tname:"songs"`
+	Album        string `sql:"-"`
+	AlbumID      int64  `sql:"album_id"`
+	Artist       string `sql:"-"`
+	ArtistID     int64  `sql:"artist_id"`
+	Bitrate      int    `sql:"bitrate"`
+	Channels     int    `sql:"channels"`
+	Comment      string `sql:"comment"`
+	FileName     string `sql:"file_name"`
+	FileSize     int64  `sql:"file_size"`
+	Genre        string `sql:"genre"`
+	LastModified int64  `sql:"last_modified"`
+	Length       int    `sql:"length"`
+	SampleRate   int    `sql:"sample_rate"`
+	Title        string `sql:"title"`
+	Track        int    `sql:"track"`
+	Year         int    `sql:"year"`
 }
 
 // SongFromFile creates a new Song from a TagLib file, extracting its tags
