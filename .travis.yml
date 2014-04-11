@@ -8,7 +8,7 @@ install:
   - sudo apt-get install libtagc0-dev
 before_script:
   - go get github.com/mdlayher/goset
-  - go get github.com/astaxie/beedb
+  - go get github.com/jmoiron/sqlx
   - go get github.com/mattn/go-sqlite3
   - go get github.com/wtolson/go-taglib
 script:
