@@ -66,6 +66,43 @@ func (s *sqliteBackend) AllArtists() ([]*Artist, error) {
 	return artists, nil
 }
 
+// PurgeOrphanArtists deletes all artists who are "orphaned", meaning that they no
+// longer have any songs which reference their ID
+func (s *sqliteBackend) PurgeOrphanArtists() (int, error) {
+	// Open database
+	db, err := s.Open()
+	if err != nil {
+		return -1, err
+	}
+	defer db.Close()
+
+	// Select all artists without a song referencing their artist ID
+	rows, err := db.Queryx("SELECT artists.id FROM artists LEFT JOIN songs ON " +
+		"artists.id = songs.artist_id WHERE songs.artist_id IS NULL;")
+	if err != nil && err != sql.ErrNoRows {
+		return -1, err
+	}
+
+	// Open a transaction to remove all orphaned artists
+	tx := db.MustBegin()
+
+	// Iterate all rows
+	artist := new(Artist)
+	total := 0
+	for rows.Next() {
+		// Scan ID into struct
+		if err := rows.StructScan(artist); err != nil {
+			return -1, err
+		}
+
+		// Remove artist
+		tx.Exec("DELETE FROM artists WHERE id = ?;", artist.ID)
+		total++
+	}
+
+	return total, tx.Commit()
+}
+
 // LoadArtist loads an Artist from the database, populating the parameter struct
 func (s *sqliteBackend) LoadArtist(a *Artist) error {
 	// Open database

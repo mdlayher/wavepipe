@@ -14,6 +14,7 @@ type dbBackend interface {
 	Open() (*sqlx.DB, error)
 	DSN(string)
 	AllArtists() ([]*Artist, error)
+	PurgeOrphanArtists() (int, error)
 	LoadArtist(*Artist) error
 	SaveArtist(*Artist) error
 	LoadAlbum(*Album) error
