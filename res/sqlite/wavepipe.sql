@@ -1,6 +1,5 @@
 /* wavepipe sqlite schema */
 PRAGMA foreign_keys = OFF;
-PRAGMA synchronous = OFF;
 BEGIN TRANSACTION;
 /* albums */
 CREATE TABLE "albums" (
@@ -9,11 +8,13 @@ CREATE TABLE "albums" (
 	"title"     TEXT,
 	"year"      INTEGER
 );
+CREATE UNIQUE INDEX "albums_unique_artistId_title" ON "albums" ("artist_id", "title");
 /* artists */
 CREATE TABLE "artists" (
 	"id"    INTEGER PRIMARY KEY AUTOINCREMENT,
 	"title" TEXT
 );
+CREATE UNIQUE INDEX "artists_unique_title" ON "artists" ("title");
 /* songs */
 CREATE TABLE "songs" (
 	"id"            INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -33,4 +34,5 @@ CREATE TABLE "songs" (
 	"track"         INTEGER,
 	"year"          INTEGER
 );
+CREATE UNIQUE INDEX "songs_unique_fileName_title" ON "songs" ("file_name", "title");
 COMMIT;
