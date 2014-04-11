@@ -16,18 +16,21 @@ var (
 // Song represents a song known to wavepipe, and contains metadata regarding
 // the song, and where it resides in the filsystem
 type Song struct {
-	ID         int64
-	Album      string
-	Artist     string
-	Bitrate    int
-	Channels   int
-	Comment    string
-	Genre      string
-	Length     int
-	SampleRate int
-	Title      string
-	Track      int
-	Year       int
+	ID           int64
+	Album        string
+	Artist       string
+	Bitrate      int
+	Channels     int
+	Comment      string
+	FileName     string
+	FileSize     int64
+	Genre        string
+	LastModified int64
+	Length       int
+	SampleRate   int
+	Title        string
+	Track        int
+	Year         int
 }
 
 // SongFromFile creates a new Song from a TagLib file, extracting its tags
