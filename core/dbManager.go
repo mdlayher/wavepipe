@@ -1,34 +1,37 @@
 package core
 
 import (
-	"database/sql"
 	"log"
 
-	"github.com/astaxie/beedb"
+	// Include sqlite3 driver
+	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-sqlite3"
 )
 
-// dbLink is a database/sql link to the backend, used to work with the ORM
-var dbLink *sql.DB
-
-// orm() returns the instance of the beedb ORM using the open database link
-func orm() beedb.Model {
-	return beedb.New(dbLink)
+// dbBackend represents the database backend that the program will connect to
+type dbBackend interface {
+	Open() (*sqlx.DB, error)
+	DSN(string)
+	LoadArtist(*Artist) error
+	SaveArtist(*Artist) error
+	LoadAlbum(*Album) error
+	SaveAlbum(*Album) error
+	LoadSong(*Song) error
+	SaveSong(*Song) error
 }
 
-// dbManager handles the database connection pool, and communicates back and forth with the manager goroutine
+// db is the current database backend
+var db dbBackend
+
+// dbManager manages database connections, and communicates back and forth with the manager goroutine
 func dbManager(dbPath string, dbKillChan chan struct{}) {
 	log.Println("db: starting...")
 
-	// Open database connection
-	db, err := sql.Open("sqlite3", dbPath)
-	if err != nil {
-		log.Println(err)
-		return
+	// Attempt to open database connection
+	if dbPath != "" {
+		db = new(sqliteBackend)
+		db.DSN(dbPath)
 	}
-
-	// Store database connection
-	dbLink = db
 
 	// Trigger events via channel
 	for {
