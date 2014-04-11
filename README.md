@@ -19,3 +19,13 @@ Installation
 wavepipe can be built using Go 1.1+. It can be downloaded, built, and installed, simply by running:
 
 `$ go get github.com/mdlayher/wavepipe`
+
+FAQ
+===
+
+__Q: Does wavepipe recognize the `ALBUMARTIST` tag?__
+
+A: Right now, unfortunately, the answer is no.  It does not appear that this tag is supported by
+[TagLib](https://github.com/taglib/taglib), the library and bindings I am currently using to extract
+metadata from media.  I'd like to fix this issue in a later release, but finishing the core functionality
+is my current priority.
