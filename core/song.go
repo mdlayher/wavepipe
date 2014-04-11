@@ -11,9 +11,9 @@ import (
 
 var (
 	// ErrSongTags is returned when required tags could not be extracted from a TagLib file
-	ErrSongTags = errors.New("song: required tags could be extracted from TagLib file")
+	ErrSongTags = errors.New("song: required tags could not be extracted from TagLib file")
 	// ErrSongProperties is returned when required properties could not be extracted from a TagLib file
-	ErrSongProperties = errors.New("song: required properties could be extracted from TagLib file")
+	ErrSongProperties = errors.New("song: required properties could not be extracted from TagLib file")
 )
 
 // Song represents a song known to wavepipe, and contains metadata regarding

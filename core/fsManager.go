@@ -3,11 +3,13 @@ package core
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"log"
 	"os"
 	"path"
 	"path/filepath"
 	"sync"
+	"time"
 
 	"github.com/mdlayher/goset"
 	"github.com/wtolson/go-taglib"
@@ -69,6 +71,12 @@ func fsWalker(mediaFolder string, walkCancelChan chan struct{}) chan error {
 		mutex.Unlock()
 	}()
 
+	// Track metrics about the walk
+	artistCount := 0
+	albumCount := 0
+	songCount := 0
+	startTime := time.Now()
+
 	// Invoke walker goroutine
 	go func() {
 		// Invoke a recursive file walk on the given media folder, passing closure variables into
@@ -100,7 +108,7 @@ func fsWalker(mediaFolder string, walkCancelChan chan struct{}) chan error {
 			// Attempt to scan media file with taglib
 			file, err := taglib.Read(currPath)
 			if err != nil {
-				return err
+				return fmt.Errorf("%s: %s", currPath, err)
 			}
 			defer file.Close()
 
@@ -120,6 +128,7 @@ func fsWalker(mediaFolder string, walkCancelChan chan struct{}) chan error {
 					log.Println(err)
 				} else if err == nil {
 					log.Printf("New artist: [%02d] %s", artist.ID, artist.Title)
+					artistCount++
 				}
 			}
 
@@ -134,6 +143,7 @@ func fsWalker(mediaFolder string, walkCancelChan chan struct{}) chan error {
 					log.Println(err)
 				} else if err == nil {
 					log.Printf("New album: [%02d] %s - %s", album.ID, album.Artist, album.Title)
+					albumCount++
 				}
 			}
 
@@ -148,6 +158,7 @@ func fsWalker(mediaFolder string, walkCancelChan chan struct{}) chan error {
 					log.Println(err)
 				} else if err == nil {
 					log.Printf("New song: [%02d] %s - %s - %s", song.ID, song.Artist, song.Album, song.Title)
+					songCount++
 				}
 			}
 
@@ -157,11 +168,17 @@ func fsWalker(mediaFolder string, walkCancelChan chan struct{}) chan error {
 		// Check for filesystem walk errors
 		if err != nil {
 			errChan <- err
+			close(errChan)
+			return
 		}
 
+		// Print metrics
+		log.Printf("fs: file walk complete [time: %s]", time.Since(startTime).String())
+		log.Printf("fs: [artists: %d] [albums: %d] [songs: %d]", artistCount, albumCount, songCount)
+
 		// No errors
-		log.Println("fs: file walk complete")
 		errChan <- nil
+		close(errChan)
 	}()
 
 	// Return communication channel
