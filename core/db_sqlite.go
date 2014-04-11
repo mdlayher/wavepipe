@@ -1,6 +1,8 @@
 package core
 
 import (
+	"database/sql"
+
 	"github.com/jmoiron/sqlx"
 
 	// Include sqlite3 driver
@@ -31,6 +33,37 @@ func (s *sqliteBackend) Open() (*sqlx.DB, error) {
 	}
 
 	return db, nil
+}
+
+// AllArtists loads a slice of all Artist structs from the database
+func (s *sqliteBackend) AllArtists() ([]*Artist, error) {
+	// Open database
+	db, err := s.Open()
+	if err != nil {
+		return nil, err
+	}
+	defer db.Close()
+
+	// Query for a list of all artists
+	rows, err := db.Queryx("SELECT * FROM artists;")
+	if err != nil && err != sql.ErrNoRows {
+		return nil, err
+	}
+
+	// Iterate all rows
+	artists := make([]*Artist, 0)
+	a := new(Artist)
+	for rows.Next() {
+		// Scan artist into struct
+		if err := rows.StructScan(a); err != nil {
+			return nil, err
+		}
+
+		// Append to list
+		artists = append(artists, a)
+	}
+
+	return artists, nil
 }
 
 // LoadArtist loads an Artist from the database, populating the parameter struct

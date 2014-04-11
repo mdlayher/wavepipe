@@ -13,6 +13,7 @@ import (
 type dbBackend interface {
 	Open() (*sqlx.DB, error)
 	DSN(string)
+	AllArtists() ([]*Artist, error)
 	LoadArtist(*Artist) error
 	SaveArtist(*Artist) error
 	LoadAlbum(*Album) error
