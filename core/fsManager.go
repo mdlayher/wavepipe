@@ -8,6 +8,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -101,7 +102,6 @@ func (fs *fsMediaScan) Scan(mediaFolder string, walkCancelChan chan struct{}) er
 		// Halt!
 		mutex.Lock()
 		haltWalk = true
-		log.Println("fs: halting media scan")
 		mutex.Unlock()
 	}()
 
@@ -144,11 +144,19 @@ func (fs *fsMediaScan) Scan(mediaFolder string, walkCancelChan chan struct{}) er
 		}
 		defer file.Close()
 
-		// Generate a song model from the TagLib file, and the OS file
-		song, err := SongFromFile(file, info)
+		// Generate a song model from the TagLib file
+		song, err := SongFromFile(file)
 		if err != nil {
 			return err
 		}
+
+		// Populate filesystem-related struct fields using OS info
+		song.FileName = currPath
+		song.FileSize = info.Size()
+
+		// Extract type from the extension, capitalize it, drop the dot
+		song.FileType = strings.ToUpper(path.Ext(info.Name()))[1:]
+		song.LastModified = info.ModTime().Unix()
 
 		// Generate an artist model from this song's metadata
 		artist := ArtistFromSong(song)
@@ -232,7 +240,6 @@ func (fs *fsOrphanScan) Scan(mediaFolder string, orphanCancelChan chan struct{})
 
 		// Halt!
 		mutex.Lock()
-		log.Println("fs: halting orphan scan")
 		haltOrphanScan = true
 		mutex.Unlock()
 	}()
