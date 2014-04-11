@@ -1,6 +1,7 @@
 package core
 
 import (
+	"encoding/json"
 	"errors"
 	"os"
 	"path"
@@ -19,24 +20,24 @@ var (
 // Song represents a song known to wavepipe, and contains metadata regarding
 // the song, and where it resides in the filsystem
 type Song struct {
-	ID           int
-	Album        string
-	AlbumID      int `db:"album_id"`
-	Artist       string
-	ArtistID     int `db:"artist_id"`
-	Bitrate      int
-	Channels     int
-	Comment      string
-	FileName     string `db:"file_name"`
-	FileSize     int64  `db:"file_size"`
-	FileType     string `db:"file_type"`
-	Genre        string
-	LastModified int64 `db:"last_modified"`
-	Length       int
-	SampleRate   int `db:"sample_rate"`
-	Title        string
-	Track        int
-	Year         int
+	ID           int    `json:"id"`
+	Album        string `json:"album"`
+	AlbumID      int    `db:"album_id" json:"albumId"`
+	Artist       string `json:"artist"`
+	ArtistID     int    `db:"artist_id" json:"artistId"`
+	Bitrate      int    `json:"bitrate"`
+	Channels     int    `json:"channels"`
+	Comment      string `json:"comment"`
+	FileName     string `db:"file_name" json:"fileName"`
+	FileSize     int64  `db:"file_size" json:"fileSize"`
+	FileType     string `db:"file_type" json:"fileType"`
+	Genre        string `json:"genre"`
+	LastModified int64  `db:"last_modified" json:"lastModified"`
+	Length       int    `json:"length"`
+	SampleRate   int    `db:"sample_rate" json:"sampleRate"`
+	Title        string `json:"title"`
+	Track        int    `json:"track"`
+	Year         int    `json:"year"`
 }
 
 // SongFromFile creates a new Song from a TagLib file and an os.FileInfo, as created during
@@ -93,4 +94,21 @@ func (s *Song) Load() error {
 // Save creates a new Song in the database
 func (s *Song) Save() error {
 	return db.SaveSong(s)
+}
+
+// ToJSON generates a JSON representation of a Song
+func (s Song) ToJSON() ([]byte, error) {
+	// Marshal into JSON
+	out, err := json.Marshal(s)
+	if err != nil {
+		return nil, err
+	}
+
+	// Return JSON
+	return out, nil
+}
+
+// FromJSON generates a Song from its JSON representation
+func (s *Song) FromJSON(in []byte) error {
+	return json.Unmarshal(in, &s)
 }
