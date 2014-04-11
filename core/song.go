@@ -1,4 +1,4 @@
-package models
+package core
 
 import (
 	"errors"
@@ -16,23 +16,24 @@ var (
 // Song represents a song known to wavepipe, and contains metadata regarding
 // the song, and where it resides in the filsystem
 type Song struct {
-	ID           int64  `beedb:"PK" sql:"id" tname:"songs"`
-	Album        string `sql:"-"`
-	AlbumID      int64  `sql:"album_id"`
-	Artist       string `sql:"-"`
-	ArtistID     int64  `sql:"artist_id"`
-	Bitrate      int    `sql:"bitrate"`
-	Channels     int    `sql:"channels"`
-	Comment      string `sql:"comment"`
-	FileName     string `sql:"file_name"`
-	FileSize     int64  `sql:"file_size"`
-	Genre        string `sql:"genre"`
-	LastModified int64  `sql:"last_modified"`
-	Length       int    `sql:"length"`
-	SampleRate   int    `sql:"sample_rate"`
-	Title        string `sql:"title"`
-	Track        int    `sql:"track"`
-	Year         int    `sql:"year"`
+	ID           int
+	Album        string
+	AlbumID      int `db:"album_id"`
+	Artist       string
+	ArtistID     int `db:"artist_id"`
+	Bitrate      int
+	Channels     int
+	Comment      string
+	FileName     string `db:"file_name"`
+	FileSize     int64  `db:"file_size"`
+	FileType     string `db:"file_type"`
+	Genre        string
+	LastModified int64 `db:"last_modified"`
+	Length       int
+	SampleRate   int `db:"sample_rate"`
+	Title        string
+	Track        int
+	Year         int
 }
 
 // SongFromFile creates a new Song from a TagLib file, extracting its tags
@@ -72,4 +73,14 @@ func SongFromFile(file *taglib.File) (*Song, error) {
 		Track:      file.Track(),
 		Year:       file.Year(),
 	}, nil
+}
+
+// Load pulls an existing Song from the database
+func (s *Song) Load() error {
+	return db.LoadSong(s)
+}
+
+// Save creates a new Song in the database
+func (s *Song) Save() error {
+	return db.SaveSong(s)
 }

@@ -1,13 +1,13 @@
-package models
+package core
 
 // Album represents an album known to wavepipe, and contains information
 // extracted from song tags
 type Album struct {
-	ID       int64  `beedb:"PK" sql:"id" tname:"albums"`
-	Artist   string `sql:"-"`
-	ArtistID int64  `sql:"artist_id"`
-	Title    string `sql:"title"`
-	Year     int    `sql:"year"`
+	ID       int
+	Artist   string
+	ArtistID int `db:"artist_id"`
+	Title    string
+	Year     int
 }
 
 // AlbumFromSong creates a new Album from a Song model, extracting its
@@ -18,4 +18,14 @@ func AlbumFromSong(song *Song) *Album {
 		Title:  song.Album,
 		Year:   song.Year,
 	}
+}
+
+// Load pulls an existing Album from the database
+func (a *Album) Load() error {
+	return db.LoadAlbum(a)
+}
+
+// Save creates a new Album in the database
+func (a *Album) Save() error {
+	return db.SaveAlbum(a)
 }

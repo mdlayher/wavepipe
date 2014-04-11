@@ -1,10 +1,10 @@
-package models
+package core
 
 // Artist represents an artist known to wavepipe, and contains a unique ID
 // and name for this artist
 type Artist struct {
-	ID    int64  `beedb:"PK" sql:"id" tname:"artists"`
-	Title string `sql:"title"`
+	ID    int
+	Title string
 }
 
 // ArtistFromSong creates a new Artist from a Song model, extracting its
@@ -14,4 +14,14 @@ func ArtistFromSong(song *Song) *Artist {
 	return &Artist{
 		Title: song.Artist,
 	}
+}
+
+// Load pulls an existing Artist from the database
+func (a *Artist) Load() error {
+	return db.LoadArtist(a)
+}
+
+// Save creates a new Artist in the database
+func (a *Artist) Save() error {
+	return db.SaveArtist(a)
 }
