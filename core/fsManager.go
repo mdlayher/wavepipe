@@ -23,9 +23,13 @@ var validSet = set.New(".ape", ".flac", ".m4a", ".mp3", ".mpc", ".ogg", ".wma", 
 func fsManager(mediaFolder string, fsKillChan chan struct{}) {
 	log.Println("fs: starting...")
 
+	// Trigger an orphan scan, which can be halted via channel
+	orphanCancelChan := make(chan struct{})
+	orphanErrChan := fsOrphanScan(mediaFolder, orphanCancelChan)
+
 	// Trigger a filesystem walk, which can be halted via channel
 	walkCancelChan := make(chan struct{})
-	errChan := fsWalker(mediaFolder, walkCancelChan)
+	walkErrChan := fsWalker(mediaFolder, walkCancelChan)
 
 	// Trigger events via channel
 	for {
@@ -33,14 +37,24 @@ func fsManager(mediaFolder string, fsKillChan chan struct{}) {
 		// Stop filesystem manager
 		case <-fsKillChan:
 			// Halt any in-progress walks
+			orphanCancelChan <- struct{}{}
 			walkCancelChan <- struct{}{}
 
 			// Inform manager that shutdown is complete
 			log.Println("fs: stopped!")
 			fsKillChan <- struct{}{}
 			return
-		// Error return channel
-		case err := <-errChan:
+		// Filesystem orphan error return channel
+		case err := <-orphanErrChan:
+			// Check if error occurred
+			if err == nil {
+				break
+			}
+
+			// Report orphan errors
+			log.Println(err)
+		// Filesystem orphan error return channel
+		case err := <-walkErrChan:
 			// Check if error occurred
 			if err == nil {
 				break
@@ -173,6 +187,50 @@ func fsWalker(mediaFolder string, walkCancelChan chan struct{}) chan error {
 
 		// Print metrics
 		log.Printf("fs: file walk complete [time: %s]", time.Since(startTime).String())
+		log.Printf("fs: [artists: %d] [albums: %d] [songs: %d]", artistCount, albumCount, songCount)
+
+		// No errors
+		errChan <- nil
+	}()
+
+	// Return communication channel
+	return errChan
+}
+
+// fsOrphanScan scans for media files which have been removed from the media directory, and removes
+// them as appropriate.  An orphan is defined as follows:
+//   - Artist: no more songs contain this artist's ID
+//   - Album: no more songs contain this album's ID
+//   - Song: song is no longer present in the filesystem
+func fsOrphanScan(mediaFolder string, orphanCancelChan chan struct{}) chan error {
+	// Return errors on channel
+	errChan := make(chan error)
+
+	// Halt scan if needed
+	var mutex sync.RWMutex
+	haltOrphanScan := false
+	go func() {
+		// Wait for signal
+		<-orphanCancelChan
+
+		// Halt!
+		mutex.Lock()
+		haltOrphanScan = true
+		mutex.Unlock()
+	}()
+
+	// Track metrics about the scan
+	artistCount := 0
+	albumCount := 0
+	songCount := 0
+	startTime := time.Now()
+
+	// Invoke scanner goroutine
+	go func() {
+		log.Println("fs: beginning orphan scan")
+
+		// Print metrics
+		log.Printf("fs: orphan scan complete [time: %s]", time.Since(startTime).String())
 		log.Printf("fs: [artists: %d] [albums: %d] [songs: %d]", artistCount, albumCount, songCount)
 
 		// No errors
