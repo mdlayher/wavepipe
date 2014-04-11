@@ -3,8 +3,9 @@ package core
 import (
 	"log"
 
-	// Include sqlite3 driver
 	"github.com/jmoiron/sqlx"
+
+	// Include sqlite3 driver
 	_ "github.com/mattn/go-sqlite3"
 )
 
