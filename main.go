@@ -11,6 +11,9 @@ import (
 	"github.com/mdlayher/wavepipe/core"
 )
 
+// dbFlag points to the location of the wavepipe.db sqlite3 database
+var dbFlag = flag.String("db", "", "Location of "+core.App+" sqlite3 database.")
+
 // testFlag invokes wavepipe in "test" mode, where it will start and exit shortly after.  Used for testing.
 var testFlag = flag.Bool("test", false, "Starts "+core.App+" in test mode, causing it to exit shortly after starting.")
 
@@ -20,9 +23,13 @@ func main() {
 	flag.Parse()
 
 	// Check command-line arguments, last one should be the media path to scan
-	if len(os.Args) < 2 || (*testFlag && len(os.Args) < 3) {
-		log.Fatalf("usage: %s [-test] /media/path", core.App)
+	if len(os.Args) < 3 || (*testFlag && len(os.Args) < 4) {
+		log.Fatalf("usage: %s -db=%s.db [-test] /media/path", core.App, core.App)
 	}
+
+	// Get the database path
+	// TODO: replace with configuration later
+	core.DBPath = *dbFlag
 
 	// Get the last argument as the media path
 	// TODO: replace with configuration later

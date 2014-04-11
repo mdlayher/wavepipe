@@ -11,7 +11,12 @@ const App = "wavepipe"
 // Version is the application's version
 const Version = "git-master"
 
+// DBPath is the path to the sqlite3 database
+// TODO: remove this for config
+var DBPath string
+
 // MediaFolder is the folder which we will recursively scan for media
+// TODO: remove this for config
 var MediaFolder string
 
 // StartTime is the application's starting UNIX timestamp
@@ -28,6 +33,10 @@ func Manager(killChan chan struct{}, exitChan chan int) {
 	} else {
 		log.Printf("manager: %s - %s_%s (%d CPU) [pid: %d]", stat.Hostname, stat.Platform, stat.Architecture, stat.NumCPU, stat.PID)
 	}
+
+	// Launch database manager to handle database/ORM connections
+	dbKillChan := make(chan struct{})
+	go dbManager(DBPath, dbKillChan)
 
 	// Launch cron manager to handle timed events
 	cronKillChan := make(chan struct{})
@@ -47,6 +56,11 @@ func Manager(killChan chan struct{}, exitChan chan int) {
 		// Trigger a graceful shutdown
 		case <-killChan:
 			log.Println("manager: triggering graceful shutdown, press Ctrl+C again to force halt")
+
+			// Stop database, wait for confirmation
+			dbKillChan <- struct{}{}
+			<-dbKillChan
+			close(dbKillChan)
 
 			// Stop cron, wait for confirmation
 			cronKillChan <- struct{}{}
