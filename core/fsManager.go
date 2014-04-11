@@ -168,7 +168,6 @@ func fsWalker(mediaFolder string, walkCancelChan chan struct{}) chan error {
 		// Check for filesystem walk errors
 		if err != nil {
 			errChan <- err
-			close(errChan)
 			return
 		}
 
@@ -178,7 +177,6 @@ func fsWalker(mediaFolder string, walkCancelChan chan struct{}) chan error {
 
 		// No errors
 		errChan <- nil
-		close(errChan)
 	}()
 
 	// Return communication channel
