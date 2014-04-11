@@ -154,6 +154,8 @@ func (fs *fsMediaScan) Scan(mediaFolder string, walkCancelChan chan struct{}) er
 		artist := ArtistFromSong(song)
 
 		// Check for existing artist
+		// Note: if the artist exists, this operation also loads necessary scanning information
+		// such as their artist ID, for use in album and song generation
 		if err := artist.Load(); err == sql.ErrNoRows {
 			// Save new artist
 			if err := artist.Save(); err != nil {
@@ -169,6 +171,8 @@ func (fs *fsMediaScan) Scan(mediaFolder string, walkCancelChan chan struct{}) er
 		album.ArtistID = artist.ID
 
 		// Check for existing album
+		// Note: if the album exists, this operation also loads necessary scanning information
+		// such as the album ID, for use in song generation
 		if err := album.Load(); err == sql.ErrNoRows {
 			// Save album
 			if err := album.Save(); err != nil {
