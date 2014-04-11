@@ -108,7 +108,7 @@ func fsWalker(mediaFolder string, walkCancelChan chan struct{}) chan error {
 			// Attempt to scan media file with taglib
 			file, err := taglib.Read(currPath)
 			if err != nil {
-				return fmt.Errorf("%s: %s", currPath, err)
+				return fmt.Errorf("%s: %s", currPath, err.Error())
 			}
 			defer file.Close()
 
