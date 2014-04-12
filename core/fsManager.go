@@ -270,35 +270,16 @@ func (fs *fsOrphanScan) Scan(baseFolder string, subFolder string, orphanCancelCh
 	// Check if a baseFolder is set, meaning remove ANYTHING not under this base
 	if baseFolder != "" {
 		log.Println("fs: orphan scanning base folder:", baseFolder)
-		// Scan for all songs in database
-		allSongs, err := db.AllSongs()
+
+		// Scan for all songs NOT under the base folder
+		songs, err := db.SongsNotInPath(baseFolder)
 		if err != nil {
 			return err
 		}
 
-		// Generate a set of all songs
-		allSongsSet := set.New()
-		for _, s := range allSongs {
-			allSongsSet.Add(s)
-		}
-
-		// Scan for all media residing within the specified base folder
-		pathSongs, err := db.SongsInPath(baseFolder)
-		if err != nil {
-			return err
-		}
-
-		// Generate a set of path songs
-		pathSongsSet := set.New()
-		for _, s := range pathSongs {
-			pathSongsSet.Add(s)
-		}
-
-		// Remove any songs which are not part of this path
-		diffSongs := allSongsSet.Difference(pathSongsSet)
-		for _, element := range diffSongs.Enumerate() {
+		// Remove all songs which are not in this path
+		for _, s := range songs {
 			// Remove song from database
-			s := element.(Song)
 			if err := s.Delete(); err != nil {
 				return err
 			}

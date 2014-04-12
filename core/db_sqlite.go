@@ -283,65 +283,18 @@ func (s *sqliteBackend) SaveAlbum(a *Album) error {
 
 // AllSongs loads a slice of all Song structs from the database
 func (s *sqliteBackend) AllSongs() ([]Song, error) {
-	// Open database
-	db, err := s.Open()
-	if err != nil {
-		return nil, err
-	}
-	defer db.Close()
-
-	// Query for a list of all songs
-	rows, err := db.Queryx("SELECT * FROM songs;")
-	if err != nil && err != sql.ErrNoRows {
-		return nil, err
-	}
-
-	// Iterate all rows
-	songs := make([]Song, 0)
-	a := Song{}
-	for rows.Next() {
-		// Scan song into struct
-		if err := rows.StructScan(&a); err != nil {
-			return nil, err
-		}
-
-		// Append to list
-		songs = append(songs, a)
-	}
-
-	return songs, nil
+	return s.songQuery("SELECT * FROM songs;")
 }
-
 // SongsInPath loads a slice of all Song structs residing under the specified
 // filesystem path from the database
 func (s *sqliteBackend) SongsInPath(path string) ([]Song, error) {
-	// Open database
-	db, err := s.Open()
-	if err != nil {
-		return nil, err
-	}
-	defer db.Close()
+	return s.songQuery("SELECT * FROM songs WHERE file_name LIKE ?;", path + "%")
+}
 
-	// Query for a list of all songs which exist at this path, specifying wildcard after
-	rows, err := db.Queryx("SELECT * FROM songs WHERE file_name LIKE ?;", path + "%")
-	if err != nil && err != sql.ErrNoRows {
-		return nil, err
-	}
-
-	// Iterate all rows
-	songs := make([]Song, 0)
-	a := Song{}
-	for rows.Next() {
-		// Scan song into struct
-		if err := rows.StructScan(&a); err != nil {
-			return nil, err
-		}
-
-		// Append to list
-		songs = append(songs, a)
-	}
-
-	return songs, nil
+// SongsNotInPath loads a slice of all Song structs that do not reside under the specified
+// filesystem path from the database
+func (s *sqliteBackend) SongsNotInPath(path string) ([]Song, error) {
+	return s.songQuery("SELECT * FROM songs WHERE file_name NOT LIKE ?;", path + "%")
 }
 
 // DeleteSong removes a Song from the database
@@ -421,4 +374,35 @@ func (s *sqliteBackend) SaveSong(a *Song) error {
 	}
 
 	return nil
+}
+
+// songQuery loads a slice of Song structs matching the input query
+func (s *sqliteBackend) songQuery(query string, args ...interface{}) ([]Song, error) {
+	// Open database
+	db, err := s.Open()
+	if err != nil {
+		return nil, err
+	}
+	defer db.Close()
+
+	// Perform input query with arguments
+	rows, err := db.Queryx(query, args...)
+	if err != nil && err != sql.ErrNoRows {
+		return nil, err
+	}
+
+	// Iterate all rows
+	songs := make([]Song, 0)
+	a := Song{}
+	for rows.Next() {
+		// Scan song into struct
+		if err := rows.StructScan(&a); err != nil {
+			return nil, err
+		}
+
+		// Append to list
+		songs = append(songs, a)
+	}
+
+	return songs, nil
 }
