@@ -34,5 +34,5 @@ CREATE TABLE "songs" (
 	"track"         INTEGER,
 	"year"          INTEGER
 );
-CREATE UNIQUE INDEX "songs_unique_fileName_title" ON "songs" ("file_name", "title");
+CREATE UNIQUE INDEX "songs_unique_fileName" ON "songs" ("file_name");
 COMMIT;

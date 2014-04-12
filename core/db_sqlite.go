@@ -313,8 +313,8 @@ func (s *sqliteBackend) DeleteSong(a *Song) error {
 		return tx.Commit()
 	}
 
-	// Else, attempt to remove the song by its file name and title
-	tx.Exec("DELETE FROM songs WHERE file_name = ? AND title = ?;", a.FileName, a.Title)
+	// Else, attempt to remove the song by its file name
+	tx.Exec("DELETE FROM songs WHERE file_name = ?;", a.FileName)
 	return tx.Commit()
 }
 
@@ -336,8 +336,8 @@ func (s *sqliteBackend) LoadSong(a *Song) error {
 		return nil
 	}
 
-	// Load via file name and title
-	if err := db.Get(a, "SELECT * FROM songs WHERE file_name = ? AND title = ?;", a.FileName, a.Title); err != nil {
+	// Load via file name
+	if err := db.Get(a, "SELECT * FROM songs WHERE file_name = ?;", a.FileName); err != nil {
 		return err
 	}
 
