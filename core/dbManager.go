@@ -13,15 +13,17 @@ import (
 type dbBackend interface {
 	Open() (*sqlx.DB, error)
 	DSN(string)
-	AllArtists() ([]*Artist, error)
+	AllArtists() ([]Artist, error)
 	PurgeOrphanArtists() (int, error)
 	LoadArtist(*Artist) error
 	SaveArtist(*Artist) error
-	AllAlbums() ([]*Album, error)
+	AllAlbums() ([]Album, error)
 	PurgeOrphanAlbums() (int, error)
 	LoadAlbum(*Album) error
 	SaveAlbum(*Album) error
-	AllSongs() ([]*Song, error)
+	AllSongs() ([]Song, error)
+	SongsInPath(string) ([]Song, error)
+	DeleteSong(*Song) error
 	LoadSong(*Song) error
 	SaveSong(*Song) error
 }

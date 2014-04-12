@@ -36,7 +36,7 @@ func (s *sqliteBackend) Open() (*sqlx.DB, error) {
 }
 
 // AllArtists loads a slice of all Artist structs from the database
-func (s *sqliteBackend) AllArtists() ([]*Artist, error) {
+func (s *sqliteBackend) AllArtists() ([]Artist, error) {
 	// Open database
 	db, err := s.Open()
 	if err != nil {
@@ -51,11 +51,11 @@ func (s *sqliteBackend) AllArtists() ([]*Artist, error) {
 	}
 
 	// Iterate all rows
-	artists := make([]*Artist, 0)
-	a := new(Artist)
+	artists := make([]Artist, 0)
+	a := Artist{}
 	for rows.Next() {
 		// Scan artist into struct
-		if err := rows.StructScan(a); err != nil {
+		if err := rows.StructScan(&a); err != nil {
 			return nil, err
 		}
 
@@ -159,7 +159,7 @@ func (s *sqliteBackend) SaveArtist(a *Artist) error {
 }
 
 // AllAlbums loads a slice of all Album structs from the database
-func (s *sqliteBackend) AllAlbums() ([]*Album, error) {
+func (s *sqliteBackend) AllAlbums() ([]Album, error) {
 	// Open database
 	db, err := s.Open()
 	if err != nil {
@@ -174,11 +174,11 @@ func (s *sqliteBackend) AllAlbums() ([]*Album, error) {
 	}
 
 	// Iterate all rows
-	albums := make([]*Album, 0)
-	a := new(Album)
+	albums := make([]Album, 0)
+	a := Album{}
 	for rows.Next() {
 		// Scan album into struct
-		if err := rows.StructScan(a); err != nil {
+		if err := rows.StructScan(&a); err != nil {
 			return nil, err
 		}
 
@@ -282,7 +282,7 @@ func (s *sqliteBackend) SaveAlbum(a *Album) error {
 }
 
 // AllSongs loads a slice of all Song structs from the database
-func (s *sqliteBackend) AllSongs() ([]*Song, error) {
+func (s *sqliteBackend) AllSongs() ([]Song, error) {
 	// Open database
 	db, err := s.Open()
 	if err != nil {
@@ -297,11 +297,11 @@ func (s *sqliteBackend) AllSongs() ([]*Song, error) {
 	}
 
 	// Iterate all rows
-	songs := make([]*Song, 0)
-	a := new(Song)
+	songs := make([]Song, 0)
+	a := Song{}
 	for rows.Next() {
 		// Scan song into struct
-		if err := rows.StructScan(a); err != nil {
+		if err := rows.StructScan(&a); err != nil {
 			return nil, err
 		}
 
@@ -312,7 +312,60 @@ func (s *sqliteBackend) AllSongs() ([]*Song, error) {
 	return songs, nil
 }
 
-// LoadSong loads an Song from the database, populating the parameter struct
+// SongsInPath loads a slice of all Song structs residing under the specified
+// filesystem path from the database
+func (s *sqliteBackend) SongsInPath(path string) ([]Song, error) {
+	// Open database
+	db, err := s.Open()
+	if err != nil {
+		return nil, err
+	}
+	defer db.Close()
+
+	// Query for a list of all songs which exist at this path, specifying wildcard after
+	rows, err := db.Queryx("SELECT * FROM songs WHERE file_name LIKE ?;", path + "%")
+	if err != nil && err != sql.ErrNoRows {
+		return nil, err
+	}
+
+	// Iterate all rows
+	songs := make([]Song, 0)
+	a := Song{}
+	for rows.Next() {
+		// Scan song into struct
+		if err := rows.StructScan(&a); err != nil {
+			return nil, err
+		}
+
+		// Append to list
+		songs = append(songs, a)
+	}
+
+	return songs, nil
+}
+
+// DeleteSong removes a Song from the database
+func (s *sqliteBackend) DeleteSong(a *Song) error {
+	// Open database
+	db, err := s.Open()
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	// Attempt to delete this song by its ID, if available
+	tx := db.MustBegin()
+	if a.ID != 0 {
+		tx.Exec("DELETE FROM songs WHERE id = ?;", a.ID)
+		return tx.Commit()
+	}
+
+	// Else, attempt to remove the song by its file name and title
+	tx.Exec("DELETE FROM songs WHERE file_name = ? AND title = ?;", a.FileName, a.Title)
+	return tx.Commit()
+}
+
+// LoadSong loads a Song from the database, populating the parameter struct
 func (s *sqliteBackend) LoadSong(a *Song) error {
 	// Open database
 	db, err := s.Open()
@@ -338,7 +391,7 @@ func (s *sqliteBackend) LoadSong(a *Song) error {
 	return nil
 }
 
-// SaveSong attempts to save an Song to the database
+// SaveSong attempts to save a Song to the database
 func (s *sqliteBackend) SaveSong(a *Song) error {
 	// Open database
 	db, err := s.Open()
