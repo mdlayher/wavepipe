@@ -22,7 +22,7 @@ var validSet = set.New(".ape", ".flac", ".m4a", ".mp3", ".mpc", ".ogg", ".wma", 
 
 // fsTask is the interface which defines a filesystem task, such as a media scan, or an orphan scan
 type fsTask interface {
-	Scan(string, chan struct{}) error
+	Scan(string, string, chan struct{}) error
 }
 
 // fsManager handles fsWalker processes, and communicates back and forth with the manager goroutine
@@ -48,7 +48,8 @@ func fsManager(mediaFolder string, fsKillChan chan struct{}) {
 				cancelQueue <- cancelChan
 
 				// Start the scan
-				if err := task.Scan(mediaFolder, cancelChan); err != nil {
+				// TODO: use actual base folder, actual subfolders from filesystem watcher
+				if err := task.Scan(mediaFolder, "", cancelChan); err != nil {
 					log.Println(err)
 				}
 
@@ -91,7 +92,12 @@ type fsMediaScan struct{}
 
 // Scan scans for media files in a specified path, and queues them up for inclusion
 // in the wavepipe database
-func (fs *fsMediaScan) Scan(mediaFolder string, walkCancelChan chan struct{}) error {
+func (fs *fsMediaScan) Scan(mediaFolder string, subFolder string, walkCancelChan chan struct{}) error {
+	// Media scans are comprehensive, so subfolder has no purpose
+	if subFolder != "" {
+		return errors.New("media scan: subfolder not valid for media scan operation")
+	}
+
 	// Halt walk if needed
 	var mutex sync.RWMutex
 	haltWalk := false
@@ -216,7 +222,7 @@ func (fs *fsMediaScan) Scan(mediaFolder string, walkCancelChan chan struct{}) er
 
 	// Print metrics
 	log.Printf("fs: media scan complete [time: %s]", time.Since(startTime).String())
-	log.Printf("fs: [artists: %d] [albums: %d] [songs: %d]", artistCount, albumCount, songCount)
+	log.Printf("fs: added: [artists: %d] [albums: %d] [songs: %d]", artistCount, albumCount, songCount)
 
 	// No errors
 	return nil
@@ -230,7 +236,18 @@ type fsOrphanScan struct{}
 //   - Artist: no more songs contain this artist's ID
 //   - Album: no more songs contain this album's ID
 //   - Song: song is no longer present in the filesystem
-func (fs *fsOrphanScan) Scan(mediaFolder string, orphanCancelChan chan struct{}) error {
+// The baseFolder is the root location of the media folder.  As wavepipe currently supports only
+// one media folder, any media which does not reside in this folder is orphaned.  If left blank,
+// only the subFolder will be checked.
+// The subFolder is the current file location, under the baseFolder.  This is used to allow for
+// quick scans of a small subsection of the directory, such as on a filesystem change.  Any files
+// which are in the database, but do not exist on disk, will be orphaned and removed.
+func (fs *fsOrphanScan) Scan(baseFolder string, subFolder string, orphanCancelChan chan struct{}) error {
+	// If both folders are empty, there is nothing to do
+	if baseFolder == "" && subFolder == "" {
+		return errors.New("orphan scan: no base folder or subfolder")
+	}
+
 	// Halt scan if needed
 	var mutex sync.RWMutex
 	haltOrphanScan := false
@@ -245,16 +262,91 @@ func (fs *fsOrphanScan) Scan(mediaFolder string, orphanCancelChan chan struct{})
 	}()
 
 	// Track metrics about the scan
-	artistCount := 0
-	albumCount := 0
 	songCount := 0
 	startTime := time.Now()
 
 	log.Println("fs: beginning orphan scan")
 
+	// Check if a baseFolder is set, meaning remove ANYTHING not under this base
+	if baseFolder != "" {
+		log.Println("fs: orphan scanning base folder:", baseFolder)
+		// Scan for all songs in database
+		allSongs, err := db.AllSongs()
+		if err != nil {
+			return err
+		}
+
+		// Generate a set of all songs
+		allSongsSet := set.New()
+		for _, s := range allSongs {
+			allSongsSet.Add(s)
+		}
+
+		// Scan for all media residing within the specified base folder
+		pathSongs, err := db.SongsInPath(baseFolder)
+		if err != nil {
+			return err
+		}
+
+		// Generate a set of path songs
+		pathSongsSet := set.New()
+		for _, s := range pathSongs {
+			pathSongsSet.Add(s)
+		}
+
+		// Remove any songs which are not part of this path
+		diffSongs := allSongsSet.Difference(pathSongsSet)
+		for _, element := range diffSongs.Enumerate() {
+			// Remove song from database
+			s := element.(Song)
+			if err := s.Delete(); err != nil {
+				return err
+			}
+
+			songCount++
+		}
+	}
+
+	// If no subfolder set, use the base folder to check file existence
+	if subFolder == "" {
+		subFolder = baseFolder
+	}
+
+	// Scan for all songs in subfolder
+	log.Println("fs: orphan scanning subfolder:", subFolder)
+	songs, err := db.SongsInPath(subFolder)
+	if err != nil {
+		return err
+	}
+
+	// Iterate all songs in this path
+	for _, s := range songs {
+		// Check that the song still exists in this place
+		if _, err := os.Stat(s.FileName); os.IsNotExist(err) {
+			// Remove song from database
+			if err := s.Delete(); err != nil {
+				return err
+			}
+
+			songCount++
+		}
+	}
+
+	// Now that songs have been purged, check for albums
+	albumCount, err := db.PurgeOrphanAlbums()
+	if err != nil {
+		return nil
+	}
+
+	// Finally, check for artists
+	artistCount, err := db.PurgeOrphanArtists()
+	if err != nil {
+		return nil
+	}
+
 	// Print metrics
 	log.Printf("fs: orphan scan complete [time: %s]", time.Since(startTime).String())
-	log.Printf("fs: [artists: %d] [albums: %d] [songs: %d]", artistCount, albumCount, songCount)
+	log.Printf("fs: removed: [artists: %d] [albums: %d] [songs: %d]", artistCount, albumCount, songCount)
 
 	// No errors
 	return nil
