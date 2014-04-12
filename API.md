@@ -44,3 +44,18 @@ retrieved about a single artist.
 | artists | []Artist | Array of Artist objects returned by the API. |
 | albums | []Album/null | If ID is specified, array of Album objects attached to this artist. |
 | songs | []Song/null | If parameter `songs` is true, array of Song objects attached to this artist.  Value is null if parameter `songs` is false or not specified. |
+
+## Songs
+Used to retrieve information about songs from wavepipe.  If an ID is specified, information will be
+retrieved about a single song.
+
+**URL:** `/api/songs/:id`
+
+**Examples:** `http://localhost:8080/api/songs/`, `http://localhost:8080/api/songs/1`
+
+**Return JSON:**
+
+| Name | Type | Description |
+| :--: | :--: | :---------: |
+| error | Error/null | Information about any errors that occurred.  Value is null if no error occurred. |
+| songs | []Song | Array of Song objects returned by the API. |
