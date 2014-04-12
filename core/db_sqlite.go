@@ -158,6 +158,37 @@ func (s *sqliteBackend) SaveArtist(a *Artist) error {
 	return nil
 }
 
+// AllAlbums loads a slice of all Album structs from the database
+func (s *sqliteBackend) AllAlbums() ([]*Album, error) {
+	// Open database
+	db, err := s.Open()
+	if err != nil {
+		return nil, err
+	}
+	defer db.Close()
+
+	// Query for a list of all albums
+	rows, err := db.Queryx("SELECT * FROM albums;")
+	if err != nil && err != sql.ErrNoRows {
+		return nil, err
+	}
+
+	// Iterate all rows
+	albums := make([]*Album, 0)
+	a := new(Album)
+	for rows.Next() {
+		// Scan album into struct
+		if err := rows.StructScan(a); err != nil {
+			return nil, err
+		}
+
+		// Append to list
+		albums = append(albums, a)
+	}
+
+	return albums, nil
+}
+
 // PurgeOrphanAlbums deletes all albums who are "orphaned", meaning that they no
 // longer have any songs which reference their ID
 func (s *sqliteBackend) PurgeOrphanAlbums() (int, error) {
@@ -248,6 +279,37 @@ func (s *sqliteBackend) SaveAlbum(a *Album) error {
 	}
 
 	return nil
+}
+
+// AllSongs loads a slice of all Song structs from the database
+func (s *sqliteBackend) AllSongs() ([]*Song, error) {
+	// Open database
+	db, err := s.Open()
+	if err != nil {
+		return nil, err
+	}
+	defer db.Close()
+
+	// Query for a list of all songs
+	rows, err := db.Queryx("SELECT * FROM songs;")
+	if err != nil && err != sql.ErrNoRows {
+		return nil, err
+	}
+
+	// Iterate all rows
+	songs := make([]*Song, 0)
+	a := new(Song)
+	for rows.Next() {
+		// Scan song into struct
+		if err := rows.StructScan(a); err != nil {
+			return nil, err
+		}
+
+		// Append to list
+		songs = append(songs, a)
+	}
+
+	return songs, nil
 }
 
 // LoadSong loads an Song from the database, populating the parameter struct
