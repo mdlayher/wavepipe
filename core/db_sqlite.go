@@ -285,16 +285,17 @@ func (s *sqliteBackend) SaveAlbum(a *Album) error {
 func (s *sqliteBackend) AllSongs() ([]Song, error) {
 	return s.songQuery("SELECT * FROM songs;")
 }
+
 // SongsInPath loads a slice of all Song structs residing under the specified
 // filesystem path from the database
 func (s *sqliteBackend) SongsInPath(path string) ([]Song, error) {
-	return s.songQuery("SELECT * FROM songs WHERE file_name LIKE ?;", path + "%")
+	return s.songQuery("SELECT * FROM songs WHERE file_name LIKE ?;", path+"%")
 }
 
 // SongsNotInPath loads a slice of all Song structs that do not reside under the specified
 // filesystem path from the database
 func (s *sqliteBackend) SongsNotInPath(path string) ([]Song, error) {
-	return s.songQuery("SELECT * FROM songs WHERE file_name NOT LIKE ?;", path + "%")
+	return s.songQuery("SELECT * FROM songs WHERE file_name NOT LIKE ?;", path+"%")
 }
 
 // DeleteSong removes a Song from the database

@@ -62,17 +62,17 @@ func SongFromFile(file *taglib.File) (*Song, error) {
 
 	// Copy over fields from TagLib tags and properties, as well as OS information
 	return &Song{
-		Album:        file.Album(),
-		Artist:       artist,
-		Bitrate:      bitrate,
-		Channels:     channels,
-		Comment:      file.Comment(),
-		Genre:        file.Genre(),
-		Length:       length,
-		SampleRate:   sampleRate,
-		Title:        title,
-		Track:        file.Track(),
-		Year:         file.Year(),
+		Album:      file.Album(),
+		Artist:     artist,
+		Bitrate:    bitrate,
+		Channels:   channels,
+		Comment:    file.Comment(),
+		Genre:      file.Genre(),
+		Length:     length,
+		SampleRate: sampleRate,
+		Title:      title,
+		Track:      file.Track(),
+		Year:       file.Year(),
 	}, nil
 }
 
