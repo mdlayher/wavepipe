@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"os/user"
 	"syscall"
 	"time"
 
@@ -21,6 +22,17 @@ func main() {
 	// Set up logging, parse flags
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 	flag.Parse()
+
+	// Check if wavepipe was invoked as root (which is a really bad idea)
+	currUser, err := user.Current()
+	if err != nil {
+		log.Fatal(core.App, ": could not determine current user, exiting")
+	}
+
+	// Check for root
+	if currUser.Uid == "0" || currUser.Gid == "0" || currUser.Username == "root" {
+		log.Fatal(core.App, ": cannot be run as root, exiting")
+	}
 
 	// Check command-line arguments, last one should be the media path to scan
 	if len(os.Args) < 3 || (*testFlag && len(os.Args) < 4) {
