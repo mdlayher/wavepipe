@@ -17,6 +17,7 @@ type dbBackend interface {
 	PurgeOrphanArtists() (int, error)
 	LoadArtist(*Artist) error
 	SaveArtist(*Artist) error
+	PurgeOrphanAlbums() (int, error)
 	LoadAlbum(*Album) error
 	SaveAlbum(*Album) error
 	LoadSong(*Song) error

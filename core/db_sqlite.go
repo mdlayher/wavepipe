@@ -158,6 +158,43 @@ func (s *sqliteBackend) SaveArtist(a *Artist) error {
 	return nil
 }
 
+// PurgeOrphanAlbums deletes all albums who are "orphaned", meaning that they no
+// longer have any songs which reference their ID
+func (s *sqliteBackend) PurgeOrphanAlbums() (int, error) {
+	// Open database
+	db, err := s.Open()
+	if err != nil {
+		return -1, err
+	}
+	defer db.Close()
+
+	// Select all albums without a song referencing their album ID
+	rows, err := db.Queryx("SELECT albums.id FROM albums LEFT JOIN songs ON " +
+		"albums.id = songs.album_id WHERE songs.album_id IS NULL;")
+	if err != nil && err != sql.ErrNoRows {
+		return -1, err
+	}
+
+	// Open a transaction to remove all orphaned albums
+	tx := db.MustBegin()
+
+	// Iterate all rows
+	album := new(Album)
+	total := 0
+	for rows.Next() {
+		// Scan ID into struct
+		if err := rows.StructScan(album); err != nil {
+			return -1, err
+		}
+
+		// Remove album
+		tx.Exec("DELETE FROM albums WHERE id = ?;", album.ID)
+		total++
+	}
+
+	return total, tx.Commit()
+}
+
 // LoadAlbum loads an Album from the database, populating the parameter struct
 func (s *sqliteBackend) LoadAlbum(a *Album) error {
 	// Open database
