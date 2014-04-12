@@ -16,9 +16,22 @@ for consuming that API.
 Installation
 ============
 
-wavepipe can be built using Go 1.1+. It can be downloaded, built, and installed, simply by running:
+wavepipe can be built using Go 1.1+, but also has a dependency on [TagLib](https://github.com/taglib/taglib)
+for its ability to read media metadata.  The TagLib static libraries can be installed on Ubuntu as follows:
+
+`$ sudo apt-get install libtagc0-dev`
+
+Once the TagLib library is installed, wavepipe can be downloaded, built, and installed, simply by running:
 
 `$ go get github.com/mdlayher/wavepipe`
+
+Usage
+=====
+
+At the moment, wavepipe features a very simple command-line interface.  This configuration will eventually be
+replaced by a configuration file, but for the time being, command-line flags can be used for testing.
+
+`$ wavepipe -db=wavepipe.db /media/path`
 
 FAQ
 ===
