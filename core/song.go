@@ -76,6 +76,11 @@ func SongFromFile(file *taglib.File) (*Song, error) {
 	}, nil
 }
 
+// Delete removes an existing Song from the database
+func (s *Song) Delete() error {
+	return db.DeleteSong(s)
+}
+
 // Load pulls an existing Song from the database
 func (s *Song) Load() error {
 	return db.LoadSong(s)
