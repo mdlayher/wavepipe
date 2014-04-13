@@ -3,7 +3,7 @@ wavepipe [![Build Status](https://travis-ci.org/mdlayher/wavepipe.svg?branch=mas
 
 Cross-platform media server, written in Go.  MIT Licensed.
 
-Full documentation may be found on [GoDoc](http://godoc.org/github.com/mdlayher/wavepipe).
+API documentation may be found in [API.md](https://github.com/mdlayher/wavepipe/blob/master/API.md).  Full code documentation may be found on [GoDoc](http://godoc.org/github.com/mdlayher/wavepipe).
 
 wavepipe is a spiritual successor to [WaveBox](https://github.com/einsteinx2/WaveBox), and much of its design
 and ideas are inspired from the WaveBox project.  This being said, wavepipe is an entirely new project, with
