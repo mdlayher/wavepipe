@@ -167,8 +167,9 @@ func (s *sqliteBackend) AllAlbums() ([]Album, error) {
 	}
 	defer db.Close()
 
-	// Query for a list of all albums
-	rows, err := db.Queryx("SELECT * FROM albums;")
+	// Query for a list of all albums, adding artist information via join
+	rows, err := db.Queryx("SELECT albums.*,artists.title AS artist FROM albums " +
+		"JOIN artists ON albums.artist_id = artists.id;")
 	if err != nil && err != sql.ErrNoRows {
 		return nil, err
 	}
@@ -237,7 +238,8 @@ func (s *sqliteBackend) LoadAlbum(a *Album) error {
 
 	// Load the album via ID if available
 	if a.ID != 0 {
-		if err := db.Get(a, "SELECT * FROM albums WHERE id = ?;", a.ID); err != nil {
+		if err := db.Get(a, "SELECT albums.*,artists.title AS artist FROM albums " +
+			"JOIN artists ON albums.artist_id = artists.id WHERE albums.id = ?;", a.ID); err != nil {
 			return err
 		}
 
@@ -245,7 +247,8 @@ func (s *sqliteBackend) LoadAlbum(a *Album) error {
 	}
 
 	// Load via artist ID and title
-	if err := db.Get(a, "SELECT * FROM albums WHERE artist_id = ? AND title = ?;", a.ArtistID, a.Title); err != nil {
+	if err := db.Get(a, "SELECT albums.*,artists.title AS artist FROM albums " +
+		"JOIN artists ON albums.artist_id = artists.id WHERE albums.artist_id = ? AND albums.title = ?;", a.ArtistID, a.Title); err != nil {
 		return err
 	}
 
