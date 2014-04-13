@@ -286,24 +286,31 @@ func (s *sqliteBackend) SaveAlbum(a *Album) error {
 
 // AllSongs loads a slice of all Song structs from the database
 func (s *sqliteBackend) AllSongs() ([]Song, error) {
-	return s.songQuery("SELECT * FROM songs;")
+	return s.songQuery("SELECT songs.*,artists.title AS artist,albums.title AS album FROM songs " +
+		"JOIN artists ON songs.artist_id = artists.id JOIN albums ON songs.album_id = albums.id;")
 }
 
 // SongsForAlbum loads a slice of all Song structs which have the matching album ID
 func (s *sqliteBackend) SongsForAlbum(ID int) ([]Song, error) {
-	return s.songQuery("SELECT * FROM songs WHERE album_id = ?;", ID)
+	return s.songQuery("SELECT songs.*,artists.title AS artist,albums.title AS album FROM songs " +
+		"JOIN artists ON songs.artist_id = artists.id JOIN albums ON songs.album_id = albums.id " +
+		"WHERE songs.album_id = ?;", ID)
 }
 
 // SongsInPath loads a slice of all Song structs residing under the specified
 // filesystem path from the database
 func (s *sqliteBackend) SongsInPath(path string) ([]Song, error) {
-	return s.songQuery("SELECT * FROM songs WHERE file_name LIKE ?;", path+"%")
+	return s.songQuery("SELECT songs.*,artists.title AS artist,albums.title AS album FROM songs " +
+		"JOIN artists ON songs.artist_id = artists.id JOIN albums ON songs.album_id = albums.id " +
+		"WHERE songs.file_name LIKE ?;", path+"%")
 }
 
 // SongsNotInPath loads a slice of all Song structs that do not reside under the specified
 // filesystem path from the database
 func (s *sqliteBackend) SongsNotInPath(path string) ([]Song, error) {
-	return s.songQuery("SELECT * FROM songs WHERE file_name NOT LIKE ?;", path+"%")
+	return s.songQuery("SELECT songs.*,artists.title AS artist,albums.title AS album FROM songs " +
+		"JOIN artists ON songs.artist_id = artists.id JOIN albums ON songs.album_id = albums.id " +
+		"WHERE songs.file_name NOT LIKE ?;", path+"%")
 }
 
 // DeleteSong removes a Song from the database
