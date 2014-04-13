@@ -36,6 +36,9 @@ func apiRouter(apiKillChan chan struct{}) {
 	// Set up API group routes
 	r := martini.NewRouter()
 	r.Group("/api", func(r martini.Router) {
+		// Root API, containing information and help
+		r.Get("", api.APIInfo)
+
 		// Albums API
 		r.Get("/albums", api.GetAlbums)
 		r.Get("/albums/:id", api.GetAlbums)
