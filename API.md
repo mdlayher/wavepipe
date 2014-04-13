@@ -40,10 +40,10 @@ retrieved about a single artist.
 
 | Name | Type | Description |
 | :--: | :--: | :---------: |
-| error | Error/null | Information about any errors that occurred.  Value is null if no error occurred. |
-| artists | []Artist | Array of Artist objects returned by the API. |
-| albums | []Album/null | If ID is specified, array of Album objects attached to this artist. |
-| songs | []Song/null | If parameter `songs` is true, array of Song objects attached to this artist.  Value is null if parameter `songs` is false or not specified. |
+| error | [Error](http://godoc.org/github.com/mdlayher/wavepipe/api#Error)/null | Information about any errors that occurred.  Value is null if no error occurred. |
+| artists | \[\][Artist](http://godoc.org/github.com/mdlayher/wavepipe/data#Artist) | Array of Artist objects returned by the API. |
+| albums | \[\][Album](http://godoc.org/github.com/mdlayher/wavepipe/data#Album)/null | If ID is specified, array of Album objects attached to this artist. |
+| songs | \[\][Song](http://godoc.org/github.com/mdlayher/wavepipe/data#Song)/null | If parameter `songs` is true, array of Song objects attached to this artist.  Value is null if parameter `songs` is false or not specified. |
 
 ## Songs
 Used to retrieve information about songs from wavepipe.  If an ID is specified, information will be
@@ -57,5 +57,5 @@ retrieved about a single song.
 
 | Name | Type | Description |
 | :--: | :--: | :---------: |
-| error | Error/null | Information about any errors that occurred.  Value is null if no error occurred. |
-| songs | []Song | Array of Song objects returned by the API. |
+| error | [Error](http://godoc.org/github.com/mdlayher/wavepipe/api#Error)/null | Information about any errors that occurred.  Value is null if no error occurred. |
+| songs | \[\][Song](http://godoc.org/github.com/mdlayher/wavepipe/data#Song) | Array of Song objects returned by the API. |
