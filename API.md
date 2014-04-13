@@ -53,6 +53,14 @@ retrieved about a single artist.
 | albums | \[\][Album](http://godoc.org/github.com/mdlayher/wavepipe/data#Album)/null | If ID is specified, array of Album objects attached to this artist. |
 | songs | \[\][Song](http://godoc.org/github.com/mdlayher/wavepipe/data#Song)/null | If parameter `songs` is true, array of Song objects attached to this artist.  Value is null if parameter `songs` is false or not specified. |
 
+**Possible errors:**
+
+| Code | Message | Description |
+| :--: | :-----: | :---------: |
+| 400 | invalid integer artist ID | A valid integer could not be parsed from the ID. |
+| 404 | artist ID not found | An artist with the specified ID does not exist. |
+| 500 | server error | An internal error occurred. wavepipe will log these errors to its console log. |
+
 ## Songs
 Used to retrieve information about songs from wavepipe.  If an ID is specified, information will be
 retrieved about a single song.
@@ -67,3 +75,11 @@ retrieved about a single song.
 | :--: | :--: | :---------: |
 | error | [Error](http://godoc.org/github.com/mdlayher/wavepipe/api#Error)/null | Information about any errors that occurred.  Value is null if no error occurred. |
 | songs | \[\][Song](http://godoc.org/github.com/mdlayher/wavepipe/data#Song) | Array of Song objects returned by the API. |
+
+**Possible errors:**
+
+| Code | Message | Description |
+| :--: | :-----: | :---------: |
+| 400 | invalid integer song ID | A valid integer could not be parsed from the ID. |
+| 404 | song ID not found | A song with the specified ID does not exist. |
+| 500 | server error | An internal error occurred. wavepipe will log these errors to its console log. |
