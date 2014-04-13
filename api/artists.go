@@ -14,10 +14,10 @@ import (
 
 // ArtistsResponse represents the JSON response for /api/artists
 type ArtistsResponse struct {
-	Error  *Error       `json:"error"`
+	Error   *Error        `json:"error"`
 	Artists []data.Artist `json:"artists"`
-	Albums []data.Album `json:"albums"`
-	Songs  []data.Song  `json:"songs"`
+	Albums  []data.Album  `json:"albums"`
+	Songs   []data.Song   `json:"songs"`
 }
 
 // GetArtists retrieves one or more artists from wavepipe, and returns a HTTP status and JSON

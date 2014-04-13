@@ -140,7 +140,7 @@ func (s *SqliteBackend) AllAlbums() ([]Album, error) {
 
 // AlbumsForArtist loads a slice of all Album structs with matching artist ID
 func (s *SqliteBackend) AlbumsForArtist(ID int) ([]Album, error) {
-	return s.albumQuery("SELECT albums.*,artists.title AS artist FROM albums " +
+	return s.albumQuery("SELECT albums.*,artists.title AS artist FROM albums "+
 		"JOIN artists ON albums.artist_id = artists.id WHERE albums.artist_id = ?;", ID)
 }
 

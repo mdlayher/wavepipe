@@ -14,7 +14,7 @@ import (
 
 // SongsResponse represents the JSON response for /api/songs
 type SongsResponse struct {
-	Error  *Error       `json:"error"`
+	Error *Error      `json:"error"`
 	Songs []data.Song `json:"songs"`
 }
 
