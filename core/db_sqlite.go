@@ -289,6 +289,11 @@ func (s *sqliteBackend) AllSongs() ([]Song, error) {
 	return s.songQuery("SELECT * FROM songs;")
 }
 
+// SongsForAlbum loads a slice of all Song structs which have the matching album ID
+func (s *sqliteBackend) SongsForAlbum(ID int) ([]Song, error) {
+	return s.songQuery("SELECT * FROM songs WHERE album_id = ?;", ID)
+}
+
 // SongsInPath loads a slice of all Song structs residing under the specified
 // filesystem path from the database
 func (s *sqliteBackend) SongsInPath(path string) ([]Song, error) {

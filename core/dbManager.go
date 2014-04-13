@@ -22,6 +22,7 @@ type dbBackend interface {
 	LoadAlbum(*Album) error
 	SaveAlbum(*Album) error
 	AllSongs() ([]Song, error)
+	SongsForAlbum(int) ([]Song, error)
 	SongsInPath(string) ([]Song, error)
 	SongsNotInPath(string) ([]Song, error)
 	DeleteSong(*Song) error
