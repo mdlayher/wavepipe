@@ -8,6 +8,9 @@ install:
   - sudo apt-get install libtagc0-dev
 before_script:
   - go get github.com/mdlayher/goset
+  - go get github.com/go-martini/martini
+  - go get github.com/martini-contrib/gzip
+  - go get github.com/martini-contrib/render
   - go get github.com/jmoiron/sqlx
   - go get github.com/mattn/go-sqlite3
   - go get github.com/romanoff/fsmonitor
