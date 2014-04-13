@@ -33,6 +33,7 @@ func GetAlbums(r render.Render, params martini.Params) {
 		id, err := strconv.Atoi(pID)
 		if err != nil {
 			res.Error = new(Error)
+			res.Error.Code = http.StatusBadRequest
 			res.Error.Message = "invalid integer album ID"
 			r.JSON(http.StatusBadRequest, res)
 			return
@@ -46,6 +47,7 @@ func GetAlbums(r render.Render, params martini.Params) {
 
 			// Check for invalid ID
 			if err == sql.ErrNoRows {
+				res.Error.Code = http.StatusNotFound
 				res.Error.Message = "album ID not found"
 				r.JSON(http.StatusNotFound, res)
 				return
@@ -53,6 +55,7 @@ func GetAlbums(r render.Render, params martini.Params) {
 
 			// All other errors
 			log.Println(err)
+			res.Error.Code = http.StatusInternalServerError
 			res.Error.Message = "server error"
 			r.JSON(http.StatusInternalServerError, res)
 			return
@@ -63,6 +66,7 @@ func GetAlbums(r render.Render, params martini.Params) {
 		if err != nil {
 			log.Println(err)
 			res.Error = new(Error)
+			res.Error.Code = http.StatusInternalServerError
 			res.Error.Message = "server error"
 			r.JSON(http.StatusInternalServerError, res)
 			return
@@ -79,6 +83,7 @@ func GetAlbums(r render.Render, params martini.Params) {
 		if err != nil {
 			log.Println(err)
 			res.Error = new(Error)
+			res.Error.Code = http.StatusInternalServerError
 			res.Error.Message = "server error"
 			r.JSON(http.StatusInternalServerError, res)
 			return
