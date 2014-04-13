@@ -11,16 +11,21 @@ var DB dbBackend
 type dbBackend interface {
 	Open() (*sqlx.DB, error)
 	DSN(string)
+
 	AllArtists() ([]Artist, error)
 	PurgeOrphanArtists() (int, error)
 	LoadArtist(*Artist) error
 	SaveArtist(*Artist) error
+
 	AllAlbums() ([]Album, error)
+	AlbumsForArtist(int) ([]Album, error)
 	PurgeOrphanAlbums() (int, error)
 	LoadAlbum(*Album) error
 	SaveAlbum(*Album) error
+
 	AllSongs() ([]Song, error)
 	SongsForAlbum(int) ([]Song, error)
+	SongsForArtist(int) ([]Song, error)
 	SongsInPath(string) ([]Song, error)
 	SongsNotInPath(string) ([]Song, error)
 	DeleteSong(*Song) error

@@ -37,33 +37,7 @@ func (s *SqliteBackend) Open() (*sqlx.DB, error) {
 
 // AllArtists loads a slice of all Artist structs from the database
 func (s *SqliteBackend) AllArtists() ([]Artist, error) {
-	// Open database
-	db, err := s.Open()
-	if err != nil {
-		return nil, err
-	}
-	defer db.Close()
-
-	// Query for a list of all artists
-	rows, err := db.Queryx("SELECT * FROM artists;")
-	if err != nil && err != sql.ErrNoRows {
-		return nil, err
-	}
-
-	// Iterate all rows
-	artists := make([]Artist, 0)
-	a := Artist{}
-	for rows.Next() {
-		// Scan artist into struct
-		if err := rows.StructScan(&a); err != nil {
-			return nil, err
-		}
-
-		// Append to list
-		artists = append(artists, a)
-	}
-
-	return artists, nil
+	return s.artistQuery("SELECT * FROM artists;")
 }
 
 // PurgeOrphanArtists deletes all artists who are "orphaned", meaning that they no
@@ -160,34 +134,14 @@ func (s *SqliteBackend) SaveArtist(a *Artist) error {
 
 // AllAlbums loads a slice of all Album structs from the database
 func (s *SqliteBackend) AllAlbums() ([]Album, error) {
-	// Open database
-	db, err := s.Open()
-	if err != nil {
-		return nil, err
-	}
-	defer db.Close()
-
-	// Query for a list of all albums, adding artist information via join
-	rows, err := db.Queryx("SELECT albums.*,artists.title AS artist FROM albums " +
+	return s.albumQuery("SELECT albums.*,artists.title AS artist FROM albums " +
 		"JOIN artists ON albums.artist_id = artists.id;")
-	if err != nil && err != sql.ErrNoRows {
-		return nil, err
-	}
+}
 
-	// Iterate all rows
-	albums := make([]Album, 0)
-	a := Album{}
-	for rows.Next() {
-		// Scan album into struct
-		if err := rows.StructScan(&a); err != nil {
-			return nil, err
-		}
-
-		// Append to list
-		albums = append(albums, a)
-	}
-
-	return albums, nil
+// AlbumsForArtist loads a slice of all Album structs with matching artist ID
+func (s *SqliteBackend) AlbumsForArtist(ID int) ([]Album, error) {
+	return s.albumQuery("SELECT albums.*,artists.title AS artist FROM albums " +
+		"JOIN artists ON albums.artist_id = artists.id WHERE albums.artist_id = ?;", ID)
 }
 
 // PurgeOrphanAlbums deletes all albums who are "orphaned", meaning that they no
@@ -297,6 +251,13 @@ func (s *SqliteBackend) SongsForAlbum(ID int) ([]Song, error) {
 		"WHERE songs.album_id = ?;", ID)
 }
 
+// SongsForArtist loads a slice of all Song structs which have the matching artist ID
+func (s *SqliteBackend) SongsForArtist(ID int) ([]Song, error) {
+	return s.songQuery("SELECT songs.*,artists.title AS artist,albums.title AS album FROM songs "+
+		"JOIN artists ON songs.artist_id = artists.id JOIN albums ON songs.album_id = albums.id "+
+		"WHERE songs.artist_id = ?;", ID)
+}
+
 // SongsInPath loads a slice of all Song structs residing under the specified
 // filesystem path from the database
 func (s *SqliteBackend) SongsInPath(path string) ([]Song, error) {
@@ -390,6 +351,68 @@ func (s *SqliteBackend) SaveSong(a *Song) error {
 	}
 
 	return nil
+}
+
+// albumQuery loads a slice of Album structs matching the input query
+func (s *SqliteBackend) albumQuery(query string, args ...interface{}) ([]Album, error) {
+	// Open database
+	db, err := s.Open()
+	if err != nil {
+		return nil, err
+	}
+	defer db.Close()
+
+	// Perform input query with arguments
+	rows, err := db.Queryx(query, args...)
+	if err != nil && err != sql.ErrNoRows {
+		return nil, err
+	}
+
+	// Iterate all rows
+	albums := make([]Album, 0)
+	a := Album{}
+	for rows.Next() {
+		// Scan album into struct
+		if err := rows.StructScan(&a); err != nil {
+			return nil, err
+		}
+
+		// Append to list
+		albums = append(albums, a)
+	}
+
+	return albums, nil
+}
+
+// artistQuery loads a slice of Artist structs matching the input query
+func (s *SqliteBackend) artistQuery(query string, args ...interface{}) ([]Artist, error) {
+	// Open database
+	db, err := s.Open()
+	if err != nil {
+		return nil, err
+	}
+	defer db.Close()
+
+	// Perform input query with arguments
+	rows, err := db.Queryx(query, args...)
+	if err != nil && err != sql.ErrNoRows {
+		return nil, err
+	}
+
+	// Iterate all rows
+	artists := make([]Artist, 0)
+	a := Artist{}
+	for rows.Next() {
+		// Scan artist into struct
+		if err := rows.StructScan(&a); err != nil {
+			return nil, err
+		}
+
+		// Append to list
+		artists = append(artists, a)
+	}
+
+	return artists, nil
 }
 
 // songQuery loads a slice of Song structs matching the input query
