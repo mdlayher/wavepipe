@@ -22,6 +22,14 @@ retrieved about a single album.
 | albums | \[\][Album](http://godoc.org/github.com/mdlayher/wavepipe/data#Album) | Array of Album objects returned by the API. |
 | songs | \[\][Song](http://godoc.org/github.com/mdlayher/wavepipe/data#Song)/null | If ID is specified, array of Song objects attached to this album.  Value is null if no ID specified. |
 
+**Possible errors:**
+
+| Code | Message | Description |
+| :--: | :-----: | :---------: |
+| 400 | invalid integer album ID | A valid integer could not be parsed from the ID. |
+| 404 | album ID not found | An album with the specified ID does not exist. |
+| 500 | server error | An internal error occurred. wavepipe will log these errors to its console log. |
+
 ## Artists
 Used to retrieve information about artists from wavepipe.  If an ID is specified, information will be
 retrieved about a single artist.
