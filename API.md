@@ -36,7 +36,7 @@ retrieved about a single artist.
 
 **URL:** `/api/artists/:id`
 
-**Examples:** `http://localhost:8080/api/artists/`, `http://localhost:8080/api/artists/1`
+**Examples:** `http://localhost:8080/api/artists/`, `http://localhost:8080/api/artists/1`, `http://localhost:8080/api/artists/1?songs=true`
 
 **Parameters:**
 
