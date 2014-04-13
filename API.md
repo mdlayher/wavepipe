@@ -4,6 +4,9 @@ API
 wavepipe features a simple API which is used to retrieve metadata from media files, as well as endpoints
 to retrieve a file stream from the server.
 
+An information endpoint can be found at the root of the API, `/api`.  This endpoint contains API metadata
+such as the current API version, a link to this documentation, and a list of all currently available API endpoints.
+
 At this time, the API is **unstable**, and is subject to change.
 
 ## Albums
