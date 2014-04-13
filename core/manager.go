@@ -47,8 +47,9 @@ func Manager(killChan chan struct{}, exitChan chan int) {
 	fsKillChan := make(chan struct{})
 	go fsManager(MediaFolder, fsKillChan)
 
-	// Launch HTTP server
-	log.Println("manager: starting HTTP server")
+	// Launch HTTP API server
+	apiKillChan := make(chan struct{})
+	go apiRouter(apiKillChan)
 
 	// Wait for termination signal
 	for {
@@ -56,6 +57,16 @@ func Manager(killChan chan struct{}, exitChan chan int) {
 		// Trigger a graceful shutdown
 		case <-killChan:
 			log.Println("manager: triggering graceful shutdown, press Ctrl+C again to force halt")
+
+			// Stop API, wait for confirmation
+			apiKillChan <- struct{}{}
+			<-apiKillChan
+			close(apiKillChan)
+
+			// Stop filesystem, wait for confirmation
+			fsKillChan <- struct{}{}
+			<-fsKillChan
+			close(fsKillChan)
 
 			// Stop database, wait for confirmation
 			dbKillChan <- struct{}{}
@@ -66,11 +77,6 @@ func Manager(killChan chan struct{}, exitChan chan int) {
 			cronKillChan <- struct{}{}
 			<-cronKillChan
 			close(cronKillChan)
-
-			// Stop filesystem, wait for confirmation
-			fsKillChan <- struct{}{}
-			<-fsKillChan
-			close(fsKillChan)
 
 			// Exit gracefully
 			log.Println("manager: stopped!")
