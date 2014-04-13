@@ -14,9 +14,10 @@ clean:
 # Format and error-check all files
 fmt:
 	go fmt ${WPPATH}
+	go fmt ${WPPATH}/api
 	go fmt ${WPPATH}/core
+	go fmt ${WPPATH}/data
 	golint .
-	golint ./core
 
 # Run all tests
 test:

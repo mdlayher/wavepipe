@@ -14,12 +14,12 @@ import (
 
 // AlbumsResponse represents the JSON response for /api/albums
 type AlbumsResponse struct {
-	Error  *Error `json:"error"`
-	Albums []data.Album   `json:"albums"`
-	Songs  []data.Song    `json:"songs"`
+	Error  *Error       `json:"error"`
+	Albums []data.Album `json:"albums"`
+	Songs  []data.Song  `json:"songs"`
 }
 
-// GAlbums retrieves one or more albums from wavepipe, and returns a HTTP status and JSON
+// GetAlbums retrieves one or more albums from wavepipe, and returns a HTTP status and JSON
 func GetAlbums(r render.Render, params martini.Params) {
 	// Output struct for albums request
 	res := AlbumsResponse{}
