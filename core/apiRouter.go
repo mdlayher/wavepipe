@@ -39,6 +39,10 @@ func apiRouter(apiKillChan chan struct{}) {
 		// Albums API
 		r.Get("/albums", api.GetAlbums)
 		r.Get("/albums/:id", api.GetAlbums)
+
+		// Artists API
+		r.Get("/artists", api.GetArtists)
+		r.Get("/artists/:id", api.GetArtists)
 	})
 
 	// Add router action, start server
