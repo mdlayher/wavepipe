@@ -1,4 +1,4 @@
-package core
+package data
 
 import (
 	"encoding/json"
@@ -78,17 +78,17 @@ func SongFromFile(file *taglib.File) (*Song, error) {
 
 // Delete removes an existing Song from the database
 func (s *Song) Delete() error {
-	return db.DeleteSong(s)
+	return DB.DeleteSong(s)
 }
 
 // Load pulls an existing Song from the database
 func (s *Song) Load() error {
-	return db.LoadSong(s)
+	return DB.LoadSong(s)
 }
 
 // Save creates a new Song in the database
 func (s *Song) Save() error {
-	return db.SaveSong(s)
+	return DB.SaveSong(s)
 }
 
 // ToJSON generates a JSON representation of a Song

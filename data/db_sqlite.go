@@ -1,4 +1,4 @@
-package core
+package data
 
 import (
 	"database/sql"
@@ -9,18 +9,18 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-// sqliteBackend represents a sqlite3-based database backend
-type sqliteBackend struct {
+// SqliteBackend represents a sqlite3-based database backend
+type SqliteBackend struct {
 	Path string
 }
 
 // DSN sets the Path for use with sqlite3
-func (s *sqliteBackend) DSN(path string) {
+func (s *SqliteBackend) DSN(path string) {
 	s.Path = path
 }
 
 // Open opens a new sqlx database connection
-func (s *sqliteBackend) Open() (*sqlx.DB, error) {
+func (s *SqliteBackend) Open() (*sqlx.DB, error) {
 	// Open connection using path
 	db, err := sqlx.Open("sqlite3", s.Path)
 	if err != nil {
@@ -36,7 +36,7 @@ func (s *sqliteBackend) Open() (*sqlx.DB, error) {
 }
 
 // AllArtists loads a slice of all Artist structs from the database
-func (s *sqliteBackend) AllArtists() ([]Artist, error) {
+func (s *SqliteBackend) AllArtists() ([]Artist, error) {
 	// Open database
 	db, err := s.Open()
 	if err != nil {
@@ -68,7 +68,7 @@ func (s *sqliteBackend) AllArtists() ([]Artist, error) {
 
 // PurgeOrphanArtists deletes all artists who are "orphaned", meaning that they no
 // longer have any songs which reference their ID
-func (s *sqliteBackend) PurgeOrphanArtists() (int, error) {
+func (s *SqliteBackend) PurgeOrphanArtists() (int, error) {
 	// Open database
 	db, err := s.Open()
 	if err != nil {
@@ -104,7 +104,7 @@ func (s *sqliteBackend) PurgeOrphanArtists() (int, error) {
 }
 
 // LoadArtist loads an Artist from the database, populating the parameter struct
-func (s *sqliteBackend) LoadArtist(a *Artist) error {
+func (s *SqliteBackend) LoadArtist(a *Artist) error {
 	// Open database
 	db, err := s.Open()
 	if err != nil {
@@ -130,7 +130,7 @@ func (s *sqliteBackend) LoadArtist(a *Artist) error {
 }
 
 // SaveArtist attempts to save an Artist to the database
-func (s *sqliteBackend) SaveArtist(a *Artist) error {
+func (s *SqliteBackend) SaveArtist(a *Artist) error {
 	// Open database
 	db, err := s.Open()
 	if err != nil {
@@ -159,7 +159,7 @@ func (s *sqliteBackend) SaveArtist(a *Artist) error {
 }
 
 // AllAlbums loads a slice of all Album structs from the database
-func (s *sqliteBackend) AllAlbums() ([]Album, error) {
+func (s *SqliteBackend) AllAlbums() ([]Album, error) {
 	// Open database
 	db, err := s.Open()
 	if err != nil {
@@ -192,7 +192,7 @@ func (s *sqliteBackend) AllAlbums() ([]Album, error) {
 
 // PurgeOrphanAlbums deletes all albums who are "orphaned", meaning that they no
 // longer have any songs which reference their ID
-func (s *sqliteBackend) PurgeOrphanAlbums() (int, error) {
+func (s *SqliteBackend) PurgeOrphanAlbums() (int, error) {
 	// Open database
 	db, err := s.Open()
 	if err != nil {
@@ -228,7 +228,7 @@ func (s *sqliteBackend) PurgeOrphanAlbums() (int, error) {
 }
 
 // LoadAlbum loads an Album from the database, populating the parameter struct
-func (s *sqliteBackend) LoadAlbum(a *Album) error {
+func (s *SqliteBackend) LoadAlbum(a *Album) error {
 	// Open database
 	db, err := s.Open()
 	if err != nil {
@@ -256,7 +256,7 @@ func (s *sqliteBackend) LoadAlbum(a *Album) error {
 }
 
 // SaveAlbum attempts to save an Album to the database
-func (s *sqliteBackend) SaveAlbum(a *Album) error {
+func (s *SqliteBackend) SaveAlbum(a *Album) error {
 	// Open database
 	db, err := s.Open()
 	if err != nil {
@@ -285,13 +285,13 @@ func (s *sqliteBackend) SaveAlbum(a *Album) error {
 }
 
 // AllSongs loads a slice of all Song structs from the database
-func (s *sqliteBackend) AllSongs() ([]Song, error) {
+func (s *SqliteBackend) AllSongs() ([]Song, error) {
 	return s.songQuery("SELECT songs.*,artists.title AS artist,albums.title AS album FROM songs " +
 		"JOIN artists ON songs.artist_id = artists.id JOIN albums ON songs.album_id = albums.id;")
 }
 
 // SongsForAlbum loads a slice of all Song structs which have the matching album ID
-func (s *sqliteBackend) SongsForAlbum(ID int) ([]Song, error) {
+func (s *SqliteBackend) SongsForAlbum(ID int) ([]Song, error) {
 	return s.songQuery("SELECT songs.*,artists.title AS artist,albums.title AS album FROM songs "+
 		"JOIN artists ON songs.artist_id = artists.id JOIN albums ON songs.album_id = albums.id "+
 		"WHERE songs.album_id = ?;", ID)
@@ -299,7 +299,7 @@ func (s *sqliteBackend) SongsForAlbum(ID int) ([]Song, error) {
 
 // SongsInPath loads a slice of all Song structs residing under the specified
 // filesystem path from the database
-func (s *sqliteBackend) SongsInPath(path string) ([]Song, error) {
+func (s *SqliteBackend) SongsInPath(path string) ([]Song, error) {
 	return s.songQuery("SELECT songs.*,artists.title AS artist,albums.title AS album FROM songs "+
 		"JOIN artists ON songs.artist_id = artists.id JOIN albums ON songs.album_id = albums.id "+
 		"WHERE songs.file_name LIKE ?;", path+"%")
@@ -307,14 +307,14 @@ func (s *sqliteBackend) SongsInPath(path string) ([]Song, error) {
 
 // SongsNotInPath loads a slice of all Song structs that do not reside under the specified
 // filesystem path from the database
-func (s *sqliteBackend) SongsNotInPath(path string) ([]Song, error) {
+func (s *SqliteBackend) SongsNotInPath(path string) ([]Song, error) {
 	return s.songQuery("SELECT songs.*,artists.title AS artist,albums.title AS album FROM songs "+
 		"JOIN artists ON songs.artist_id = artists.id JOIN albums ON songs.album_id = albums.id "+
 		"WHERE songs.file_name NOT LIKE ?;", path+"%")
 }
 
 // DeleteSong removes a Song from the database
-func (s *sqliteBackend) DeleteSong(a *Song) error {
+func (s *SqliteBackend) DeleteSong(a *Song) error {
 	// Open database
 	db, err := s.Open()
 	if err != nil {
@@ -335,7 +335,7 @@ func (s *sqliteBackend) DeleteSong(a *Song) error {
 }
 
 // LoadSong loads a Song from the database, populating the parameter struct
-func (s *sqliteBackend) LoadSong(a *Song) error {
+func (s *SqliteBackend) LoadSong(a *Song) error {
 	// Open database
 	db, err := s.Open()
 	if err != nil {
@@ -361,7 +361,7 @@ func (s *sqliteBackend) LoadSong(a *Song) error {
 }
 
 // SaveSong attempts to save a Song to the database
-func (s *sqliteBackend) SaveSong(a *Song) error {
+func (s *SqliteBackend) SaveSong(a *Song) error {
 	// Open database
 	db, err := s.Open()
 	if err != nil {
@@ -393,7 +393,7 @@ func (s *sqliteBackend) SaveSong(a *Song) error {
 }
 
 // songQuery loads a slice of Song structs matching the input query
-func (s *sqliteBackend) songQuery(query string, args ...interface{}) ([]Song, error) {
+func (s *SqliteBackend) songQuery(query string, args ...interface{}) ([]Song, error) {
 	// Open database
 	db, err := s.Open()
 	if err != nil {

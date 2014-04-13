@@ -12,6 +12,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/mdlayher/wavepipe/data"
+
 	"github.com/mdlayher/goset"
 	"github.com/romanoff/fsmonitor"
 	"github.com/wtolson/go-taglib"
@@ -223,7 +225,7 @@ func (fs *fsMediaScan) Scan(mediaFolder string, subFolder string, walkCancelChan
 		defer file.Close()
 
 		// Generate a song model from the TagLib file
-		song, err := SongFromFile(file)
+		song, err := data.SongFromFile(file)
 		if err != nil {
 			return err
 		}
@@ -237,7 +239,7 @@ func (fs *fsMediaScan) Scan(mediaFolder string, subFolder string, walkCancelChan
 		song.LastModified = info.ModTime().Unix()
 
 		// Generate an artist model from this song's metadata
-		artist := ArtistFromSong(song)
+		artist := data.ArtistFromSong(song)
 
 		// Check for existing artist
 		// Note: if the artist exists, this operation also loads necessary scanning information
@@ -253,7 +255,7 @@ func (fs *fsMediaScan) Scan(mediaFolder string, subFolder string, walkCancelChan
 		}
 
 		// Generate the album model from this song's metadata
-		album := AlbumFromSong(song)
+		album := data.AlbumFromSong(song)
 		album.ArtistID = artist.ID
 
 		// Check for existing album
@@ -358,7 +360,7 @@ func (fs *fsOrphanScan) Scan(baseFolder string, subFolder string, orphanCancelCh
 		log.Println("fs: orphan scanning base folder:", baseFolder)
 
 		// Scan for all songs NOT under the base folder
-		songs, err := db.SongsNotInPath(baseFolder)
+		songs, err := data.DB.SongsNotInPath(baseFolder)
 		if err != nil {
 			return err
 		}
@@ -381,7 +383,7 @@ func (fs *fsOrphanScan) Scan(baseFolder string, subFolder string, orphanCancelCh
 
 	// Scan for all songs in subfolder
 	log.Println("fs: orphan scanning subfolder:", subFolder)
-	songs, err := db.SongsInPath(subFolder)
+	songs, err := data.DB.SongsInPath(subFolder)
 	if err != nil {
 		return err
 	}
@@ -400,13 +402,13 @@ func (fs *fsOrphanScan) Scan(baseFolder string, subFolder string, orphanCancelCh
 	}
 
 	// Now that songs have been purged, check for albums
-	albumCount, err := db.PurgeOrphanAlbums()
+	albumCount, err := data.DB.PurgeOrphanAlbums()
 	if err != nil {
 		return nil
 	}
 
 	// Finally, check for artists
-	artistCount, err := db.PurgeOrphanArtists()
+	artistCount, err := data.DB.PurgeOrphanArtists()
 	if err != nil {
 		return nil
 	}

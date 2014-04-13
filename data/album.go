@@ -1,4 +1,4 @@
-package core
+package data
 
 import (
 	"encoding/json"
@@ -26,12 +26,12 @@ func AlbumFromSong(song *Song) *Album {
 
 // Load pulls an existing Album from the database
 func (a *Album) Load() error {
-	return db.LoadAlbum(a)
+	return DB.LoadAlbum(a)
 }
 
 // Save creates a new Album in the database
 func (a *Album) Save() error {
-	return db.SaveAlbum(a)
+	return DB.SaveAlbum(a)
 }
 
 // ToJSON generates a JSON representation of an Album

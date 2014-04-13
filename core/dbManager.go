@@ -3,35 +3,8 @@ package core
 import (
 	"log"
 
-	"github.com/jmoiron/sqlx"
-
-	// Include sqlite3 driver
-	_ "github.com/mattn/go-sqlite3"
+	"github.com/mdlayher/wavepipe/data"
 )
-
-// dbBackend represents the database backend that the program will connect to
-type dbBackend interface {
-	Open() (*sqlx.DB, error)
-	DSN(string)
-	AllArtists() ([]Artist, error)
-	PurgeOrphanArtists() (int, error)
-	LoadArtist(*Artist) error
-	SaveArtist(*Artist) error
-	AllAlbums() ([]Album, error)
-	PurgeOrphanAlbums() (int, error)
-	LoadAlbum(*Album) error
-	SaveAlbum(*Album) error
-	AllSongs() ([]Song, error)
-	SongsForAlbum(int) ([]Song, error)
-	SongsInPath(string) ([]Song, error)
-	SongsNotInPath(string) ([]Song, error)
-	DeleteSong(*Song) error
-	LoadSong(*Song) error
-	SaveSong(*Song) error
-}
-
-// db is the current database backend
-var db dbBackend
 
 // dbManager manages database connections, and communicates back and forth with the manager goroutine
 func dbManager(dbPath string, dbKillChan chan struct{}) {
@@ -39,8 +12,8 @@ func dbManager(dbPath string, dbKillChan chan struct{}) {
 
 	// Attempt to open database connection
 	if dbPath != "" {
-		db = new(sqliteBackend)
-		db.DSN(dbPath)
+		data.DB = new(data.SqliteBackend)
+		data.DB.DSN(dbPath)
 	}
 
 	// Trigger events via channel

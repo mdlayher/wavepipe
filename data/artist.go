@@ -1,4 +1,4 @@
-package core
+package data
 
 import (
 	"encoding/json"
@@ -22,12 +22,12 @@ func ArtistFromSong(song *Song) *Artist {
 
 // Load pulls an existing Artist from the database
 func (a *Artist) Load() error {
-	return db.LoadArtist(a)
+	return DB.LoadArtist(a)
 }
 
 // Save creates a new Artist in the database
 func (a *Artist) Save() error {
-	return db.SaveArtist(a)
+	return DB.SaveArtist(a)
 }
 
 // ToJSON generates a JSON representation of an Artist
