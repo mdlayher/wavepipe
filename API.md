@@ -18,9 +18,9 @@ retrieved about a single album.
 
 | Name | Type | Description |
 | :--: | :--: | :---------: |
-| error | Error/null | Information about any errors that occurred.  Value is null if no error occurred. |
-| albums | []Album | Array of Album objects returned by the API. |
-| songs | []Song/null | If ID is specified, array of Song objects attached to this album.  Value is null if no ID specified. |
+| error | [Error](http://godoc.org/github.com/mdlayher/wavepipe/api#Error)/null | Information about any errors that occurred.  Value is null if no error occurred. |
+| albums | \[\][Album](http://godoc.org/github.com/mdlayher/wavepipe/data#Album) | Array of Album objects returned by the API. |
+| songs | \[\][Song](http://godoc.org/github.com/mdlayher/wavepipe/data#Song)/null | If ID is specified, array of Song objects attached to this album.  Value is null if no ID specified. |
 
 ## Artists
 Used to retrieve information about artists from wavepipe.  If an ID is specified, information will be
