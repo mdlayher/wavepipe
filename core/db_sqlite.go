@@ -238,7 +238,7 @@ func (s *sqliteBackend) LoadAlbum(a *Album) error {
 
 	// Load the album via ID if available
 	if a.ID != 0 {
-		if err := db.Get(a, "SELECT albums.*,artists.title AS artist FROM albums " +
+		if err := db.Get(a, "SELECT albums.*,artists.title AS artist FROM albums "+
 			"JOIN artists ON albums.artist_id = artists.id WHERE albums.id = ?;", a.ID); err != nil {
 			return err
 		}
@@ -247,7 +247,7 @@ func (s *sqliteBackend) LoadAlbum(a *Album) error {
 	}
 
 	// Load via artist ID and title
-	if err := db.Get(a, "SELECT albums.*,artists.title AS artist FROM albums " +
+	if err := db.Get(a, "SELECT albums.*,artists.title AS artist FROM albums "+
 		"JOIN artists ON albums.artist_id = artists.id WHERE albums.artist_id = ? AND albums.title = ?;", a.ArtistID, a.Title); err != nil {
 		return err
 	}
@@ -292,24 +292,24 @@ func (s *sqliteBackend) AllSongs() ([]Song, error) {
 
 // SongsForAlbum loads a slice of all Song structs which have the matching album ID
 func (s *sqliteBackend) SongsForAlbum(ID int) ([]Song, error) {
-	return s.songQuery("SELECT songs.*,artists.title AS artist,albums.title AS album FROM songs " +
-		"JOIN artists ON songs.artist_id = artists.id JOIN albums ON songs.album_id = albums.id " +
+	return s.songQuery("SELECT songs.*,artists.title AS artist,albums.title AS album FROM songs "+
+		"JOIN artists ON songs.artist_id = artists.id JOIN albums ON songs.album_id = albums.id "+
 		"WHERE songs.album_id = ?;", ID)
 }
 
 // SongsInPath loads a slice of all Song structs residing under the specified
 // filesystem path from the database
 func (s *sqliteBackend) SongsInPath(path string) ([]Song, error) {
-	return s.songQuery("SELECT songs.*,artists.title AS artist,albums.title AS album FROM songs " +
-		"JOIN artists ON songs.artist_id = artists.id JOIN albums ON songs.album_id = albums.id " +
+	return s.songQuery("SELECT songs.*,artists.title AS artist,albums.title AS album FROM songs "+
+		"JOIN artists ON songs.artist_id = artists.id JOIN albums ON songs.album_id = albums.id "+
 		"WHERE songs.file_name LIKE ?;", path+"%")
 }
 
 // SongsNotInPath loads a slice of all Song structs that do not reside under the specified
 // filesystem path from the database
 func (s *sqliteBackend) SongsNotInPath(path string) ([]Song, error) {
-	return s.songQuery("SELECT songs.*,artists.title AS artist,albums.title AS album FROM songs " +
-		"JOIN artists ON songs.artist_id = artists.id JOIN albums ON songs.album_id = albums.id " +
+	return s.songQuery("SELECT songs.*,artists.title AS artist,albums.title AS album FROM songs "+
+		"JOIN artists ON songs.artist_id = artists.id JOIN albums ON songs.album_id = albums.id "+
 		"WHERE songs.file_name NOT LIKE ?;", path+"%")
 }
 
