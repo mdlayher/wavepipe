@@ -111,7 +111,14 @@ func (s *SqliteBackend) Open() (*sqlx.DB, error) {
 	}
 
 	// Performance tuning
+
+	// Do not wait for OS to respond to data write to disk
 	if _, err := db.Exec("PRAGMA synchronous = OFF;"); err != nil {
+		return nil, err
+	}
+
+	// Keep rollback journal in memory, instead of on disk
+	if _, err := db.Exec("PRAGMA journal_mode = MEMORY;"); err != nil {
 		return nil, err
 	}
 
@@ -410,7 +417,9 @@ func (s *SqliteBackend) LoadSong(a *Song) error {
 
 	// Load the song via ID if available
 	if a.ID != 0 {
-		if err := db.Get(a, "SELECT * FROM songs WHERE id = ?;", a.ID); err != nil {
+		if err := db.Get(a, "SELECT songs.*,artists.title AS artist,albums.title AS album FROM songs "+
+			"JOIN artists ON songs.artist_id = artists.id JOIN albums ON songs.album_id = albums.id "+
+			"WHERE songs.id = ?;", a.ID); err != nil {
 			return err
 		}
 
@@ -418,7 +427,9 @@ func (s *SqliteBackend) LoadSong(a *Song) error {
 	}
 
 	// Load via file name
-	if err := db.Get(a, "SELECT * FROM songs WHERE file_name = ?;", a.FileName); err != nil {
+	if err := db.Get(a, "SELECT songs.*,artists.title AS artist,albums.title AS album FROM songs "+
+		"JOIN artists ON songs.artist_id = artists.id JOIN albums ON songs.album_id = albums.id "+
+		"WHERE songs.file_name = ?;", a.FileName); err != nil {
 		return err
 	}
 
