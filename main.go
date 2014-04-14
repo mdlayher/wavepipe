@@ -26,9 +26,9 @@ func main() {
 		log.Fatal(core.App, ": could not determine current user, exiting")
 	}
 
-	// Check for root
+	// Check for root, notify user if so
 	if currUser.Uid == "0" || currUser.Gid == "0" || currUser.Username == "root" {
-		log.Fatal(core.App, ": cannot be run as root, exiting")
+		log.Println(core.App, ": WARNING, it is NOT advisable to run wavepipe as root!")
 	}
 
 	// Set configuration path
