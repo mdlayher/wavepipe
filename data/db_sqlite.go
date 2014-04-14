@@ -167,6 +167,27 @@ func (s *SqliteBackend) PurgeOrphanArtists() (int, error) {
 	return total, tx.Commit()
 }
 
+// DeleteArtist removes an Artist from the database
+func (s *SqliteBackend) DeleteArtist(a *Artist) error {
+	// Open database
+	db, err := s.Open()
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	// Attempt to delete this artist by its ID, if available
+	tx := db.MustBegin()
+	if a.ID != 0 {
+		tx.Exec("DELETE FROM artists WHERE id = ?;", a.ID)
+		return tx.Commit()
+	}
+
+	// Else, attempt to remove the artist by its title
+	tx.Exec("DELETE FROM artists WHERE title = ?;", a.Title)
+	return tx.Commit()
+}
+
 // LoadArtist loads an Artist from the database, populating the parameter struct
 func (s *SqliteBackend) LoadArtist(a *Artist) error {
 	// Open database

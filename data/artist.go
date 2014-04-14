@@ -20,6 +20,11 @@ func ArtistFromSong(song *Song) *Artist {
 	}
 }
 
+// Delete removes an existing Artist from the database
+func (a *Artist) Delete() error {
+	return DB.DeleteArtist(a)
+}
+
 // Load pulls an existing Artist from the database
 func (a *Artist) Load() error {
 	return DB.LoadArtist(a)

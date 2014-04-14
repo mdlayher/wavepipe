@@ -15,6 +15,7 @@ type dbBackend interface {
 
 	AllArtists() ([]Artist, error)
 	PurgeOrphanArtists() (int, error)
+	DeleteArtist(*Artist) error
 	LoadArtist(*Artist) error
 	SaveArtist(*Artist) error
 
