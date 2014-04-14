@@ -111,7 +111,14 @@ func (s *SqliteBackend) Open() (*sqlx.DB, error) {
 	}
 
 	// Performance tuning
+
+	// Do not wait for OS to respond to data write to disk
 	if _, err := db.Exec("PRAGMA synchronous = OFF;"); err != nil {
+		return nil, err
+	}
+
+	// Keep rollback journal in memory, instead of on disk
+	if _, err := db.Exec("PRAGMA journal_mode = MEMORY;"); err != nil {
 		return nil, err
 	}
 
