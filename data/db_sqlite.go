@@ -2,6 +2,13 @@ package data
 
 import (
 	"database/sql"
+	"errors"
+	"io"
+	"log"
+	"os"
+	"os/user"
+	"path"
+	"strings"
 
 	"github.com/jmoiron/sqlx"
 
@@ -16,7 +23,80 @@ type SqliteBackend struct {
 
 // DSN sets the Path for use with sqlite3
 func (s *SqliteBackend) DSN(path string) {
-	s.Path = path
+	// Get current user
+	user, err := user.Current()
+	if err != nil {
+		log.Println(err)
+		s.Path = path
+		return
+	}
+
+	// Replace the home character to set path
+	s.Path = strings.Replace(path, "~", user.HomeDir, -1)
+}
+
+// Setup copies the empty sqlite database into the wavepipe configuration directory
+func (s *SqliteBackend) Setup() error {
+	// Check for configuration at this path
+	_, err := os.Stat(s.Path)
+	if err == nil {
+		// Database file exists
+		return nil
+	}
+
+	// If error is something other than file not exists, return
+	if !os.IsNotExist(err) {
+		return err
+	}
+
+	// Get current user
+	user, err := user.Current()
+	if err != nil {
+		return err
+	}
+
+	// Only create file if it's in the default location
+	if s.Path != user.HomeDir + "/.config/wavepipe/wavepipe.db" {
+		return errors.New("db: cannot create database file: "+s.Path)
+	}
+
+	log.Println("db: creating new database file:", s.Path)
+
+	// Create a new config file in the default location
+	dir := path.Dir(s.Path) + "/"
+	file := path.Base(s.Path)
+
+	// Make directory
+	if err := os.MkdirAll(dir, 0775); err != nil {
+		return err
+	}
+
+	// Attempt to open database
+	src, err := os.Open(os.Getenv("GOPATH") + "src/github.com/mdlayher/wavepipe/res/sqlite/" + file)
+	if err != nil {
+		return err
+	}
+
+	// Attempt to open destination
+	dest, err := os.Create(dir + file)
+	if err != nil {
+		return err
+	}
+
+	// Copy contents into destination
+	if _, err := io.Copy(dest, src); err != nil {
+		return err
+	}
+
+	// Close files
+	if err := src.Close(); err != nil {
+		return err
+	}
+	if err := dest.Close(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Open opens a new sqlx database connection

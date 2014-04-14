@@ -10,6 +10,7 @@ var DB dbBackend
 // dbBackend represents the database backend that the program will connect to
 type dbBackend interface {
 	Open() (*sqlx.DB, error)
+	Setup() error
 	DSN(string)
 
 	AllArtists() ([]Artist, error)
