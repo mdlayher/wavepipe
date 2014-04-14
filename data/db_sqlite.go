@@ -56,8 +56,8 @@ func (s *SqliteBackend) Setup() error {
 	}
 
 	// Only create file if it's in the default location
-	if s.Path != user.HomeDir + "/.config/wavepipe/wavepipe.db" {
-		return errors.New("db: cannot create database file: "+s.Path)
+	if s.Path != user.HomeDir+"/.config/wavepipe/wavepipe.db" {
+		return errors.New("db: cannot create database file: " + s.Path)
 	}
 
 	log.Println("db: creating new database file:", s.Path)

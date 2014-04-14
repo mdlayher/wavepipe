@@ -28,7 +28,7 @@ func (c Config) Media() string {
 }
 
 // DefaultConfig is the default JSON configuration for wavepipe
-var DefaultConfig []byte = []byte(`{
+var DefaultConfig = []byte(`{
 	"port": 8080,
 	"mediaFolder": "",
 	"sqlite": {
