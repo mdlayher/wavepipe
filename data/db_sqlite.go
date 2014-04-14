@@ -71,8 +71,11 @@ func (s *SqliteBackend) Setup() error {
 		return err
 	}
 
+	// Grab GOPATH, use only the first path
+	gopath := strings.Split(os.Getenv("GOPATH"), ":")[0]
+
 	// Attempt to open database
-	src, err := os.Open(os.Getenv("GOPATH") + "src/github.com/mdlayher/wavepipe/res/sqlite/" + file)
+	src, err := os.Open(gopath + "/src/github.com/mdlayher/wavepipe/res/sqlite/" + file)
 	if err != nil {
 		return err
 	}
