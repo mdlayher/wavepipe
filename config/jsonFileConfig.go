@@ -78,8 +78,14 @@ func (c *JSONFileConfig) Use(configPath string) error {
 			return err
 		}
 
+		// Choose a config to copy, either regular or Travis build
+		configBuf := DefaultConfig
+		if os.Getenv("WAVEPIPE_TEST") == "1" {
+			configBuf = TravisConfig
+		}
+
 		// Copy contents into destination
-		if _, err := dest.Write(DefaultConfig); err != nil {
+		if _, err := dest.Write(configBuf); err != nil {
 			return err
 		}
 

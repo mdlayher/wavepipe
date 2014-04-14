@@ -36,6 +36,15 @@ var DefaultConfig = []byte(`{
 	}
 }`)
 
+// TravisConfig is the JSON configuration used for Travis builds
+var TravisConfig = []byte(`{
+	"port": 8080,
+	"mediaFolder": "/mem/",
+	"sqlite": {
+		"file": "~/.config/wavepipe/wavepipe.db"
+	}
+}`)
+
 // SqliteConfig represents configuration for an sqlite backend
 type SqliteConfig struct {
 	File string `json:"file"`
