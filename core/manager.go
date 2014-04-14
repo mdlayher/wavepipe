@@ -2,7 +2,10 @@ package core
 
 import (
 	"log"
+	"os"
 	"time"
+
+	"github.com/mdlayher/wavepipe/config"
 )
 
 // App is the application's name
@@ -11,13 +14,8 @@ const App = "wavepipe"
 // Version is the application's version
 const Version = "git-master"
 
-// DBPath is the path to the sqlite3 database
-// TODO: remove this for config
-var DBPath string
-
-// MediaFolder is the folder which we will recursively scan for media
-// TODO: remove this for config
-var MediaFolder string
+// ConfigPath is the application's configuration path
+var ConfigPath string
 
 // StartTime is the application's starting UNIX timestamp
 var StartTime = time.Now().Unix()
@@ -34,18 +32,37 @@ func Manager(killChan chan struct{}, exitChan chan int) {
 		log.Printf("manager: %s - %s_%s (%d CPU) [pid: %d]", stat.Hostname, stat.Platform, stat.Architecture, stat.NumCPU, stat.PID)
 	}
 
+	// Set configuration (if default path used, config will be created)
+	jsonConfig := config.JSONFileConfig{}
+	if err := jsonConfig.Use(ConfigPath); err != nil {
+		log.Fatalf("manager: could not use config: %s, %s", ConfigPath, err.Error())
+	}
+
+	// Load configuration from specified source
+	conf, err := jsonConfig.Load()
+	if err != nil {
+		log.Fatalf("manager: could not load config: %s, %s", ConfigPath, err.Error())
+	}
+
+	// Check valid media folder
+	folder := conf.Media()
+	if folder == "" {
+		log.Fatalf("manager: no media folder set in config: %s", ConfigPath)
+	} else if _, err := os.Stat(folder); err != nil {
+		log.Fatalf("manager: invalid media folder set in config: %s", err.Error())
+	}
+
 	// Launch database manager to handle database/ORM connections
 	dbKillChan := make(chan struct{})
-	go dbManager(DBPath, dbKillChan)
+	go dbManager(*conf, dbKillChan)
 
 	// Launch cron manager to handle timed events
 	cronKillChan := make(chan struct{})
 	go cronManager(cronKillChan)
 
 	// Launch filesystem manager to handle file scanning
-	// TODO: make this an actual path later on via configuration
 	fsKillChan := make(chan struct{})
-	go fsManager(MediaFolder, fsKillChan)
+	go fsManager(folder, fsKillChan)
 
 	// Launch HTTP API server
 	apiKillChan := make(chan struct{})
