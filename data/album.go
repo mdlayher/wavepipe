@@ -24,6 +24,11 @@ func AlbumFromSong(song *Song) *Album {
 	}
 }
 
+// Delete removes an existing Album from the database
+func (a *Album) Delete() error {
+	return DB.DeleteAlbum(a)
+}
+
 // Load pulls an existing Album from the database
 func (a *Album) Load() error {
 	return DB.LoadAlbum(a)

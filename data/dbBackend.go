@@ -20,6 +20,7 @@ type dbBackend interface {
 	AllAlbums() ([]Album, error)
 	AlbumsForArtist(int) ([]Album, error)
 	PurgeOrphanAlbums() (int, error)
+	DeleteAlbum(*Album) error
 	LoadAlbum(*Album) error
 	SaveAlbum(*Album) error
 

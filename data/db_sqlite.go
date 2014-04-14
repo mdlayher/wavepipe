@@ -181,6 +181,27 @@ func (s *SqliteBackend) PurgeOrphanAlbums() (int, error) {
 	return total, tx.Commit()
 }
 
+// DeleteAlbum removes a Album from the database
+func (s *SqliteBackend) DeleteAlbum(a *Album) error {
+	// Open database
+	db, err := s.Open()
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	// Attempt to delete this album by its ID, if available
+	tx := db.MustBegin()
+	if a.ID != 0 {
+		tx.Exec("DELETE FROM albums WHERE id = ?;", a.ID)
+		return tx.Commit()
+	}
+
+	// Else, attempt to remove the album by its artist ID and title
+	tx.Exec("DELETE FROM albums WHERE artist_id = ? AND title = ?;", a.ArtistID, a.Title)
+	return tx.Commit()
+}
+
 // LoadAlbum loads an Album from the database, populating the parameter struct
 func (s *SqliteBackend) LoadAlbum(a *Album) error {
 	// Open database
