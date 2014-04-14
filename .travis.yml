@@ -17,5 +17,13 @@ before_script:
   - go get github.com/wtolson/go-taglib
 script:
   - make
-  - ./bin/wavepipe -test
+  - ./bin/wavepipe -test &
+  - curl http://localhost:8080/api
+  - curl http://localhost:8080/api/albums
+  - curl http://localhost:8080/api/albums/1
+  - curl http://localhost:8080/api/artists
+  - curl http://localhost:8080/api/artists/1
+  - curl http://localhost:8080/api/songs
+  - curl http://localhost:8080/api/songs/1
+  - sleep 12
   - make test
