@@ -13,7 +13,7 @@ const APIVersion = "v0"
 const APIDocumentation = "https://github.com/mdlayher/wavepipe/blob/master/API.md"
 
 // endpoints is the current list of supported API endpoints
-var endpoints []string = []string{
+var endpoints = []string{
 	"/api/albums",
 	"/api/artists",
 	"/api/songs",
