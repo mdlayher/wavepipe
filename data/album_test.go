@@ -6,10 +6,10 @@ import (
 
 // Mock album
 var album = Album{
-	Artist: "TestArtist",
+	Artist:   "TestArtist",
 	ArtistID: 1,
-	Title: "TestAlbum",
-	Year: 2014,
+	Title:    "TestAlbum",
+	Year:     2014,
 }
 
 // TestAlbumDatabase verifies that an Album can be saved and loaded from the database
