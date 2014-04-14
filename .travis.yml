@@ -17,5 +17,5 @@ before_script:
   - go get github.com/wtolson/go-taglib
 script:
   - make
-  - make test
   - ./bin/wavepipe -test
+  - make test
