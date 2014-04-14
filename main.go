@@ -37,6 +37,9 @@ func main() {
 	// Application entry point
 	log.Println(core.App, ": starting...")
 
+	// Gracefully handle termination via UNIX signal
+	sigChan := make(chan os.Signal, 1)
+
 	// In test mode, wait for a short time, then invoke a signal shutdown
 	if *testFlag {
 		// Set an environment variable to enable mocking in other areas of the program
@@ -59,9 +62,6 @@ func main() {
 	killChan := make(chan struct{})
 	exitChan := make(chan int)
 	go core.Manager(killChan, exitChan)
-
-	// Gracefully handle termination via UNIX signal
-	sigChan := make(chan os.Signal, 1)
 
 	// Trigger a shutdown if SIGINT or SIGTERM received
 	signal.Notify(sigChan, os.Interrupt)
