@@ -44,12 +44,16 @@ func Manager(killChan chan struct{}, exitChan chan int) {
 		log.Fatalf("manager: could not load config: %s, %s", ConfigPath, err.Error())
 	}
 
-	// Check valid media folder
+	// Check valid media folder, unless in test mode
 	folder := conf.Media()
-	if folder == "" {
-		log.Fatalf("manager: no media folder set in config: %s", ConfigPath)
-	} else if _, err := os.Stat(folder); err != nil {
-		log.Fatalf("manager: invalid media folder set in config: %s", err.Error())
+	if os.Getenv("WAVEPIPE_TEST") != "1" {
+		// Check empty folder
+		if folder == "" {
+			log.Fatalf("manager: no media folder set in config: %s", ConfigPath)
+		} else if _, err := os.Stat(folder); err != nil {
+			// Check file existence
+			log.Fatalf("manager: invalid media folder set in config: %s", err.Error())
+		}
 	}
 
 	// Launch database manager to handle database/ORM connections
