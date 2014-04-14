@@ -14,19 +14,19 @@ type memFileSource struct{}
 // mockFiles is a slice of mock files to index
 var mockFiles = []data.Song{
 	data.Song{
-		Album: "Album",
-		Artist: "Artist",
-		Bitrate: 320,
-		Channels: 2,
-		FileName: "/mem/artist - song.mp3",
-		FileSize: 1000,
-		FileType: "MP3",
+		Album:        "Album",
+		Artist:       "Artist",
+		Bitrate:      320,
+		Channels:     2,
+		FileName:     "/mem/artist - song.mp3",
+		FileSize:     1000,
+		FileType:     "MP3",
 		LastModified: time.Now().Unix(),
-		Length: 60,
-		SampleRate: 44100,
-		Title: "song",
-		Track: 1,
-		Year: 2014,
+		Length:       60,
+		SampleRate:   44100,
+		Title:        "song",
+		Track:        1,
+		Year:         2014,
 	},
 }
 
