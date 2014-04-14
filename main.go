@@ -47,12 +47,12 @@ func main() {
 
 	// In test mode, wait for a short time, then invoke a signal shutdown
 	if *testFlag {
-		go func() {
-			// Set an environment variable to enable mocking in other areas of the program
-			if err := os.Setenv("WAVEPIPE_TEST", "1"); err != nil {
-				log.Println(err)
-			}
+		// Set an environment variable to enable mocking in other areas of the program
+		if err := os.Setenv("WAVEPIPE_TEST", "1"); err != nil {
+			log.Println(err)
+		}
 
+		go func() {
 			// Wait 5 seconds, to allow reasonable startup time
 			seconds := 5
 			log.Println(core.App, ": started in test mode, stopping in", seconds, "seconds.")
