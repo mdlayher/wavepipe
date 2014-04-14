@@ -18,6 +18,7 @@ before_script:
 script:
   - make
   - ./bin/wavepipe -test &
+  - sleep 5
   - curl http://localhost:8080/api
   - curl http://localhost:8080/api/albums
   - curl http://localhost:8080/api/albums/1
@@ -25,5 +26,5 @@ script:
   - curl http://localhost:8080/api/artists/1
   - curl http://localhost:8080/api/songs
   - curl http://localhost:8080/api/songs/1
-  - sleep 12
+  - sleep 10
   - make test
