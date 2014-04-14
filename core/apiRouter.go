@@ -66,7 +66,7 @@ func apiRouter(apiKillChan chan struct{}) {
 
 		// Start server
 		log.Println("api: listening on port", conf.Port)
-		if err := http.ListenAndServe(":" + strconv.Itoa(conf.Port), m); err != nil {
+		if err := http.ListenAndServe(":"+strconv.Itoa(conf.Port), m); err != nil {
 			log.Println(err)
 		}
 	}()
