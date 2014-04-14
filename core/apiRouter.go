@@ -3,8 +3,10 @@ package core
 import (
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/mdlayher/wavepipe/api"
+	"github.com/mdlayher/wavepipe/config"
 
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/gzip"
@@ -53,10 +55,18 @@ func apiRouter(apiKillChan chan struct{}) {
 	})
 
 	// Add router action, start server
-	// TODO: use port from configuration
 	m.Action(r.Handle)
 	go func() {
-		if err := http.ListenAndServe(":8080", m); err != nil {
+		// Load config
+		conf, err := config.C.Load()
+		if err != nil {
+			log.Println(err)
+			return
+		}
+
+		// Start server
+		log.Println("api: listening on port", conf.Port)
+		if err := http.ListenAndServe(":" + strconv.Itoa(conf.Port), m); err != nil {
 			log.Println(err)
 		}
 	}()

@@ -6,6 +6,9 @@ import (
 	"strings"
 )
 
+// C is the active configuration instance
+var C ConfigSource
+
 // Config represents the program configuration options
 type Config struct {
 	Port        int           `json:"port"`

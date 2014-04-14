@@ -33,13 +33,13 @@ func Manager(killChan chan struct{}, exitChan chan int) {
 	}
 
 	// Set configuration (if default path used, config will be created)
-	jsonConfig := config.JSONFileConfig{}
-	if err := jsonConfig.Use(ConfigPath); err != nil {
+	config.C = new(config.JSONFileConfig)
+	if err := config.C.Use(ConfigPath); err != nil {
 		log.Fatalf("manager: could not use config: %s, %s", ConfigPath, err.Error())
 	}
 
 	// Load configuration from specified source
-	conf, err := jsonConfig.Load()
+	conf, err := config.C.Load()
 	if err != nil {
 		log.Fatalf("manager: could not load config: %s, %s", ConfigPath, err.Error())
 	}
