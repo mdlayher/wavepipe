@@ -20,11 +20,11 @@ script:
   - ./bin/wavepipe -test &
   - sleep 5
   - curl http://localhost:8080/api
-  - curl http://localhost:8080/api/albums
-  - curl http://localhost:8080/api/albums/1
-  - curl http://localhost:8080/api/artists
-  - curl http://localhost:8080/api/artists/1
-  - curl http://localhost:8080/api/songs
-  - curl http://localhost:8080/api/songs/1
+  - curl http://localhost:8080/api/v0/albums
+  - curl http://localhost:8080/api/v0/albums/1
+  - curl http://localhost:8080/api/v0/artists
+  - curl http://localhost:8080/api/v0/artists/1
+  - curl http://localhost:8080/api/v0/songs
+  - curl http://localhost:8080/api/v0/songs/1
   - sleep 10
   - make test
