@@ -7,15 +7,17 @@ to retrieve a file stream from the server.
 An information endpoint can be found at the root of the API, `/api`.  This endpoint contains API metadata
 such as the current API version, a link to this documentation, and a list of all currently available API endpoints.
 
-At this time, the current API is **v0**.  This API is **unstable**, and is subject to change.
+At this time, the current API version is **v0**.  This API is **unstable**, and is subject to change.
 
 ## Albums
 Used to retrieve information about albums from wavepipe.  If an ID is specified, information will be
 retrieved about a single album.
 
-**URL:** `/api/albums/:id`
+**Versions:** `v0`
 
-**Examples:** `http://localhost:8080/api/albums/`, `http://localhost:8080/api/albums/1`
+**URL:** `/api/v0/albums/:id`
+
+**Examples:** `http://localhost:8080/api/v0/albums/`, `http://localhost:8080/api/v0/albums/1`
 
 **Return JSON:**
 
@@ -29,6 +31,7 @@ retrieved about a single album.
 
 | Code | Message | Description |
 | :--: | :-----: | :---------: |
+| 400 | unsupported API version: vX | Attempted access to an invalid version of this API, or to a version before this API existed. |
 | 400 | invalid integer album ID | A valid integer could not be parsed from the ID. |
 | 404 | album ID not found | An album with the specified ID does not exist. |
 | 500 | server error | An internal error occurred. wavepipe will log these errors to its console log. |
@@ -37,15 +40,17 @@ retrieved about a single album.
 Used to retrieve information about artists from wavepipe.  If an ID is specified, information will be
 retrieved about a single artist.
 
-**URL:** `/api/artists/:id`
+**Versions:** `v0`
 
-**Examples:** `http://localhost:8080/api/artists/`, `http://localhost:8080/api/artists/1`, `http://localhost:8080/api/artists/1?songs=true`
+**URL:** `/api/v0/artists/:id`
+
+**Examples:** `http://localhost:8080/api/v0/artists/`, `http://localhost:8080/api/v0/artists/1`, `http://localhost:8080/api/v0/artists/1?songs=true`
 
 **Parameters:**
 
-| Name | Type | Required | Description |
-| :--: | :--: | :------: | :---------: |
-| songs | bool | | If true, returns all songs attached to this artist. |
+| Name | Versions | Type | Required | Description |
+| :--: | :------: | :--: | :------: | :---------: |
+| songs | v0 | bool | | If true, returns all songs attached to this artist. |
 
 **Return JSON:**
 
@@ -60,6 +65,7 @@ retrieved about a single artist.
 
 | Code | Message | Description |
 | :--: | :-----: | :---------: |
+| 400 | unsupported API version: vX | Attempted access to an invalid version of this API, or to a version before this API existed. |
 | 400 | invalid integer artist ID | A valid integer could not be parsed from the ID. |
 | 404 | artist ID not found | An artist with the specified ID does not exist. |
 | 500 | server error | An internal error occurred. wavepipe will log these errors to its console log. |
@@ -68,9 +74,11 @@ retrieved about a single artist.
 Used to retrieve information about songs from wavepipe.  If an ID is specified, information will be
 retrieved about a single song.
 
-**URL:** `/api/songs/:id`
+**Versions:** `v0`
 
-**Examples:** `http://localhost:8080/api/songs/`, `http://localhost:8080/api/songs/1`
+**URL:** `/api/v0/songs/:id`
+
+**Examples:** `http://localhost:8080/api/v0/songs/`, `http://localhost:8080/api/v0/songs/1`
 
 **Return JSON:**
 
@@ -83,6 +91,7 @@ retrieved about a single song.
 
 | Code | Message | Description |
 | :--: | :-----: | :---------: |
+| 400 | unsupported API version: vX | Attempted access to an invalid version of this API, or to a version before this API existed. |
 | 400 | invalid integer song ID | A valid integer could not be parsed from the ID. |
 | 404 | song ID not found | A song with the specified ID does not exist. |
 | 500 | server error | An internal error occurred. wavepipe will log these errors to its console log. |
