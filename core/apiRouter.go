@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/mdlayher/wavepipe/api"
+	"github.com/mdlayher/wavepipe/api/auth"
 	"github.com/mdlayher/wavepipe/config"
 
 	"github.com/go-martini/martini"
@@ -34,9 +35,38 @@ func apiRouter(apiKillChan chan struct{}) {
 	m.Use(func(r render.Render) {
 		// If API is stopping, render a HTTP 503
 		if stopAPI {
-			r.JSON(http.StatusServiceUnavailable, api.Error{Message: "service is shutting down"})
+			r.JSON(http.StatusServiceUnavailable, api.Error{
+				Code: http.StatusServiceUnavailable,
+				Message: "service is shutting down",
+			})
 			return
 		}
+	})
+
+	// Authenticate all API calls
+	m.Use(func(req *http.Request, r render.Render) {
+		// Set a different authentication method depending on endpoint
+		var authMethod auth.AuthMethod
+
+		// For login, use the bcrypt authenticator to generate a new session
+		if req.URL.Path == "/api/v0/login/" {
+			authMethod = new(auth.BcryptAuth)
+		} else {
+			// Else, use the (TODO: name this) authenticatior
+			authMethod = new(auth.APIAuth)
+		}
+
+		// Attempt authentication
+		if !authMethod.Authenticate(req) {
+			r.JSON(http.StatusUnauthorized, api.Error{
+				Code: http.StatusUnauthorized,
+				Message: "authentication failed",
+			})
+			return
+		}
+
+		// Print information about this API call
+		log.Printf("api: [%s] %s", req.RemoteAddr, req.URL.Path)
 	})
 
 	// Set up API routes
