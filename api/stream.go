@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"path"
 	"strconv"
+	"strings"
 	"sync/atomic"
 	"time"
 
@@ -98,6 +99,11 @@ func GetStream(httpRes http.ResponseWriter, r render.Render, params martini.Para
 	// Attempt to send file stream over HTTP
 	log.Printf("stream: starting: [%d] %s - %s ", song.ID, song.Artist, song.Title)
 	if err := httpStream(song, stream, httpRes); err != nil {
+		// Check for client reset
+		if strings.Contains(err.Error(), "connection reset by peer") || strings.Contains(err.Error(), "broken pipe") {
+			return
+		}
+
 		log.Println("stream: error:", err)
 		return
 	}
@@ -118,8 +124,8 @@ func httpStream(song *data.Song, stream io.ReadCloser, httpRes http.ResponseWrit
 		// Track start time
 		startTime := time.Now()
 
-		// Print progress every second
-		progress := time.NewTicker(1 * time.Second)
+		// Print progress every 5 seconds
+		progress := time.NewTicker(5 * time.Second)
 
 		// Calculate total file size
 		totalSize := float64(song.FileSize)/1024/1024
