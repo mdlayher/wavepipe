@@ -28,6 +28,18 @@ func GetArtists(r render.Render, req *http.Request, params martini.Params) {
 	// List of artists to return
 	artists := make([]data.Artist, 0)
 
+	// Check API version
+	if version, ok := params["version"]; ok {
+		// Check if this API call is supported in the advertised version
+		if !apiVersionSet.Has(version) {
+			res.Error = new(Error)
+			res.Error.Code = http.StatusBadRequest
+			res.Error.Message = "unsupported API version: " + version
+			r.JSON(http.StatusBadRequest, res)
+			return
+		}
+	}
+
 	// Check for an ID parameter
 	if pID, ok := params["id"]; ok {
 		// Verify valid integer ID

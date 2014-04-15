@@ -39,9 +39,14 @@ func apiRouter(apiKillChan chan struct{}) {
 		}
 	})
 
-	// Set up API group routes
+	// Set up API routes
 	r := martini.NewRouter()
-	r.Group("/api", func(r martini.Router) {
+
+	// Set up API information route
+	r.Get("/api", api.APIInfo)
+
+	// Set up API group routes, with API version parameter
+	r.Group("/api/:version", func(r martini.Router) {
 		// Root API, containing information and help
 		r.Get("", api.APIInfo)
 
