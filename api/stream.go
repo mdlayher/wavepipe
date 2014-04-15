@@ -128,17 +128,17 @@ func httpStream(song *data.Song, stream io.ReadCloser, httpRes http.ResponseWrit
 		progress := time.NewTicker(5 * time.Second)
 
 		// Calculate total file size
-		totalSize := float64(song.FileSize)/1024/1024
+		totalSize := float64(song.FileSize) / 1024 / 1024
 		for {
 			select {
 			// Print progress
 			case <-progress.C:
 				// Capture current progress
 				currTotal := atomic.LoadInt64(&total)
-				current := float64(currTotal)/1024/1024
+				current := float64(currTotal) / 1024 / 1024
 
 				// Capture current percentage
-				percent := int64(float64(float64(currTotal) / float64(song.FileSize)) * 100)
+				percent := int64(float64(float64(currTotal)/float64(song.FileSize)) * 100)
 
 				// Capture current transfer rate
 				rate := float64(float64((currTotal*8)/1024/1024) / float64(time.Now().Sub(startTime).Seconds()))

@@ -37,7 +37,7 @@ func cronManager(cronKillChan chan struct{}) {
 		case <-status.C:
 			go cronPrintCurrentStatus()
 		// Trigger orphan scan
-		case <- orphanScan.C:
+		case <-orphanScan.C:
 			// Queue a new orphan scan
 			o := new(fsOrphanScan)
 			o.SetFolders(conf.Media(), "")

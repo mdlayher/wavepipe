@@ -36,7 +36,7 @@ func apiRouter(apiKillChan chan struct{}) {
 		// If API is stopping, render a HTTP 503
 		if stopAPI {
 			r.JSON(http.StatusServiceUnavailable, api.Error{
-				Code: http.StatusServiceUnavailable,
+				Code:    http.StatusServiceUnavailable,
 				Message: "service is shutting down",
 			})
 			return
@@ -59,7 +59,7 @@ func apiRouter(apiKillChan chan struct{}) {
 		// Attempt authentication
 		if !authMethod.Authenticate(req) {
 			r.JSON(http.StatusUnauthorized, api.Error{
-				Code: http.StatusUnauthorized,
+				Code:    http.StatusUnauthorized,
 				Message: "authentication failed",
 			})
 			return
