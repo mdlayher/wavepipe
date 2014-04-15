@@ -3,6 +3,8 @@ package data
 import (
 	"encoding/json"
 	"errors"
+	"io"
+	"os"
 
 	"github.com/wtolson/go-taglib"
 )
@@ -89,6 +91,12 @@ func (s *Song) Load() error {
 // Save creates a new Song in the database
 func (s *Song) Save() error {
 	return DB.SaveSong(s)
+}
+
+// Stream generates a binary file stream from this Song's file location
+func (s Song) Stream() (io.ReadCloser, error) {
+	// Attempt to open the file associated with this song
+	return os.Open(s.FileName)
 }
 
 // ToJSON generates a JSON representation of a Song
