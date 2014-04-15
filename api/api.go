@@ -15,13 +15,14 @@ const APIVersion = "v0"
 const APIDocumentation = "https://github.com/mdlayher/wavepipe/blob/master/API.md"
 
 // apiVersionSet is the set of all currently supported API versions
-var apiVersionSet = set.New("v0")
+var apiVersionSet = set.New(APIVersion)
 
 // endpoints is a list of supported API endpoints
 var endpoints = []string{
 	"/api/v0/albums",
 	"/api/v0/artists",
 	"/api/v0/songs",
+	"/api/v0/stream",
 }
 
 // Error represents an error produced by the API
