@@ -25,13 +25,27 @@ Once the TagLib library is installed, wavepipe can be downloaded, built, and ins
 
 `$ go get github.com/mdlayher/wavepipe`
 
-Usage
-=====
+Configuration
+=============
 
-At the moment, wavepipe features a very simple command-line interface.  This configuration will eventually be
-replaced by a configuration file, but for the time being, command-line flags can be used for testing.
+On first run, wavepipe will attempt to create its sqlite database and configuration file in
+`~/.config/wavepipe/`.  Once this is done, the user must modify the configuration file to include a valid
+media folder.  Here is an example of the `~/.config/wavepipe/wavepipe.json` configuration file, with comments.
 
-`$ wavepipe -db=wavepipe.db /media/path`
+```
+{
+	// The port on which wavepipe will expose its API
+	"port": 8080,
+	// The media folder which wavepipe will scan for valid media files
+	"mediaFolder": "~/Music/",
+	// Configuration for the sqlite database
+	"sqlite": {
+		// sqlite database file location
+		"file": "~/.config/wavepipe/wavepipe.db"
+	}
+}
+```
+
 
 FAQ
 ===
