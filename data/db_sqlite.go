@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"io"
+	"io/ioutil"
 	"log"
 	"os"
 	"os/user"
@@ -381,7 +382,7 @@ func (s *SqliteBackend) Subfolders(parentID int) ([]Folder, error) {
 }
 
 // PurgeOrphanFolders deletes all folders who are "orphaned", meaning that they no
-// longer have any songs which reference their ID
+// longer have any files contained within their directory
 func (s *SqliteBackend) PurgeOrphanFolders() (int, error) {
 	// Open database
 	db, err := s.Open()
@@ -390,28 +391,30 @@ func (s *SqliteBackend) PurgeOrphanFolders() (int, error) {
 	}
 	defer db.Close()
 
-	// Select all folders without a song referencing their folder ID
-	rows, err := db.Queryx("SELECT folders.id FROM folders LEFT JOIN songs ON " +
-		"folders.id = songs.folder_id WHERE songs.folder_id IS NULL;")
-	if err != nil && err != sql.ErrNoRows {
+	// Retrieve all folders
+	folders, err := s.AllFolders()
+	if err != nil {
 		return -1, err
 	}
 
 	// Open a transaction to remove all orphaned folders
 	tx := db.MustBegin()
 
-	// Iterate all rows
-	folder := new(Folder)
+	// Iterate all folders
 	total := 0
-	for rows.Next() {
-		// Scan ID into struct
-		if err := rows.StructScan(folder); err != nil {
+	for _, f := range folders {
+		// Check which files reside in this folder's path
+		files, err := ioutil.ReadDir(f.Path)
+		if err != nil {
 			return -1, err
 		}
 
-		// Remove folder
-		tx.Exec("DELETE FROM folders WHERE id = ?;", folder.ID)
-		total++
+		// If 0 files, queue this folder into the delete transaction
+		if len(files) == 0 {
+			// Remove folder
+			tx.Exec("DELETE FROM folders WHERE id = ?;", f.ID)
+			total++
+		}
 	}
 
 	return total, tx.Commit()
