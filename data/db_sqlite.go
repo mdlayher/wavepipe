@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"errors"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"os/user"
@@ -381,43 +380,14 @@ func (s *SqliteBackend) Subfolders(parentID int) ([]Folder, error) {
 	return s.folderQuery("SELECT * FROM folders WHERE parent_id = ?;", parentID)
 }
 
-// PurgeOrphanFolders deletes all folders who are "orphaned", meaning that they no
-// longer have any files contained within their directory
-func (s *SqliteBackend) PurgeOrphanFolders() (int, error) {
-	// Open database
-	db, err := s.Open()
-	if err != nil {
-		return -1, err
-	}
-	defer db.Close()
+// FoldersInPath loads a slice of all Folder structs contained within the specified file path
+func (s *SqliteBackend) FoldersInPath(path string) ([]Folder, error) {
+	return s.folderQuery("SELECT * FROM folders WHERE path LIKE ?;", path+"%")
+}
 
-	// Retrieve all folders
-	folders, err := s.AllFolders()
-	if err != nil {
-		return -1, err
-	}
-
-	// Open a transaction to remove all orphaned folders
-	tx := db.MustBegin()
-
-	// Iterate all folders
-	total := 0
-	for _, f := range folders {
-		// Check which files reside in this folder's path
-		files, err := ioutil.ReadDir(f.Path)
-		if err != nil {
-			return -1, err
-		}
-
-		// If 0 files, queue this folder into the delete transaction
-		if len(files) == 0 {
-			// Remove folder
-			tx.Exec("DELETE FROM folders WHERE id = ?;", f.ID)
-			total++
-		}
-	}
-
-	return total, tx.Commit()
+// FoldersNotInPath loads a slice of all Folder structs NOT contained within the specified file path
+func (s *SqliteBackend) FoldersNotInPath(path string) ([]Folder, error) {
+	return s.folderQuery("SELECT * FROM folders WHERE path NOT LIKE ?;", path+"%")
 }
 
 // DeleteFolder removes a Folder from the database

@@ -89,7 +89,15 @@ func (fsFileSource) MediaScan(mediaFolder string, walkCancelChan chan struct{}) 
 
 			// Check for a parent folder
 			pFolder := new(data.Folder)
-			pFolder.Path = path.Dir(currPath)
+
+			// If scan is triggered by a file, we have to check the dir twice to get parent
+			if info.IsDir() {
+				pFolder.Path = path.Dir(currPath)
+			} else {
+				pFolder.Path = path.Dir(path.Dir(currPath))
+			}
+
+			// Load parent
 			if err := pFolder.Load(); err != nil && err != sql.ErrNoRows {
 				log.Println(err)
 				return err
@@ -235,6 +243,7 @@ func (fsFileSource) OrphanScan(baseFolder string, subFolder string, orphanCancel
 	}()
 
 	// Track metrics about the scan
+	folderCount := 0
 	songCount := 0
 	startTime := time.Now()
 
@@ -247,6 +256,7 @@ func (fsFileSource) OrphanScan(baseFolder string, subFolder string, orphanCancel
 		// Scan for all songs NOT under the base folder
 		songs, err := data.DB.SongsNotInPath(baseFolder)
 		if err != nil {
+			log.Println(err)
 			return err
 		}
 
@@ -254,10 +264,29 @@ func (fsFileSource) OrphanScan(baseFolder string, subFolder string, orphanCancel
 		for _, s := range songs {
 			// Remove song from database
 			if err := s.Delete(); err != nil {
+				log.Println(err)
 				return err
 			}
 
 			songCount++
+		}
+
+		// Scan for all folders NOT under the base folder
+		folders, err := data.DB.FoldersNotInPath(baseFolder)
+		if err != nil {
+			log.Println(err)
+			return err
+		}
+
+		// Remove all folders which are not in this path
+		for _, f := range folders {
+			// Remove folder from database
+			if err := f.Delete(); err != nil {
+				log.Println(err)
+				return err
+			}
+
+			folderCount++
 		}
 	}
 
@@ -270,6 +299,7 @@ func (fsFileSource) OrphanScan(baseFolder string, subFolder string, orphanCancel
 	log.Println("fs: orphan scanning subfolder:", subFolder)
 	songs, err := data.DB.SongsInPath(subFolder)
 	if err != nil {
+		log.Println(err)
 		return err
 	}
 
@@ -279,6 +309,7 @@ func (fsFileSource) OrphanScan(baseFolder string, subFolder string, orphanCancel
 		if _, err := os.Stat(s.FileName); os.IsNotExist(err) {
 			// Remove song from database
 			if err := s.Delete(); err != nil {
+				log.Println(err)
 				return err
 			}
 
@@ -286,21 +317,43 @@ func (fsFileSource) OrphanScan(baseFolder string, subFolder string, orphanCancel
 		}
 	}
 
+	// Scan for all folders in subfolder
+	folders, err := data.DB.FoldersInPath(subFolder)
+	if err != nil {
+		return err
+	}
+
+	// Iterate all folders in this path
+	for _, f := range folders {
+		// Check that the folder still has items within it
+		files, err := ioutil.ReadDir(f.Path)
+		if err != nil && !os.IsNotExist(err) {
+			log.Println(err)
+			return err
+		}
+
+		// Delete any folders with 0 items
+		if len(files) == 0 {
+			if err := f.Delete(); err != nil {
+				log.Println(err)
+				return err
+			}
+
+			folderCount++
+		}
+	}
+
 	// Now that songs have been purged, check for albums
 	albumCount, err := data.DB.PurgeOrphanAlbums()
 	if err != nil {
+		log.Println(err)
 		return err
 	}
 
 	// Check for artists
 	artistCount, err := data.DB.PurgeOrphanArtists()
 	if err != nil {
-		return err
-	}
-
-	// Check for folders which contain no subfolders or songs
-	folderCount, err := data.DB.PurgeOrphanFolders()
-	if err != nil {
+		log.Println(err)
 		return err
 	}
 

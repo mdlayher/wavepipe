@@ -28,7 +28,8 @@ type dbBackend interface {
 
 	AllFolders() ([]Folder, error)
 	Subfolders(int) ([]Folder, error)
-	PurgeOrphanFolders() (int, error)
+	FoldersInPath(string) ([]Folder, error)
+	FoldersNotInPath(string) ([]Folder, error)
 	DeleteFolder(*Folder) error
 	LoadFolder(*Folder) error
 	SaveFolder(*Folder) error
