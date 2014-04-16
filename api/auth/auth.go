@@ -18,7 +18,7 @@ var (
 
 // AuthMethod represents a method of authenticating with the API
 type AuthMethod interface {
-	Authenticate(*http.Request) (*data.User, error, error)
+	Authenticate(*http.Request) (*data.User, *data.Session, error, error)
 }
 
 // basicCredentials returns HTTP Basic authentication credentials from a header

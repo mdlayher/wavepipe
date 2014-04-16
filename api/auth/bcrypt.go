@@ -15,7 +15,7 @@ type BcryptAuth struct{}
 
 // Authenticate uses the bcrypt authentication method to log in to the API, returning
 // a session user and a pair of client/server errors
-func (a BcryptAuth) Authenticate(req *http.Request) (*data.User, error, error) {
+func (a BcryptAuth) Authenticate(req *http.Request) (*data.User, *data.Session, error, error) {
 	// Username and password for authentication
 	var username string
 	var password string
@@ -30,7 +30,7 @@ func (a BcryptAuth) Authenticate(req *http.Request) (*data.User, error, error) {
 		// Fetch credentials from HTTP Basic auth
 		tempUsername, tempPassword, err := basicCredentials(req.Header.Get("Authorization"))
 		if err != nil {
-			return nil, err, nil
+			return nil, nil, err, nil
 		}
 
 		// Copy credentials
@@ -40,9 +40,9 @@ func (a BcryptAuth) Authenticate(req *http.Request) (*data.User, error, error) {
 
 	// Check if either credential is blank
 	if username == "" {
-		return nil, ErrNoUsername, nil
+		return nil, nil, ErrNoUsername, nil
 	} else if password == "" {
-		return nil, ErrNoPassword, nil
+		return nil, nil, ErrNoPassword, nil
 	}
 
 	// Attempt to load user by username
@@ -51,23 +51,23 @@ func (a BcryptAuth) Authenticate(req *http.Request) (*data.User, error, error) {
 	if err := user.Load(); err != nil {
 		// Check for invalid user
 		if err == sql.ErrNoRows {
-			return nil, errors.New("invalid username"), nil
+			return nil, nil, errors.New("invalid username"), nil
 		}
 
 		// Server error
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 
 	// Compare input password with bcrypt password, checking for errors
 	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil && err == bcrypt.ErrMismatchedHashAndPassword {
 		// Mismatch password
-		return nil, errors.New("invalid password"), nil
+		return nil, nil, errors.New("invalid password"), nil
 	} else if err != nil && err != bcrypt.ErrMismatchedHashAndPassword {
 		// Return server error
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 
-	// No errors, return session user
-	return user, nil, nil
+	// No errors, return session user, but no session because one does not exist yet
+	return user, nil, nil, nil
 }
