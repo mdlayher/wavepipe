@@ -9,6 +9,16 @@ such as the current API version, a link to this documentation, and a list of all
 
 At this time, the current API version is **v0**.  This API is **unstable**, and is subject to change.
 
+**Table of Contents:**
+
+| Name | Versions | Description |
+| :--: | :------: | :---------: |
+| [Albums](#albums) | v0 | Used to retrieve information about albums from wavepipe. |
+| [Artists](#artists) | v0 | Used to retrieve information about artists from wavepipe. |
+| [Login](#login) | v0 | Used to generate a new API session on wavepipe. |
+| [Songs](#songs) | v0 | Used to retrieve information about songs from wavepipe. |
+| [Stream](#stream) | v0 | Used to retrieve a raw, non-transcoded, binary data stream of a media file from wavepipe. |
+
 ## Albums
 Used to retrieve information about albums from wavepipe.  If an ID is specified, information will be
 retrieved about a single album.
