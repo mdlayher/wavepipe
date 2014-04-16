@@ -14,7 +14,7 @@ type Folder struct {
 
 // Subfolders retrieves all folders with this folder as their parent ID
 func (f *Folder) Subfolders() ([]Folder, error) {
-	return DB.Subfolders(f.ParentID)
+	return DB.Subfolders(f.ID)
 }
 
 // Delete removes an existing Folder from the database

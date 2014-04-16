@@ -118,6 +118,10 @@ func apiRouter(apiKillChan chan struct{}) {
 		r.Get("/artists", api.GetArtists)
 		r.Get("/artists/:id", api.GetArtists)
 
+		// Folders API
+		r.Get("/folders", api.GetFolders)
+		r.Get("/folders/:id", api.GetFolders)
+
 		// Login API
 		r.Get("/login", api.GetLogin)
 
