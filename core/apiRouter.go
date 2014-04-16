@@ -59,7 +59,7 @@ func apiRouter(apiKillChan chan struct{}) {
 		}
 
 		// Attempt authentication
-		user, clientErr, serverErr := authMethod.Authenticate(req)
+		user, session, clientErr, serverErr := authMethod.Authenticate(req)
 
 		// Check for client error
 		if clientErr != nil {
@@ -87,8 +87,9 @@ func apiRouter(apiKillChan chan struct{}) {
 			return
 		}
 
-		// Successful login, map session user to martini context
+		// Successful login, map session user and session to martini context
 		c.Map(user)
+		c.Map(session)
 
 		// Print information about this API call
 		log.Printf("api: [%s] %s", req.RemoteAddr, req.URL.Path)
@@ -115,6 +116,9 @@ func apiRouter(apiKillChan chan struct{}) {
 
 		// Login API
 		r.Get("/login", api.GetLogin)
+
+		// Logout API
+		r.Get("/logout", api.GetLogout)
 
 		// Songs API
 		r.Get("/songs", api.GetSongs)
