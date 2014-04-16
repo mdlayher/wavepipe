@@ -20,7 +20,7 @@ func NewUser(username string, password string) (*User, error) {
 	user.Username = username
 
 	// Hash input password
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), 13)
 	if err != nil {
 		return nil, err
 	}
