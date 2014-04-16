@@ -71,5 +71,5 @@ func APIInfo(r render.Render, params martini.Params) {
 	}
 
 	// HTTP 200 OK
-	r.JSON(http.StatusOK, res)
+	r.JSON(200, res)
 }

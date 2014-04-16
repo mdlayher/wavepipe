@@ -128,6 +128,6 @@ func GetArtists(r render.Render, req *http.Request, params martini.Params) {
 	res.Artists = artists
 
 	// HTTP 200 OK with JSON
-	r.JSON(http.StatusOK, res)
+	r.JSON(200, res)
 	return
 }

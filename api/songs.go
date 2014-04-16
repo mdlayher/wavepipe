@@ -95,6 +95,6 @@ func GetSongs(r render.Render, params martini.Params) {
 	res.Songs = songs
 
 	// HTTP 200 OK with JSON
-	r.JSON(http.StatusOK, res)
+	r.JSON(200, res)
 	return
 }

@@ -110,6 +110,6 @@ func GetAlbums(r render.Render, params martini.Params) {
 	res.Albums = albums
 
 	// HTTP 200 OK with JSON
-	r.JSON(http.StatusOK, res)
+	r.JSON(200, res)
 	return
 }
