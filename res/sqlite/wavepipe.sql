@@ -15,6 +15,14 @@ CREATE TABLE "artists" (
 	"title" TEXT
 );
 CREATE UNIQUE INDEX "artists_unique_title" ON "artists" ("title");
+/* folders */
+CREATE TABLE "folders" (
+	"id"        INTEGER PRIMARY KEY AUTOINCREMENT,
+	"parent_id" INTEGER,
+	"title"     TEXT,
+	"path"      TEXT
+);
+CREATE UNIQUE INDEX "folders_unique_path" ON "folders" ("path");
 /* songs */
 CREATE TABLE "songs" (
 	"id"            INTEGER PRIMARY KEY AUTOINCREMENT,
