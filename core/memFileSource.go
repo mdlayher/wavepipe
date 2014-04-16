@@ -71,6 +71,19 @@ func (memFileSource) MediaScan(mediaFolder string, walkCancelChan chan struct{})
 	for _, song := range mockFiles {
 		// Grab files with matching prefix
 		if mediaFolder == song.FileName[0:len(mediaFolder)] {
+			// Generate a folder model
+			folder := new(data.Folder)
+			folder.Path = "/mem"
+			folder.Title = "/mem"
+
+			// Attempt to load folder
+			if err := folder.Load(); err == sql.ErrNoRows {
+				// Save new folder
+				if err := folder.Save(); err != nil {
+					log.Println(err)
+				}
+			}
+
 			// Generate an artist model from this song's metadata
 			artist := data.ArtistFromSong(&song)
 
