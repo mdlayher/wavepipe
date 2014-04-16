@@ -380,6 +380,43 @@ func (s *SqliteBackend) Subfolders(parentID int) ([]Folder, error) {
 	return s.folderQuery("SELECT * FROM folders WHERE parent_id = ?;", parentID)
 }
 
+// PurgeOrphanFolders deletes all folders who are "orphaned", meaning that they no
+// longer have any songs which reference their ID
+func (s *SqliteBackend) PurgeOrphanFolders() (int, error) {
+	// Open database
+	db, err := s.Open()
+	if err != nil {
+		return -1, err
+	}
+	defer db.Close()
+
+	// Select all folders without a song referencing their folder ID
+	rows, err := db.Queryx("SELECT folders.id FROM folders LEFT JOIN songs ON " +
+		"folders.id = songs.folder_id WHERE songs.folder_id IS NULL;")
+	if err != nil && err != sql.ErrNoRows {
+		return -1, err
+	}
+
+	// Open a transaction to remove all orphaned folders
+	tx := db.MustBegin()
+
+	// Iterate all rows
+	folder := new(Folder)
+	total := 0
+	for rows.Next() {
+		// Scan ID into struct
+		if err := rows.StructScan(folder); err != nil {
+			return -1, err
+		}
+
+		// Remove folder
+		tx.Exec("DELETE FROM folders WHERE id = ?;", folder.ID)
+		total++
+	}
+
+	return total, tx.Commit()
+}
+
 // DeleteFolder removes a Folder from the database
 func (s *SqliteBackend) DeleteFolder(f *Folder) error {
 	// Open database
