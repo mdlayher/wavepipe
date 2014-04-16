@@ -26,8 +26,8 @@ func (c Config) Media() string {
 		return c.MediaFolder
 	}
 
-	// Return path with strings replaced
-	return strings.Replace(c.MediaFolder, "~", user.HomeDir, -1)
+	// Return path with strings replaced, trailing slash removed
+	return strings.TrimRight(strings.Replace(c.MediaFolder, "~", user.HomeDir, -1), "/\\")
 }
 
 // DefaultConfig is the default JSON configuration for wavepipe
