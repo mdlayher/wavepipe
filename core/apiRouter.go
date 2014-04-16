@@ -1,8 +1,10 @@
 package core
 
 import (
+	"fmt"
 	"log"
 	"net/http"
+	"runtime"
 	"strconv"
 	"strings"
 
@@ -33,7 +35,10 @@ func apiRouter(apiKillChan chan struct{}) {
 
 	// Enable graceful shutdown when triggered by manager
 	stopAPI := false
-	m.Use(func(r render.Render) {
+	m.Use(func(res http.ResponseWriter, r render.Render) {
+		// Send a Server header with all responses
+		res.Header().Set("Server", fmt.Sprintf("%s/%s (%s_%s)", App, Version, runtime.GOOS, runtime.GOARCH))
+
 		// If API is stopping, render a HTTP 503
 		if stopAPI {
 			r.JSON(503, api.Error{
