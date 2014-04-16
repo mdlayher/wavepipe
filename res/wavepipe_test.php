@@ -16,8 +16,13 @@ $secretKey = $login["session"]["secretKey"];
 // Iterate and test all JSON APIs
 $apiCalls = array(
 	"/api/v0/albums",
+	"/api/v0/albums/1",
 	"/api/v0/artists",
+	"/api/v0/artists/1",
+	"/api/v0/folders",
+	"/api/v0/folders/1",
 	"/api/v0/songs",
+	"/api/v0/songs/1",
 	"/api/v0/logout",
 );
 
