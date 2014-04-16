@@ -94,6 +94,11 @@ func (s *Song) Save() error {
 	return DB.SaveSong(s)
 }
 
+// Update updates an existing Song in the database
+func (s *Song) Update() error {
+	return DB.UpdateSong(s)
+}
+
 // Stream generates a binary file stream from this Song's file location
 func (s Song) Stream() (io.ReadCloser, error) {
 	// Attempt to open the file associated with this song

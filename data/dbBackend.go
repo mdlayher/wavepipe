@@ -42,6 +42,7 @@ type dbBackend interface {
 	DeleteSong(*Song) error
 	LoadSong(*Song) error
 	SaveSong(*Song) error
+	UpdateSong(*Song) error
 
 	DeleteUser(*User) error
 	LoadUser(*User) error
