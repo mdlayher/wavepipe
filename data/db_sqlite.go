@@ -489,6 +489,82 @@ func (s *SqliteBackend) SaveSong(a *Song) error {
 	return nil
 }
 
+// DeleteUser removes a User from the database
+func (s *SqliteBackend) DeleteUser(u *User) error {
+	// Open database
+	db, err := s.Open()
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	// Attempt to delete this user by its ID, if available
+	tx := db.MustBegin()
+	if u.ID != 0 {
+		tx.Exec("DELETE FROM users WHERE id = ?;", u.ID)
+		return tx.Commit()
+	}
+
+	// Else, attempt to remove the user by its username
+	tx.Exec("DELETE FROM users WHERE username = ?;", u.Username)
+	return tx.Commit()
+}
+
+// LoadUser loads a User from the database, populating the parameter struct
+func (s *SqliteBackend) LoadUser(u *User) error {
+	// Open database
+	db, err := s.Open()
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	// Load the user via ID if available
+	if u.ID != 0 {
+		if err := db.Get(u, "SELECT * FROM users WHERE id = ?;", u.ID); err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	// Load via username
+	if err := db.Get(u, "SELECT * FROM users WHERE username = ?;", u.Username); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// SaveUser attempts to save a User to the database
+func (s *SqliteBackend) SaveUser(u *User) error {
+	// Open database
+	db, err := s.Open()
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	// Insert new user
+	query := "INSERT INTO users (`username`, `password`) VALUES (?, ?);"
+	tx := db.MustBegin()
+	tx.Exec(query, u.Username, u.Password)
+
+	// Commit transaction
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+
+	// If no ID, reload to grab it
+	if u.ID == 0 {
+		if err := s.LoadUser(u); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 // albumQuery loads a slice of Album structs matching the input query
 func (s *SqliteBackend) albumQuery(query string, args ...interface{}) ([]Album, error) {
 	// Open database

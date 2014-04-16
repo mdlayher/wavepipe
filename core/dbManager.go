@@ -22,6 +22,9 @@ func dbManager(conf config.Config, dbKillChan chan struct{}) {
 		if err := data.DB.Setup(); err != nil {
 			log.Fatalf("db: could not set up database: %s", err.Error())
 		}
+
+		// TODO: temporary, create a test user
+		data.NewUser("test", "test")
 	} else {
 		// Invalid config
 		log.Fatalf("db: invalid database selected")
