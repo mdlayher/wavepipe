@@ -34,6 +34,7 @@ CREATE TABLE "songs" (
 	"file_name"     TEXT,
 	"file_size"     INTEGER NOT NULL,
 	"file_type"     TEXT,
+	"folder_id"     INTEGER NOT NULL,
 	"genre"         TEXT,
 	"last_modified" INTEGER NOT NULL,
 	"length"        INTEGER NOT NULL,

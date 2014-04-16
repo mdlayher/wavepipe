@@ -9,6 +9,7 @@ var song = Song{
 	AlbumID:  1,
 	ArtistID: 1,
 	FileName: "/mem/test",
+	FolderID: 1,
 	Artist:   "TestArtist",
 	Album:    "TestAlbum",
 	Title:    "TestSong",

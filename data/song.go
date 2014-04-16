@@ -30,6 +30,7 @@ type Song struct {
 	FileName     string `db:"file_name" json:"fileName"`
 	FileSize     int64  `db:"file_size" json:"fileSize"`
 	FileType     string `db:"file_type" json:"fileType"`
+	FolderID     int    `db:"folder_id" json:"folderId"`
 	Genre        string `json:"genre"`
 	LastModified int64  `db:"last_modified" json:"lastModified"`
 	Length       int    `json:"length"`

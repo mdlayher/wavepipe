@@ -549,11 +549,11 @@ func (s *SqliteBackend) SaveSong(a *Song) error {
 
 	// Insert new song
 	query := "INSERT INTO songs (`album_id`, `artist_id`, `bitrate`, `channels`, `comment`, `file_name`, " +
-		"`file_size`, `file_type`, `genre`, `last_modified`, `length`, `sample_rate`, `title`, `track`, `year`) " +
-		" VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"
+		"`file_size`, `file_type`, `folder_id`, `genre`, `last_modified`, `length`, `sample_rate`, `title`, `track`, `year`) " +
+		" VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"
 	tx := db.MustBegin()
 	tx.Exec(query, a.AlbumID, a.ArtistID, a.Bitrate, a.Channels, a.Comment, a.FileName, a.FileSize, a.FileType,
-		a.Genre, a.LastModified, a.Length, a.SampleRate, a.Title, a.Track, a.Year)
+		a.FolderID, a.Genre, a.LastModified, a.Length, a.SampleRate, a.Title, a.Track, a.Year)
 
 	// Commit transaction
 	if err := tx.Commit(); err != nil {
