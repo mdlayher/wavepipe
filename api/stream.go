@@ -69,9 +69,9 @@ func GetStream(httpRes http.ResponseWriter, r render.Render, params martini.Para
 
 		// Check for invalid ID
 		if err == sql.ErrNoRows {
-			res.Error.Code = http.StatusNotFound
+			res.Error.Code = 404
 			res.Error.Message = "song ID not found"
-			r.JSON(http.StatusNotFound, res)
+			r.JSON(404, res)
 			return
 		}
 

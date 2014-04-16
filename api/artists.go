@@ -60,9 +60,9 @@ func GetArtists(r render.Render, req *http.Request, params martini.Params) {
 
 			// Check for invalid ID
 			if err == sql.ErrNoRows {
-				res.Error.Code = http.StatusNotFound
+				res.Error.Code = 404
 				res.Error.Message = "artist ID not found"
-				r.JSON(http.StatusNotFound, res)
+				r.JSON(404, res)
 				return
 			}
 
