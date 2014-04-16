@@ -23,5 +23,5 @@ script:
   - ./bin/wavepipe -test &
   - sleep 5
   - php ./res/wavepipe_test.php
-  - sleep 10
+  - sleep 30
   - make test

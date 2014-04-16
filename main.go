@@ -48,8 +48,8 @@ func main() {
 		}
 
 		go func() {
-			// Wait 10 seconds, to allow reasonable startup time
-			seconds := 10
+			// Wait 30 seconds, to allow reasonable startup time
+			seconds := 30
 			log.Println(core.App, ": started in test mode, stopping in", seconds, "seconds.")
 			<-time.After(time.Duration(seconds) * time.Second)
 
