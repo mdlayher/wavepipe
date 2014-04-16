@@ -12,7 +12,7 @@ import (
 
 // LogoutResponse represents the JSON response for /api/logouts
 type LogoutResponse struct {
-	Error   *Error        `json:"error"`
+	Error *Error `json:"error"`
 }
 
 // GetLogout destroys a new session from the wavepipe API, and returns a HTTP status and JSON
