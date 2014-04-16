@@ -3,7 +3,6 @@ package api
 import (
 	"database/sql"
 	"log"
-	"net/http"
 	"strconv"
 
 	"github.com/mdlayher/wavepipe/data"

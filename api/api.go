@@ -1,8 +1,6 @@
 package api
 
 import (
-	"net/http"
-
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/render"
 	"github.com/mdlayher/goset"
