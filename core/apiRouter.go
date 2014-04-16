@@ -54,8 +54,8 @@ func apiRouter(apiKillChan chan struct{}) {
 		if path == "/api/v0/login" {
 			authMethod = new(auth.BcryptAuth)
 		} else {
-			// Else, use the (TODO: name this) authenticatior
-			authMethod = new(auth.APIAuth)
+			// For other API methods, use the HMAC-SHA1 authenticator
+			authMethod = new(auth.HMACAuth)
 		}
 
 		// Attempt authentication

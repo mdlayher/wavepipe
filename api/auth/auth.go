@@ -1,15 +1,12 @@
 package auth
 
 import (
-	"database/sql"
 	"encoding/base64"
 	"errors"
 	"net/http"
 	"strings"
 
 	"github.com/mdlayher/wavepipe/data"
-
-	"code.google.com/p/go.crypto/bcrypt"
 )
 
 var (
@@ -22,77 +19,6 @@ var (
 // AuthMethod represents a method of authenticating with the API
 type AuthMethod interface {
 	Authenticate(*http.Request) (*data.User, error, error)
-}
-
-// BcryptAuth represents the bcrypt authentication method, used to log in to the API
-type BcryptAuth struct{}
-
-// Authenticate uses the bcrypt authentication method to log in to the API, returning
-// a session user and a pair of client/server errors
-func (a BcryptAuth) Authenticate(req *http.Request) (*data.User, error, error) {
-	// Username and password for authentication
-	var username string
-	var password string
-
-	// Check for empty authorization header
-	if req.Header.Get("Authorization") == "" {
-		// If no header, check for credentials via querystring parameters
-		query := req.URL.Query()
-		username = query.Get("u")
-		password = query.Get("p")
-	} else {
-		// Fetch credentials from HTTP Basic auth
-		tempUsername, tempPassword, err := basicCredentials(req.Header.Get("Authorization"))
-		if err != nil {
-			return nil, err, nil
-		}
-
-		// Copy credentials
-		username = tempUsername
-		password = tempPassword
-	}
-
-	// Check if either credential is blank
-	if username == "" {
-		return nil, ErrNoUsername, nil
-	} else if password == "" {
-		return nil, ErrNoPassword, nil
-	}
-
-	// Attempt to load user by username
-	user := new(data.User)
-	user.Username = username
-	if err := user.Load(); err != nil {
-		// Check for invalid user
-		if err == sql.ErrNoRows {
-			return nil, errors.New("invalid username"), nil
-		}
-
-		// Server error
-		return nil, nil, err
-	}
-
-	// Compare input password with bcrypt password, checking for errors
-	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
-	if err != nil && err == bcrypt.ErrMismatchedHashAndPassword {
-		// Mismatch password
-		return nil, errors.New("invalid password"), nil
-	} else if err != nil && err != bcrypt.ErrMismatchedHashAndPassword {
-		// Return server error
-		return nil, nil, err
-	}
-
-	// No errors, return session user
-	return user, nil, nil
-}
-
-// APIAuth represents the standard API authentication method, used for all other API calls
-type APIAuth struct{}
-
-// Authenticate uses the standard API authentication method for any calls outside of login
-func (a APIAuth) Authenticate(req *http.Request) (*data.User, error, error) {
-	// TODO: implement this method
-	return nil, nil, errors.New("method not implemented")
 }
 
 // basicCredentials returns HTTP Basic authentication credentials from a header
