@@ -22,6 +22,14 @@ func cronManager(cronKillChan chan struct{}) {
 	status := time.NewTicker(5 * time.Minute)
 	go cronPrintCurrentStatus()
 
+	// TODO: because of some erratic filesystem watcher behavior, we run full filesystem
+	// TODO: media and orphan scans via cron at regular intervals.  The evented scans should work
+	// TODO: in the vast majority of cases, but these will help ensure consistency until I have
+	// TODO: done further research regarding the watchers
+
+	// cronMediaScan - scan every 30 minutes
+	mediaScan := time.NewTicker(30 * time.Minute)
+
 	// cronOrphanScan - scan every 30 minutes
 	orphanScan := time.NewTicker(30 * time.Minute)
 
@@ -40,6 +48,13 @@ func cronManager(cronKillChan chan struct{}) {
 		// Trigger status printing
 		case <-status.C:
 			go cronPrintCurrentStatus()
+		// Trigger media scan
+		case <-mediaScan.C:
+			// Queue a new media scan
+			m := new(fsMediaScan)
+			m.SetFolders(conf.Media(), "")
+			m.Verbose(true)
+			fsQueue <- m
 		// Trigger orphan scan
 		case <-orphanScan.C:
 			// Queue a new orphan scan
