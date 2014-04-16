@@ -9,6 +9,58 @@ such as the current API version, a link to this documentation, and a list of all
 
 At this time, the current API version is **v0**.  This API is **unstable**, and is subject to change.
 
+**Authentication:**
+
+In order to use the wavepipe API, all requests must be authenticated.  The first step is to generate a new
+session via the [Login](#login) API.  Login username and password can be passed using either HTTP Basic or
+via query string.  In addition, an optional client parameter may be passed, which will identify this session
+with the given name. Both methods can be demonstrated with `curl` as follows:
+
+```
+$ curl -u test:test http://localhost:8080/api/v0/login?c=testclient
+$ curl http://localhost:8080/api/v0/login?u=test&p=test&c=testclient
+```
+
+Example [Session](http://godoc.org/github.com/mdlayher/wavepipe/data#Session) output is as follows:
+
+```json
+{
+	"error": null,
+	"session": {
+		"id": 1,
+		"userId": 1,
+		"client": "testclient",
+		"expire": 1397713157,
+		"publicKey": "abcdef0123456789abcdef0123456789",
+		"secretKey": "0123456789abcdef0123456789abcdef"
+	}
+}
+```
+
+Upon successful login, a public key and secret key are generated, which are used to perform HMAC-SHA1
+authentication with all other API endpoints.  An API signature must be calculated and included with
+each request, as well as the user's public key.  The pseudocode structure of this signature is as follows:
+
+```
+signature = hmac_sha1("publicKey-nonce-method-resource", secretKey);
+```
+
+Each parameter is described as follows:
+  - signature: the final resulting signature of the HMAC-SHA1 algorithm.
+  - publicKey: the public key retrieved from the Login API request.
+  - nonce: a randomly generated value, used only once. Repeated requests will fail.
+  - method: the HTTP method used to access the resource. Typically `GET`.
+  - resource: the HTTP resource being accessed, such as `/api/v0/albums`.
+  - secretKey: the secret key retrieved from the Login API request. Used to validate the signature server-side.
+
+Once the signature has been generated, it may be sent to the API using either HTTP Basic or via query string.
+Both methods can be demonstrated with `curl` as follows:
+
+```
+$ curl -u publicKey:nonce:signature http://localhost:8080/api/v0/albums
+$ curl http://localhost:8080/api/v0/albums?s=publicKey:nonce:signature
+```
+
 **Table of Contents:**
 
 | Name | Versions | Description |
