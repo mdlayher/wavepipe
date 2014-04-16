@@ -64,7 +64,7 @@ var mockFiles = []data.Song{
 }
 
 // MediaScan adds mock media files to the database from memory
-func (memFileSource) MediaScan(mediaFolder string, walkCancelChan chan struct{}) error {
+func (memFileSource) MediaScan(mediaFolder string, verbose bool, walkCancelChan chan struct{}) error {
 	log.Println("mem: beginning mock media scan:", mediaFolder)
 
 	// Iterate all media files and check for the matching prefix
@@ -130,6 +130,6 @@ func (memFileSource) MediaScan(mediaFolder string, walkCancelChan chan struct{})
 }
 
 // OrphanScan does nothing for mock media files, because the database is temporary anyway
-func (memFileSource) OrphanScan(baseFolder string, subFolder string, orphanCancelChan chan struct{}) error {
+func (memFileSource) OrphanScan(baseFolder string, subFolder string, verbose bool, orphanCancelChan chan struct{}) error {
 	return nil
 }

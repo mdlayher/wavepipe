@@ -25,12 +25,13 @@ type fsTask interface {
 	Folders() (string, string)
 	SetFolders(string, string)
 	Scan(string, string, chan struct{}) error
+	Verbose(bool)
 }
 
 // fileSource represents a source from which files can be scanned and indexed
 type fileSource interface {
-	MediaScan(string, chan struct{}) error
-	OrphanScan(string, string, chan struct{}) error
+	MediaScan(string, bool, chan struct{}) error
+	OrphanScan(string, string, bool, chan struct{}) error
 }
 
 // fsManager handles fsWalker processes, and communicates back and forth with the manager goroutine
@@ -47,14 +48,16 @@ func fsManager(mediaFolder string, fsKillChan chan struct{}) {
 		fsSource = memFileSource{}
 	}
 
-	// Queue an orphan scan
+	// Queue an initial, verbose orphan scan
 	o := new(fsOrphanScan)
 	o.SetFolders(mediaFolder, "")
+	o.Verbose(true)
 	fsQueue <- o
 
 	// Queue a media scan
 	m := new(fsMediaScan)
 	m.SetFolders(mediaFolder, "")
+	m.Verbose(true)
 	fsQueue <- m
 
 	// Invoke task queue via goroutine, so it can be halted via the manager
@@ -107,6 +110,7 @@ func fsManager(mediaFolder string, fsKillChan chan struct{}) {
 					// Scan item as the "base folder", so it just adds this item
 					m := new(fsMediaScan)
 					m.SetFolders(ev.Name, "")
+					m.Verbose(false)
 					fsQueue <- m
 				// On delete, trigger an orphan scan
 				case ev.IsDelete():
@@ -116,6 +120,7 @@ func fsManager(mediaFolder string, fsKillChan chan struct{}) {
 					// Scan item as the "subfolder", so it just removes this item
 					o := new(fsOrphanScan)
 					o.SetFolders("", ev.Name)
+					o.Verbose(false)
 					fsQueue <- o
 				}
 			// Watcher errors
@@ -164,6 +169,7 @@ func fsManager(mediaFolder string, fsKillChan chan struct{}) {
 type fsMediaScan struct {
 	baseFolder string
 	subFolder  string
+	verbose    bool
 }
 
 // Folders returns the base folder and subfolder for use with a scanning task
@@ -177,6 +183,11 @@ func (fs *fsMediaScan) SetFolders(baseFolder string, subFolder string) {
 	fs.subFolder = subFolder
 }
 
+// Verbose sets the verbosity level of the scanning task
+func (fs *fsMediaScan) Verbose(verbose bool) {
+	fs.verbose = verbose
+}
+
 // Scan scans for media files in a specified path, and queues them up for inclusion
 // in the wavepipe database
 func (fs *fsMediaScan) Scan(mediaFolder string, subFolder string, walkCancelChan chan struct{}) error {
@@ -186,13 +197,14 @@ func (fs *fsMediaScan) Scan(mediaFolder string, subFolder string, walkCancelChan
 	}
 
 	// Scan for media using the specified file source
-	return fsSource.MediaScan(mediaFolder, walkCancelChan)
+	return fsSource.MediaScan(mediaFolder, fs.verbose, walkCancelChan)
 }
 
 // fsOrphanScan represents a filesystem task which scans the given path for orphaned media
 type fsOrphanScan struct {
 	baseFolder string
 	subFolder  string
+	verbose    bool
 }
 
 // Folders returns the base folder and subfolder for use with a scanning task
@@ -204,6 +216,11 @@ func (fs *fsOrphanScan) Folders() (string, string) {
 func (fs *fsOrphanScan) SetFolders(baseFolder string, subFolder string) {
 	fs.baseFolder = baseFolder
 	fs.subFolder = subFolder
+}
+
+// Verbose sets the verbosity level of the scanning task
+func (fs *fsOrphanScan) Verbose(verbose bool) {
+	fs.verbose = verbose
 }
 
 // Scan scans for media files which have been removed from the media directory, and removes
@@ -224,5 +241,5 @@ func (fs *fsOrphanScan) Scan(baseFolder string, subFolder string, orphanCancelCh
 	}
 
 	// Scan for orphans using the specified file source
-	return fsSource.OrphanScan(baseFolder, subFolder, orphanCancelChan)
+	return fsSource.OrphanScan(baseFolder, subFolder, fs.verbose, orphanCancelChan)
 }

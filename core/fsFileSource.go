@@ -22,7 +22,7 @@ import (
 type fsFileSource struct{}
 
 // MediaScan scans for media files in the local filesystem
-func (fsFileSource) MediaScan(mediaFolder string, walkCancelChan chan struct{}) error {
+func (fsFileSource) MediaScan(mediaFolder string, verbose bool, walkCancelChan chan struct{}) error {
 	// Halt walk if needed
 	var mutex sync.RWMutex
 	haltWalk := false
@@ -44,9 +44,14 @@ func (fsFileSource) MediaScan(mediaFolder string, walkCancelChan chan struct{}) 
 	folderCount := 0
 	startTime := time.Now()
 
+	if verbose {
+		log.Println("fs: beginning media scan:", mediaFolder)
+	} else {
+		log.Println("fs: scanning:", mediaFolder)
+	}
+
 	// Invoke a recursive file walk on the given media folder, passing closure variables into
 	// walkFunc to enable additional functionality
-	log.Println("fs: beginning media scan:", mediaFolder)
 	err := filepath.Walk(mediaFolder, func(currPath string, info os.FileInfo, err error) error {
 		// Stop walking immediately if needed
 		mutex.RLock()
@@ -219,16 +224,18 @@ func (fsFileSource) MediaScan(mediaFolder string, walkCancelChan chan struct{}) 
 	}
 
 	// Print metrics
-	log.Printf("fs: media scan complete [time: %s]", time.Since(startTime).String())
-	log.Printf("fs: added: [artists: %d] [albums: %d] [songs: %d] [folders: %d]", artistCount, albumCount, songCount, folderCount)
-	log.Printf("fs: updated: [songs: %d]", songUpdateCount)
+	if verbose {
+		log.Printf("fs: media scan complete [time: %s]", time.Since(startTime).String())
+		log.Printf("fs: added: [artists: %d] [albums: %d] [songs: %d] [folders: %d]", artistCount, albumCount, songCount, folderCount)
+		log.Printf("fs: updated: [songs: %d]", songUpdateCount)
+	}
 
 	// No errors
 	return nil
 }
 
 // OrphanScan scans for missing "orphaned" media files in the local filesystem
-func (fsFileSource) OrphanScan(baseFolder string, subFolder string, orphanCancelChan chan struct{}) error {
+func (fsFileSource) OrphanScan(baseFolder string, subFolder string, verbose bool, orphanCancelChan chan struct{}) error {
 	// Halt scan if needed
 	var mutex sync.RWMutex
 	haltOrphanScan := false
@@ -247,11 +254,11 @@ func (fsFileSource) OrphanScan(baseFolder string, subFolder string, orphanCancel
 	songCount := 0
 	startTime := time.Now()
 
-	log.Println("fs: beginning orphan scan")
-
 	// Check if a baseFolder is set, meaning remove ANYTHING not under this base
 	if baseFolder != "" {
-		log.Println("fs: orphan scanning base folder:", baseFolder)
+		if verbose {
+			log.Println("fs: orphan scanning base folder:", baseFolder)
+		}
 
 		// Scan for all songs NOT under the base folder
 		songs, err := data.DB.SongsNotInPath(baseFolder)
@@ -295,8 +302,13 @@ func (fsFileSource) OrphanScan(baseFolder string, subFolder string, orphanCancel
 		subFolder = baseFolder
 	}
 
+	if verbose {
+		log.Println("fs: orphan scanning subfolder:", subFolder)
+	} else {
+		log.Println("fs: removing:", subFolder)
+	}
+
 	// Scan for all songs in subfolder
-	log.Println("fs: orphan scanning subfolder:", subFolder)
 	songs, err := data.DB.SongsInPath(subFolder)
 	if err != nil {
 		log.Println(err)
@@ -358,7 +370,9 @@ func (fsFileSource) OrphanScan(baseFolder string, subFolder string, orphanCancel
 	}
 
 	// Print metrics
-	log.Printf("fs: orphan scan complete [time: %s]", time.Since(startTime).String())
-	log.Printf("fs: removed: [artists: %d] [albums: %d] [songs: %d] [folders: %d]", artistCount, albumCount, songCount, folderCount)
+	if verbose {
+		log.Printf("fs: orphan scan complete [time: %s]", time.Since(startTime).String())
+		log.Printf("fs: removed: [artists: %d] [albums: %d] [songs: %d] [folders: %d]", artistCount, albumCount, songCount, folderCount)
+	}
 	return nil
 }

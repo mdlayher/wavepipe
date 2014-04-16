@@ -45,6 +45,7 @@ func cronManager(cronKillChan chan struct{}) {
 			// Queue a new orphan scan
 			o := new(fsOrphanScan)
 			o.SetFolders(conf.Media(), "")
+			o.Verbose(true)
 			fsQueue <- o
 		// Trigger a nonce filter reset
 		case <-clearNonceFilter.C:
