@@ -75,6 +75,7 @@ func (fsFileSource) MediaScan(mediaFolder string, walkCancelChan chan struct{}) 
 			// Make sure items actually exist at this path
 			files, err := ioutil.ReadDir(folder.Path)
 			if err != nil {
+				log.Println(err)
 				return err
 			}
 
@@ -90,6 +91,7 @@ func (fsFileSource) MediaScan(mediaFolder string, walkCancelChan chan struct{}) 
 			pFolder := new(data.Folder)
 			pFolder.Path = path.Dir(currPath)
 			if err := pFolder.Load(); err != nil && err != sql.ErrNoRows {
+				log.Println(err)
 				return err
 			}
 
@@ -98,6 +100,7 @@ func (fsFileSource) MediaScan(mediaFolder string, walkCancelChan chan struct{}) 
 
 			// Save new folder
 			if err := folder.Save(); err != nil {
+				log.Println(err)
 				return err
 			}
 
@@ -113,6 +116,7 @@ func (fsFileSource) MediaScan(mediaFolder string, walkCancelChan chan struct{}) 
 		// Attempt to scan media file with taglib
 		file, err := taglib.Read(currPath)
 		if err != nil {
+			log.Println(err)
 			return fmt.Errorf("%s: %s", currPath, err.Error())
 		}
 		defer file.Close()
@@ -120,6 +124,7 @@ func (fsFileSource) MediaScan(mediaFolder string, walkCancelChan chan struct{}) 
 		// Generate a song model from the TagLib file
 		song, err := data.SongFromFile(file)
 		if err != nil {
+			log.Println(err)
 			return err
 		}
 
