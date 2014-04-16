@@ -49,9 +49,13 @@ func apiRouter(apiKillChan chan struct{}) {
 		// Set a different authentication method depending on endpoint
 		var authMethod auth.AuthMethod
 
-		// For login, use the bcrypt authenticator to generate a new session
+		// Enable simple authentication for local clients, if special password set
 		path := strings.TrimRight(req.URL.Path, "/")
-		if path == "/api/v0/login" {
+		if strings.Contains(req.RemoteAddr, "127.0.0.1") && req.URL.Query().Get("p") == "simple" {
+			// Use simple authentication
+			authMethod = new(auth.SimpleAuth)
+		} else if path == "/api/v0/login" {
+			// For login, use the bcrypt authenticator to generate a new session
 			authMethod = new(auth.BcryptAuth)
 		} else {
 			// For other API methods, use the HMAC-SHA1 authenticator
