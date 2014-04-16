@@ -77,7 +77,7 @@ func basicCredentials(header string) (string, string, error) {
 	}
 
 	// Split into username/password
-	pair := strings.Split(string(buf), ":")
+	pair := strings.SplitN(string(buf), ":", 2)
 	if len(pair) < 2 {
 		return "", "", errors.New("invalid HTTP Basic username/password combination")
 	}
