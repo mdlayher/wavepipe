@@ -19,6 +19,7 @@ var apiVersionSet = set.New(APIVersion)
 var endpoints = []string{
 	"/api/v0/albums",
 	"/api/v0/artists",
+	"/api/v0/folders",
 	"/api/v0/login",
 	"/api/v0/logout",
 	"/api/v0/songs",

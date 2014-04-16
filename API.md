@@ -67,6 +67,7 @@ $ curl http://localhost:8080/api/v0/albums?s=publicKey:nonce:signature
 | :--: | :------: | :---------: |
 | [Albums](#albums) | v0 | Used to retrieve information about albums from wavepipe. |
 | [Artists](#artists) | v0 | Used to retrieve information about artists from wavepipe. |
+| [Folders](#folders) | v0 | Used to retrieve information about folders from wavepipe. |
 | [Login](#login) | v0 | Used to generate a new API session on wavepipe. |
 | [Logout](#logout) | v0 | Used to destroy the current API session from wavepipe. |
 | [Songs](#songs) | v0 | Used to retrieve information about songs from wavepipe. |
@@ -131,6 +132,34 @@ retrieved about a single artist.
 | 400 | unsupported API version: vX | Attempted access to an invalid version of this API, or to a version before this API existed. |
 | 400 | invalid integer artist ID | A valid integer could not be parsed from the ID. |
 | 404 | artist ID not found | An artist with the specified ID does not exist. |
+| 500 | server error | An internal error occurred. wavepipe will log these errors to its console log. |
+
+## Folders
+Used to retrieve information about folders from wavepipe.  If an ID is specified, information will be
+retrieved about a single folder.
+
+**Versions:** `v0`
+
+**URL:** `/api/v0/folders/:id`
+
+**Examples:** `http://localhost:8080/api/v0/folders/`, `http://localhost:8080/api/v0/folders/1`
+
+**Return JSON:**
+
+| Name | Type | Description |
+| :--: | :--: | :---------: |
+| error | [Error](http://godoc.org/github.com/mdlayher/wavepipe/api#Error)/null | Information about any errors that occurred.  Value is null if no error occurred. |
+| folders | \[\][Folder](http://godoc.org/github.com/mdlayher/wavepipe/data#Folder) | Array of Folder objects returned by the API. |
+| subfolders | \[\][Folder](http://godoc.org/github.com/mdlayher/wavepipe/data#Folder) | If ID is specified, array of Folder objects which are children to the current folder, returned by the API. Value is null if no ID is specified. |
+| songs | \[\][Song](http://godoc.org/github.com/mdlayher/wavepipe/data#Song)/null | If ID is specified, array of Song objects attached to this folder.  Value is null if no ID specified. |
+
+**Possible errors:**
+
+| Code | Message | Description |
+| :--: | :-----: | :---------: |
+| 400 | unsupported API version: vX | Attempted access to an invalid version of this API, or to a version before this API existed. |
+| 400 | invalid integer folder ID | A valid integer could not be parsed from the ID. |
+| 404 | folder ID not found | An folder with the specified ID does not exist. |
 | 500 | server error | An internal error occurred. wavepipe will log these errors to its console log. |
 
 ## Login
