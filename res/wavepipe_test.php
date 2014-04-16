@@ -1,9 +1,9 @@
 <?php
 
 // apiSignature creates a HMAC-SHA1 API signature
-function apiSignature($userID, $nonce, $method, $resource, $secret) {
+function apiSignature($public, $nonce, $method, $resource, $secret) {
 	// Create API signature string
-	$signString = sprintf("%d-%s-%s-%s", $userID, $nonce, $method, $resource);
+	$signString = sprintf("%s-%s-%s-%s", $public, $nonce, $method, $resource);
 
 	// Return HMAC-SHA1 signature
 	return hash_hmac("sha1", $signString, $secret);
@@ -28,7 +28,6 @@ if (empty($login)) {
 }
 
 // Store necessary login information
-$userID = $login["session"]["userId"];
 $publicKey = $login["session"]["publicKey"];
 $secretKey = $login["session"]["secretKey"];
 
@@ -45,7 +44,7 @@ foreach ($apiCalls as $a) {
 	$nonce = generateNonce();
 
 	// Create the necessary API signature
-	$signature = apiSignature($userID, $nonce, "GET", $a, $secretKey);
+	$signature = apiSignature($publicKey, $nonce, "GET", $a, $secretKey);
 
 	// Generate URL
 	$url = sprintf("http://localhost:8080%s?s=%s:%s:%s", $a, $publicKey, $nonce, $signature);

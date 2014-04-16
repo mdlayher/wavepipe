@@ -82,7 +82,7 @@ func (a HMACAuth) Authenticate(req *http.Request) (*data.User, *data.Session, er
 	}
 
 	// Generate API signature
-	expected, err := apiSignature(session.UserID, nonce, req.Method, req.URL.Path, session.SecretKey)
+	expected, err := apiSignature(session.PublicKey, nonce, req.Method, req.URL.Path, session.SecretKey)
 	if err != nil {
 		return nil, nil, nil, err
 	}

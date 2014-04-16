@@ -43,9 +43,9 @@ type AuthMethod interface {
 }
 
 // apiSignature generates a HMAC-SHA1 signature for use with the API
-func apiSignature(userID int, nonce string, method string, resource string, secret string) (string, error) {
+func apiSignature(public string, nonce string, method string, resource string, secret string) (string, error) {
 	// Generate API signature string
-	signString := fmt.Sprintf("%d-%s-%s-%s", userID, nonce, method, resource)
+	signString := fmt.Sprintf("%s-%s-%s-%s", public, nonce, method, resource)
 
 	// Calculate HMAC-SHA1 signature from string, using API secret
 	mac := hmac.New(sha1.New, []byte(secret))
