@@ -34,9 +34,9 @@ func GetStream(httpRes http.ResponseWriter, r render.Render, params martini.Para
 		// Check if this API call is supported in the advertised version
 		if !apiVersionSet.Has(version) {
 			res.Error = new(Error)
-			res.Error.Code = http.StatusBadRequest
+			res.Error.Code = 400
 			res.Error.Message = "unsupported API version: " + version
-			r.JSON(http.StatusBadRequest, res)
+			r.JSON(400, res)
 			return
 		}
 	}
@@ -45,9 +45,9 @@ func GetStream(httpRes http.ResponseWriter, r render.Render, params martini.Para
 	pID, ok := params["id"]
 	if !ok {
 		res.Error = new(Error)
-		res.Error.Code = http.StatusBadRequest
+		res.Error.Code = 400
 		res.Error.Message = "no integer stream ID provided"
-		r.JSON(http.StatusBadRequest, res)
+		r.JSON(400, res)
 		return
 	}
 
@@ -55,9 +55,9 @@ func GetStream(httpRes http.ResponseWriter, r render.Render, params martini.Para
 	id, err := strconv.Atoi(pID)
 	if err != nil {
 		res.Error = new(Error)
-		res.Error.Code = http.StatusBadRequest
+		res.Error.Code = 400
 		res.Error.Message = "invalid integer stream ID"
-		r.JSON(http.StatusBadRequest, res)
+		r.JSON(400, res)
 		return
 	}
 

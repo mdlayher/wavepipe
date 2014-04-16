@@ -23,9 +23,9 @@ func GetLogin(r render.Render, req *http.Request, params martini.Params) {
 		// Check if this API call is supported in the advertised version
 		if !apiVersionSet.Has(version) {
 			res.Error = new(Error)
-			res.Error.Code = http.StatusBadRequest
+			res.Error.Code = 400
 			res.Error.Message = "unsupported API version: " + version
-			r.JSON(http.StatusBadRequest, res)
+			r.JSON(400, res)
 			return
 		}
 	}

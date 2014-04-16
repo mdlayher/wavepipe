@@ -63,9 +63,9 @@ func APIInfo(r render.Render, params martini.Params) {
 		// Check if API version is supported
 		if !apiVersionSet.Has(version) {
 			res.Error = new(Error)
-			res.Error.Code = http.StatusBadRequest
+			res.Error.Code = 400
 			res.Error.Message = "unsupported API version: " + version
-			r.JSON(http.StatusBadRequest, res)
+			r.JSON(400, res)
 			return
 		}
 	}
