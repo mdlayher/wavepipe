@@ -631,7 +631,7 @@ func (s *SqliteBackend) UpdateSong(a *Song) error {
 	// Update existing song
 	query := "UPDATE songs SET `album_id` = ?, `artist_id` = ?, `bitrate` = ?, `channels` = ?, `comment` = ?, " +
 		"`file_size` = ?, `folder_id` = ?,  `genre` = ?, `last_modified` = ?, `length` = ?, `sample_rate` = ?, " +
-		"`title` = ?, `track` = ?, `year` = ? WHERE `id` = ?;";
+		"`title` = ?, `track` = ?, `year` = ? WHERE `id` = ?;"
 	tx := db.MustBegin()
 	tx.Exec(query, a.AlbumID, a.ArtistID, a.Bitrate, a.Channels, a.Comment, a.FileSize,
 		a.FolderID, a.Genre, a.LastModified, a.Length, a.SampleRate, a.Title, a.Track, a.Year, a.ID)

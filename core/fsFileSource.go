@@ -40,6 +40,7 @@ func (fsFileSource) MediaScan(mediaFolder string, walkCancelChan chan struct{}) 
 	artistCount := 0
 	albumCount := 0
 	songCount := 0
+	songUpdateCount := 0
 	folderCount := 0
 	startTime := time.Now()
 
@@ -170,13 +171,28 @@ func (fsFileSource) MediaScan(mediaFolder string, walkCancelChan chan struct{}) 
 		song.ArtistID = artist.ID
 		song.AlbumID = album.ID
 
+		// Make a duplicate song to check if song has been modified since last scan
+		song2 := new(data.Song)
+		song2.FileName = song.FileName
+
 		// Check for existing song
-		if err := song.Load(); err == sql.ErrNoRows {
+		if err := song2.Load(); err == sql.ErrNoRows {
 			// Save song (don't log these because they really slow things down)
 			if err := song.Save(); err != nil {
 				log.Println(err)
 			} else if err == nil {
 				songCount++
+			}
+		} else {
+			// Song already existed.  Check if it's been updated
+			if song.LastModified > song2.LastModified {
+				// Update existing song
+				song.ID = song2.ID
+				if err := song.Update(); err != nil {
+					log.Println(err)
+				}
+
+				songUpdateCount++
 			}
 		}
 
@@ -192,6 +208,7 @@ func (fsFileSource) MediaScan(mediaFolder string, walkCancelChan chan struct{}) 
 	// Print metrics
 	log.Printf("fs: media scan complete [time: %s]", time.Since(startTime).String())
 	log.Printf("fs: added: [artists: %d] [albums: %d] [songs: %d] [folders: %d]", artistCount, albumCount, songCount, folderCount)
+	log.Printf("fs: updated: [songs: %d]", songUpdateCount)
 
 	// No errors
 	return nil
