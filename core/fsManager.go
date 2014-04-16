@@ -93,15 +93,31 @@ func fsManager(mediaFolder string, fsKillChan chan struct{}) {
 	}
 
 	// Wait for events on goroutine
-	// TODO: for the time being, we ignore IsModify() and IsRename() events, because the
-	// IsCreate() and IsDelete() methods, and recurring scans will cover these.  Will re-evalaute
-	// this later.
 	go func() {
+		// Recently modified files set, used as a rate-limiter to prevent modify events from flooding
+		// the select statement.  The filesystem watcher appears to fire off as many events as
+		// there are files in the filesystem, so this will block most of those.
+		recentModifySet := set.New()
+
 		for {
 			select {
 			// Event occurred
 			case ev := <-watcher.Event:
 				switch {
+				// On create or modify, trigger a media scan
+				case ev.IsModify():
+					// Add file to set, stopping it from propogating if the event was recently triggered
+					if !recentModifySet.Add(ev.Name) {
+						break
+					}
+
+					// Remove file from rate-limiting set after a couple seconds
+					go func() {
+						<-time.After(2 * time.Second)
+						recentModifySet.Remove(ev.Name)
+					}()
+
+					fallthrough
 				// On create, trigger a media scan
 				case ev.IsCreate():
 					// Invoke a slight delay to enable file creation
