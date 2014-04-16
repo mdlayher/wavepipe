@@ -565,6 +565,82 @@ func (s *SqliteBackend) SaveUser(u *User) error {
 	return nil
 }
 
+// DeleteSession removes a Session from the database
+func (s *SqliteBackend) DeleteSession(u *Session) error {
+	// Open database
+	db, err := s.Open()
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	// Attempt to delete this session by its ID, if available
+	tx := db.MustBegin()
+	if u.ID != 0 {
+		tx.Exec("DELETE FROM sessions WHERE id = ?;", u.ID)
+		return tx.Commit()
+	}
+
+	// Else, attempt to remove the session by its public key
+	tx.Exec("DELETE FROM sessions WHERE public_key = ?;", u.PublicKey)
+	return tx.Commit()
+}
+
+// LoadSession loads a Session from the database, populating the parameter struct
+func (s *SqliteBackend) LoadSession(u *Session) error {
+	// Open database
+	db, err := s.Open()
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	// Load the session via ID if available
+	if u.ID != 0 {
+		if err := db.Get(u, "SELECT * FROM sessions WHERE id = ?;", u.ID); err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	// Load via public key
+	if err := db.Get(u, "SELECT * FROM sessions WHERE public_key = ?;", u.PublicKey); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// SaveSession attempts to save a Session to the database
+func (s *SqliteBackend) SaveSession(u *Session) error {
+	// Open database
+	db, err := s.Open()
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	// Insert new session
+	query := "INSERT INTO sessions (`user_id`, `client`, `public_key`, `secret_key`) VALUES (?, ?, ?, ?);"
+	tx := db.MustBegin()
+	tx.Exec(query, u.UserID, u.Client, u.PublicKey, u.SecretKey)
+
+	// Commit transaction
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+
+	// If no ID, reload to grab it
+	if u.ID == 0 {
+		if err := s.LoadSession(u); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 // albumQuery loads a slice of Album structs matching the input query
 func (s *SqliteBackend) albumQuery(query string, args ...interface{}) ([]Album, error) {
 	// Open database
