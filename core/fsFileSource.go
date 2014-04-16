@@ -39,6 +39,7 @@ func (fsFileSource) MediaScan(mediaFolder string, walkCancelChan chan struct{}) 
 	artistCount := 0
 	albumCount := 0
 	songCount := 0
+	folderCount := 0
 	startTime := time.Now()
 
 	// Invoke a recursive file walk on the given media folder, passing closure variables into
@@ -64,11 +65,11 @@ func (fsFileSource) MediaScan(mediaFolder string, walkCancelChan chan struct{}) 
 			folder.Path = currPath
 		} else {
 			// If file, use the directory path
-			folder.Path = path.Base(currPath)
+			folder.Path = path.Dir(currPath)
 		}
 
 		// Attempt to load folder
-		if err := folder.Load(); err == sql.ErrNoRows {
+		if err := folder.Load(); err != nil && err == sql.ErrNoRows {
 			// Ensure this is actually a folder
 			if !info.IsDir() {
 				return nil
@@ -79,7 +80,7 @@ func (fsFileSource) MediaScan(mediaFolder string, walkCancelChan chan struct{}) 
 
 			// Check for a parent folder
 			pFolder := new(data.Folder)
-			pFolder.Path = path.Base(path.Base(currPath))
+			pFolder.Path = path.Dir(currPath)
 			if err := pFolder.Load(); err != nil && err != sql.ErrNoRows {
 				return err
 			}
@@ -90,11 +91,10 @@ func (fsFileSource) MediaScan(mediaFolder string, walkCancelChan chan struct{}) 
 			// Save new folder
 			if err := folder.Save(); err != nil {
 				return err
-			} else if err == nil {
-				log.Printf("Folder: [%04d] %s", folder.ID, folder.Path)
 			}
 
 			// Continue traversal
+			folderCount++
 			return nil
 		}
 
@@ -185,7 +185,7 @@ func (fsFileSource) MediaScan(mediaFolder string, walkCancelChan chan struct{}) 
 
 	// Print metrics
 	log.Printf("fs: media scan complete [time: %s]", time.Since(startTime).String())
-	log.Printf("fs: added: [artists: %d] [albums: %d] [songs: %d]", artistCount, albumCount, songCount)
+	log.Printf("fs: added: [artists: %d] [albums: %d] [songs: %d] [folders: %d]", artistCount, albumCount, songCount, folderCount)
 
 	// No errors
 	return nil
