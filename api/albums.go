@@ -67,9 +67,9 @@ func GetAlbums(r render.Render, params martini.Params) {
 
 			// All other errors
 			log.Println(err)
-			res.Error.Code = http.StatusInternalServerError
+			res.Error.Code = 500
 			res.Error.Message = "server error"
-			r.JSON(http.StatusInternalServerError, res)
+			r.JSON(500, res)
 			return
 		}
 
@@ -78,9 +78,9 @@ func GetAlbums(r render.Render, params martini.Params) {
 		if err != nil {
 			log.Println(err)
 			res.Error = new(Error)
-			res.Error.Code = http.StatusInternalServerError
+			res.Error.Code = 500
 			res.Error.Message = "server error"
-			r.JSON(http.StatusInternalServerError, res)
+			r.JSON(500, res)
 			return
 		}
 
@@ -95,9 +95,9 @@ func GetAlbums(r render.Render, params martini.Params) {
 		if err != nil {
 			log.Println(err)
 			res.Error = new(Error)
-			res.Error.Code = http.StatusInternalServerError
+			res.Error.Code = 500
 			res.Error.Message = "server error"
-			r.JSON(http.StatusInternalServerError, res)
+			r.JSON(500, res)
 			return
 		}
 

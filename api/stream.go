@@ -77,9 +77,9 @@ func GetStream(httpRes http.ResponseWriter, r render.Render, params martini.Para
 
 		// All other errors
 		log.Println(err)
-		res.Error.Code = http.StatusInternalServerError
+		res.Error.Code = 500
 		res.Error.Message = "server error"
-		r.JSON(http.StatusInternalServerError, res)
+		r.JSON(500, res)
 		return
 	}
 
@@ -89,9 +89,9 @@ func GetStream(httpRes http.ResponseWriter, r render.Render, params martini.Para
 		log.Println(err)
 
 		res.Error = new(Error)
-		res.Error.Code = http.StatusInternalServerError
+		res.Error.Code = 500
 		res.Error.Message = "server error"
-		r.JSON(http.StatusInternalServerError, res)
+		r.JSON(500, res)
 		return
 	}
 	defer stream.Close()
