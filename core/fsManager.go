@@ -94,17 +94,18 @@ func fsManager(mediaFolder string, fsKillChan chan struct{}) {
 
 	// Wait for events on goroutine
 	go func() {
-		// Recently modified files set, used as a rate-limiter to prevent modify events from flooding
-		// the select statement.  The filesystem watcher appears to fire off as many events as
-		// there are files in the filesystem, so this will block most of those.
+		// Recently modified/renamed files sets, used as rate-limiters to prevent modify
+		// events from flooding the select statement.  The filesystem watcher may fire an
+		// excessive number of events, so these will block the extras for a couple seconds.
 		recentModifySet := set.New()
+		recentRenameSet := set.New()
 
 		for {
 			select {
 			// Event occurred
 			case ev := <-watcher.Event:
 				switch {
-				// On create or modify, trigger a media scan
+				// On modify, trigger a media scan
 				case ev.IsModify():
 					// Add file to set, stopping it from propogating if the event was recently triggered
 					if !recentModifySet.Add(ev.Name) {
@@ -128,6 +129,20 @@ func fsManager(mediaFolder string, fsKillChan chan struct{}) {
 					m.SetFolders(ev.Name, "")
 					m.Verbose(false)
 					fsQueue <- m
+				// On rename, trigger an orphan scan
+				case ev.IsRename():
+					// Add file to set, stopping it from propogating if the event was recently triggered
+					if !recentRenameSet.Add(ev.Name) {
+						break
+					}
+
+					// Remove file from rate-limiting set after a couple seconds
+					go func() {
+						<-time.After(2 * time.Second)
+						recentRenameSet.Remove(ev.Name)
+					}()
+
+					fallthrough
 				// On delete, trigger an orphan scan
 				case ev.IsDelete():
 					// Invoke a slight delay to enable file deletion
