@@ -57,8 +57,44 @@ func (fsFileSource) MediaScan(mediaFolder string, walkCancelChan chan struct{}) 
 			return errors.New("media scan: invalid path: " + currPath)
 		}
 
-		// Ignore directories for now
+		// Check for an existing folder for this item
+		folder := new(data.Folder)
 		if info.IsDir() {
+			// If directory, use this path
+			folder.Path = currPath
+		} else {
+			// If file, use the directory path
+			folder.Path = path.Base(currPath)
+		}
+
+		// Attempt to load folder
+		if err := folder.Load(); err == sql.ErrNoRows {
+			// Ensure this is actually a folder
+			if !info.IsDir() {
+				return nil
+			}
+
+			// Set short title
+			folder.Title = path.Base(folder.Path)
+
+			// Check for a parent folder
+			pFolder := new(data.Folder)
+			pFolder.Path = path.Base(path.Base(currPath))
+			if err := pFolder.Load(); err != nil && err != sql.ErrNoRows {
+				return err
+			}
+
+			// Copy parent folder's ID
+			folder.ParentID = pFolder.ID
+
+			// Save new folder
+			if err := folder.Save(); err != nil {
+				return err
+			} else if err == nil {
+				log.Printf("Folder: [%04d] %s", folder.ID, folder.Path)
+			}
+
+			// Continue traversal
 			return nil
 		}
 
@@ -83,6 +119,9 @@ func (fsFileSource) MediaScan(mediaFolder string, walkCancelChan chan struct{}) 
 		// Populate filesystem-related struct fields using OS info
 		song.FileName = currPath
 		song.FileSize = info.Size()
+
+		// Use this folder's ID
+		song.FolderID = folder.ID
 
 		// Extract type from the extension, capitalize it, drop the dot
 		song.FileType = strings.ToUpper(path.Ext(info.Name()))[1:]
