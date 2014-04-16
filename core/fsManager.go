@@ -4,6 +4,7 @@ import (
 	"errors"
 	"log"
 	"os"
+	"time"
 
 	"github.com/mdlayher/goset"
 	"github.com/romanoff/fsmonitor"
@@ -100,12 +101,18 @@ func fsManager(mediaFolder string, fsKillChan chan struct{}) {
 				switch {
 				// On create, trigger a media scan
 				case ev.IsCreate():
+					// Invoke a slight delay to enable file creation
+					<-time.After(250 * time.Millisecond)
+
 					// Scan item as the "base folder", so it just adds this item
 					m := new(fsMediaScan)
 					m.SetFolders(ev.Name, "")
 					fsQueue <- m
 				// On delete, trigger an orphan scan
 				case ev.IsDelete():
+					// Invoke a slight delay to enable file deletion
+					<-time.After(250 * time.Millisecond)
+
 					// Scan item as the "subfolder", so it just removes this item
 					o := new(fsOrphanScan)
 					o.SetFolders("", ev.Name)
