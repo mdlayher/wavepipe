@@ -370,6 +370,11 @@ func (s *SqliteBackend) SaveAlbum(a *Album) error {
 	return nil
 }
 
+// AllFolders loads a slice of all Folder structs from the database
+func (s *SqliteBackend) AllFolders() ([]Folder, error) {
+	return s.folderQuery("SELECT * FROM folders;")
+}
+
 // Subfolders loads a slice of all Folder structs residing directly beneath this one from the database
 func (s *SqliteBackend) Subfolders(parentID int) ([]Folder, error) {
 	return s.folderQuery("SELECT * FROM folders WHERE parent_id = ?;", parentID)
