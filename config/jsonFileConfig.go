@@ -10,8 +10,8 @@ import (
 )
 
 // JSONFileConfig represents configuration from a JSON configuration file
-type JSONFileConfig struct{
-	path  string
+type JSONFileConfig struct {
+	path string
 }
 
 // configCache is a cached configuration
@@ -57,8 +57,8 @@ func (c *JSONFileConfig) Use(configPath string) error {
 		}
 
 		// Only create file if it's in the default location
-		if configPath != user.HomeDir + "/.config/wavepipe/wavepipe.json" {
-			return errors.New("config: cannot create config file: "+configPath)
+		if configPath != user.HomeDir+"/.config/wavepipe/wavepipe.json" {
+			return errors.New("config: cannot create config file: " + configPath)
 		}
 
 		log.Println("config: creating new config file:", configPath)
