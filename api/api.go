@@ -20,6 +20,7 @@ var endpoints = []string{
 	"/api/v0/albums",
 	"/api/v0/artists",
 	"/api/v0/login",
+	"/api/v0/logout",
 	"/api/v0/songs",
 	"/api/v0/stream",
 }

@@ -16,6 +16,7 @@ At this time, the current API version is **v0**.  This API is **unstable**, and 
 | [Albums](#albums) | v0 | Used to retrieve information about albums from wavepipe. |
 | [Artists](#artists) | v0 | Used to retrieve information about artists from wavepipe. |
 | [Login](#login) | v0 | Used to generate a new API session on wavepipe. |
+| [Logout](#logout) | v0 | Used to destroy the current API session from wavepipe. |
 | [Songs](#songs) | v0 | Used to retrieve information about songs from wavepipe. |
 | [Stream](#stream) | v0 | Used to retrieve a raw, non-transcoded, binary data stream of a media file from wavepipe. |
 
@@ -111,6 +112,28 @@ or using a HTTP Basic username and password combination.
 | :--: | :-----: | :---------: |
 | 400 | unsupported API version: vX | Attempted access to an invalid version of this API, or to a version before this API existed. |
 | 401 | authentication failed: X | API authentication failed. Could be due to malformed, missing, or bad credentials. |
+| 500 | server error | An internal error occurred. wavepipe will log these errors to its console log. |
+
+## Logout
+Used to destroy the current API session from wavepipe.
+
+**Versions:** `v0`
+
+**URL:** `/api/v0/logout`
+
+**Examples:** `http://localhost:8080/api/v0/logout`
+
+**Return JSON:**
+
+| Name | Type | Description |
+| :--: | :--: | :---------: |
+| error | [Error](http://godoc.org/github.com/mdlayher/wavepipe/api#Error)/null | Information about any errors that occurred.  Value is null if no error occurred. |
+
+**Possible errors:**
+
+| Code | Message | Description |
+| :--: | :-----: | :---------: |
+| 400 | unsupported API version: vX | Attempted access to an invalid version of this API, or to a version before this API existed. |
 | 500 | server error | An internal error occurred. wavepipe will log these errors to its console log. |
 
 ## Songs
