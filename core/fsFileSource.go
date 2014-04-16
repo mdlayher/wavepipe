@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"path"
@@ -70,8 +71,14 @@ func (fsFileSource) MediaScan(mediaFolder string, walkCancelChan chan struct{}) 
 
 		// Attempt to load folder
 		if err := folder.Load(); err != nil && err == sql.ErrNoRows {
-			// Ensure this is actually a folder
-			if !info.IsDir() {
+			// Make sure items actually exist at this path
+			files, err := ioutil.ReadDir(folder.Path)
+			if err != nil {
+				return err
+			}
+
+			// No items, skip it
+			if len(files) == 0 {
 				return nil
 			}
 
@@ -95,7 +102,6 @@ func (fsFileSource) MediaScan(mediaFolder string, walkCancelChan chan struct{}) 
 
 			// Continue traversal
 			folderCount++
-			return nil
 		}
 
 		// Check for a valid media extension
@@ -264,14 +270,20 @@ func (fsFileSource) OrphanScan(baseFolder string, subFolder string, orphanCancel
 		return err
 	}
 
-	// Finally, check for artists
+	// Check for artists
 	artistCount, err := data.DB.PurgeOrphanArtists()
+	if err != nil {
+		return err
+	}
+
+	// Check for folders which contain no subfolders or songs
+	folderCount, err := data.DB.PurgeOrphanFolders()
 	if err != nil {
 		return err
 	}
 
 	// Print metrics
 	log.Printf("fs: orphan scan complete [time: %s]", time.Since(startTime).String())
-	log.Printf("fs: removed: [artists: %d] [albums: %d] [songs: %d]", artistCount, albumCount, songCount)
+	log.Printf("fs: removed: [artists: %d] [albums: %d] [songs: %d] [folders: %d]", artistCount, albumCount, songCount, folderCount)
 	return nil
 }
