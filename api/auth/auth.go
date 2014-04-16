@@ -1,10 +1,13 @@
 package auth
 
 import (
+	"database/sql"
 	"encoding/base64"
 	"errors"
 	"net/http"
 	"strings"
+
+	"github.com/mdlayher/wavepipe/data"
 
 	"code.google.com/p/go.crypto/bcrypt"
 )
@@ -56,24 +59,21 @@ func (a BcryptAuth) Authenticate(req *http.Request) (error, error) {
 		return ErrNoPassword, nil
 	}
 
-	// Generate a fake bcrypt hash
-	hash, err := bcrypt.GenerateFromPassword([]byte("test"), 10)
-	if err != nil {
+	// Attempt to load user by username
+	user := new(data.User)
+	user.Username = username
+	if err := user.Load(); err != nil {
+		// Check for invalid user
+		if err == sql.ErrNoRows {
+			return errors.New("invalid username"), nil
+		}
+
+		// Server error
 		return nil, err
 	}
 
-	// Load user by username
-	// TODO: create User model and database calls
-	user := struct{
-		Username string
-		Password string
-	}{
-		"test",
-		string(hash),
-	}
-
 	// Compare input password with bcrypt password, checking for errors
-	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil && err == bcrypt.ErrMismatchedHashAndPassword {
 		// Mismatch password
 		return errors.New("invalid password"), nil
