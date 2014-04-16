@@ -144,7 +144,7 @@ func (fsFileSource) MediaScan(mediaFolder string, walkCancelChan chan struct{}) 
 			if err := artist.Save(); err != nil {
 				log.Println(err)
 			} else if err == nil {
-				log.Printf("Artist: [%04d] %s", artist.ID, artist.Title)
+				log.Printf("Artist: [#%05d] %s", artist.ID, artist.Title)
 				artistCount++
 			}
 		}
@@ -161,7 +161,7 @@ func (fsFileSource) MediaScan(mediaFolder string, walkCancelChan chan struct{}) 
 			if err := album.Save(); err != nil {
 				log.Println(err)
 			} else if err == nil {
-				log.Printf("  - Album: [%04d] %s - %d - %s", album.ID, album.Artist, album.Year, album.Title)
+				log.Printf("  - Album: [#%05d] %s - %d - %s", album.ID, album.Artist, album.Year, album.Title)
 				albumCount++
 			}
 		}
