@@ -20,6 +20,8 @@ var (
 	// ErrNoPassword is returned when no password is provided on login
 	ErrNoPassword = errors.New("no password provided")
 
+	// ErrInvalidPublicKey is returned when an invalid public keyis used to access the API
+	ErrInvalidPublicKey = errors.New("no such public key")
 	// ErrNoSignature is returned when no API signature is provided on all other API calls
 	ErrNoSignature = errors.New("no signature provided")
 	// ErrInvalidSignature is returned when a mismatched API signature is provided

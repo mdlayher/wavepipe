@@ -2,6 +2,7 @@ package auth
 
 import (
 	"crypto/hmac"
+	"database/sql"
 	"net/http"
 	"strings"
 	"time"
@@ -68,6 +69,12 @@ func (a HMACAuth) Authenticate(req *http.Request) (*data.User, *data.Session, er
 	session := new(data.Session)
 	session.PublicKey = publicKey
 	if err := session.Load(); err != nil {
+		// No such session
+		if err == sql.ErrNoRows {
+			return nil, nil, ErrInvalidPublicKey, nil
+		}
+
+		// Server error
 		return nil, nil, nil, err
 	}
 
