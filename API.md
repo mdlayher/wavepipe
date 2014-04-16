@@ -99,6 +99,7 @@ or using a HTTP Basic username and password combination.
 | Code | Message | Description |
 | :--: | :-----: | :---------: |
 | 400 | unsupported API version: vX | Attempted access to an invalid version of this API, or to a version before this API existed. |
+| 401 | authentication failed: X | API authentication failed. Could be due to malformed, missing, or bad credentials. |
 | 500 | server error | An internal error occurred. wavepipe will log these errors to its console log. |
 
 ## Songs
