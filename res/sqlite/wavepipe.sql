@@ -35,4 +35,11 @@ CREATE TABLE "songs" (
 	"year"          INTEGER
 );
 CREATE UNIQUE INDEX "songs_unique_fileName" ON "songs" ("file_name");
+/* users */
+CREATE TABLE "users" (
+	"id"       INTEGER PRIMARY KEY AUTOINCREMENT,
+	"username" TEXT,
+	"password" TEXT
+);
+CREATE UNIQUE INDEX "users_unique_username" ON "users" ("username");
 COMMIT;
