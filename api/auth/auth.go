@@ -21,15 +21,15 @@ var (
 
 // AuthMethod represents a method of authenticating with the API
 type AuthMethod interface {
-	Authenticate(*http.Request) (error, error)
+	Authenticate(*http.Request) (*data.User, error, error)
 }
 
 // BcryptAuth represents the bcrypt authentication method, used to log in to the API
 type BcryptAuth struct{}
 
 // Authenticate uses the bcrypt authentication method to log in to the API, returning
-// a pair of client/server errors
-func (a BcryptAuth) Authenticate(req *http.Request) (error, error) {
+// a session user and a pair of client/server errors
+func (a BcryptAuth) Authenticate(req *http.Request) (*data.User, error, error) {
 	// Username and password for authentication
 	var username string
 	var password string
@@ -44,7 +44,7 @@ func (a BcryptAuth) Authenticate(req *http.Request) (error, error) {
 		// Fetch credentials from HTTP Basic auth
 		tempUsername, tempPassword, err := basicCredentials(req.Header.Get("Authorization"))
 		if err != nil {
-			return err, nil
+			return nil, err, nil
 		}
 
 		// Copy credentials
@@ -54,9 +54,9 @@ func (a BcryptAuth) Authenticate(req *http.Request) (error, error) {
 
 	// Check if either credential is blank
 	if username == "" {
-		return ErrNoUsername, nil
+		return nil, ErrNoUsername, nil
 	} else if password == "" {
-		return ErrNoPassword, nil
+		return nil, ErrNoPassword, nil
 	}
 
 	// Attempt to load user by username
@@ -65,34 +65,34 @@ func (a BcryptAuth) Authenticate(req *http.Request) (error, error) {
 	if err := user.Load(); err != nil {
 		// Check for invalid user
 		if err == sql.ErrNoRows {
-			return errors.New("invalid username"), nil
+			return nil, errors.New("invalid username"), nil
 		}
 
 		// Server error
-		return nil, err
+		return nil, nil, err
 	}
 
 	// Compare input password with bcrypt password, checking for errors
 	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil && err == bcrypt.ErrMismatchedHashAndPassword {
 		// Mismatch password
-		return errors.New("invalid password"), nil
-	} else if err != bcrypt.ErrMismatchedHashAndPassword {
+		return nil, errors.New("invalid password"), nil
+	} else if err != nil && err != bcrypt.ErrMismatchedHashAndPassword {
 		// Return server error
-		return nil, err
+		return nil, nil, err
 	}
 
-	// No errors
-	return nil, nil
+	// No errors, return session user
+	return user, nil, nil
 }
 
 // APIAuth represents the standard API authentication method, used for all other API calls
 type APIAuth struct{}
 
 // Authenticate uses the standard API authentication method for any calls outside of login
-func (a APIAuth) Authenticate(req *http.Request) (error, error) {
+func (a APIAuth) Authenticate(req *http.Request) (*data.User, error, error) {
 	// TODO: implement this method
-	return nil, nil
+	return nil, nil, errors.New("method not implemented")
 }
 
 // basicCredentials returns HTTP Basic authentication credentials from a header
