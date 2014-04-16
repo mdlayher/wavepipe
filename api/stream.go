@@ -162,9 +162,12 @@ func httpStream(song *data.Song, stream io.ReadCloser, httpRes http.ResponseWrit
 	// Indicate when stream is complete
 	streamComplete := false
 
-	// Set MIME type and content lengthfrom file, begin transferring the data stream
-	httpRes.Header().Set("Content-Type", mime.TypeByExtension(path.Ext(song.FileName)))
+	// Set necessary output HTTP headers
 	httpRes.Header().Set("Content-Length", strconv.FormatInt(song.FileSize, 10))
+	httpRes.Header().Set("Content-Type", mime.TypeByExtension(path.Ext(song.FileName)))
+	httpRes.Header().Set("Last-Modified", time.Unix(song.LastModified, 0).UTC().Format(time.RFC1123))
+
+	// Begin transferring the data stream
 	for {
 		// Read in a buffer from the file
 		n, err := stream.Read(buf)
