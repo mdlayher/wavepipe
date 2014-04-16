@@ -42,4 +42,14 @@ CREATE TABLE "users" (
 	"password" TEXT
 );
 CREATE UNIQUE INDEX "users_unique_username" ON "users" ("username");
+/* sessions */
+CREATE TABLE "sessions" (
+	"id"         INTEGER PRIMARY KEY AUTOINCREMENT,
+	"user_id"    INTEGER NOT NULL,
+	"client"     TEXT,
+	"public_key" TEXT,
+	"secret_key" TEXT
+);
+CREATE UNIQUE INDEX "sessions_unique_public_key" ON "sessions" ("public_key");
+CREATE UNIQUE INDEX "sessions_unique_secret_key" ON "sessions" ("secret_key");
 COMMIT;
