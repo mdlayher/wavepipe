@@ -35,6 +35,7 @@ type dbBackend interface {
 	AllSongs() ([]Song, error)
 	SongsForAlbum(int) ([]Song, error)
 	SongsForArtist(int) ([]Song, error)
+	SongsForFolder(int) ([]Song, error)
 	SongsInPath(string) ([]Song, error)
 	SongsNotInPath(string) ([]Song, error)
 	DeleteSong(*Song) error

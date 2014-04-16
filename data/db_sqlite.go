@@ -476,6 +476,13 @@ func (s *SqliteBackend) SongsForArtist(ID int) ([]Song, error) {
 		"WHERE songs.artist_id = ?;", ID)
 }
 
+// SongsForFolder loads a slice of all Song structs which have the matching folder ID
+func (s *SqliteBackend) SongsForFolder(ID int) ([]Song, error) {
+	return s.songQuery("SELECT songs.*,artists.title AS artist,albums.title AS album FROM songs "+
+		"JOIN artists ON songs.artist_id = artists.id JOIN albums ON songs.album_id = albums.id "+
+		"WHERE songs.folder_id = ?;", ID)
+}
+
 // SongsInPath loads a slice of all Song structs residing under the specified
 // filesystem path from the database
 func (s *SqliteBackend) SongsInPath(path string) ([]Song, error) {

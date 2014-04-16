@@ -16,6 +16,7 @@ type FoldersResponse struct {
 	Error      *Error        `json:"error"`
 	Folders    []data.Folder `json:"folders"`
 	Subfolders []data.Folder `json:"subfolders"`
+	Songs      []data.Song   `json:"songs"`
 }
 
 // GetFolders retrieves one or more folders from wavepipe, and returns a HTTP status and JSON
@@ -89,6 +90,21 @@ func GetFolders(r render.Render, params martini.Params) {
 
 		// Add subfolders to response
 		res.Subfolders = subfolders
+
+		// Load all contained songs in this folder
+		songs, err := data.DB.SongsForFolder(folder.ID)
+		if err != nil {
+			log.Println(err)
+
+			res.Error = new(Error)
+			res.Error.Code = 500
+			res.Error.Message = "server error"
+			r.JSON(500, res)
+			return
+		}
+
+		// Add songs to response
+		res.Songs = songs
 	} else {
 		// Retrieve all folders
 		tempFolders, err := data.DB.AllFolders()
