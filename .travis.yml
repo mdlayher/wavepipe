@@ -22,12 +22,6 @@ script:
   - make
   - ./bin/wavepipe -test &
   - sleep 5
-  - curl http://localhost:8080/api
-  - curl http://localhost:8080/api/v0/albums
-  - curl http://localhost:8080/api/v0/albums/1
-  - curl http://localhost:8080/api/v0/artists
-  - curl http://localhost:8080/api/v0/artists/1
-  - curl http://localhost:8080/api/v0/songs
-  - curl http://localhost:8080/api/v0/songs/1
+  - php ./res/wavepipe_test.php
   - sleep 10
   - make test
