@@ -36,8 +36,8 @@ func apiRouter(apiKillChan chan struct{}) {
 	m.Use(func(r render.Render) {
 		// If API is stopping, render a HTTP 503
 		if stopAPI {
-			r.JSON(http.StatusServiceUnavailable, api.Error{
-				Code:    http.StatusServiceUnavailable,
+			r.JSON(503, api.Error{
+				Code:    503,
 				Message: "service is shutting down",
 			})
 			return
@@ -69,8 +69,8 @@ func apiRouter(apiKillChan chan struct{}) {
 				res.Header().Set("WWW-Authenticate", "Basic")
 			}
 
-			r.JSON(http.StatusUnauthorized, api.Error{
-				Code:    http.StatusUnauthorized,
+			r.JSON(401, api.Error{
+				Code:    401,
 				Message: "authentication failed: " + clientErr.Error(),
 			})
 			return
@@ -80,8 +80,8 @@ func apiRouter(apiKillChan chan struct{}) {
 		if serverErr != nil {
 			log.Println(serverErr)
 
-			r.JSON(http.StatusInternalServerError, api.Error{
-				Code:    http.StatusInternalServerError,
+			r.JSON(500, api.Error{
+				Code:    500,
 				Message: "server error",
 			})
 			return
