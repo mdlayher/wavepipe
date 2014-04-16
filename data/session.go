@@ -71,6 +71,11 @@ func (u *Session) Save() error {
 	return DB.SaveSession(u)
 }
 
+// Update updates an existing Session in the database
+func (u *Session) Update() error {
+	return DB.UpdateSession(u)
+}
+
 // ToJSON generates a JSON representation of a Session
 func (u Session) ToJSON() ([]byte, error) {
 	// Marshal into JSON

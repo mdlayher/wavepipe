@@ -42,4 +42,5 @@ type dbBackend interface {
 	DeleteSession(*Session) error
 	LoadSession(*Session) error
 	SaveSession(*Session) error
+	UpdateSession(*Session) error
 }

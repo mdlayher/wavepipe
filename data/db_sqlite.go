@@ -641,6 +641,27 @@ func (s *SqliteBackend) SaveSession(u *Session) error {
 	return nil
 }
 
+// UpdateSession updates a Session in the database
+func (s *SqliteBackend) UpdateSession(u *Session) error {
+	// Open database
+	db, err := s.Open()
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	// Attempt to update this session by its ID, if available
+	tx := db.MustBegin()
+	if u.ID != 0 {
+		tx.Exec("UPDATE sessions SET `expire` = ? WHERE id = ?;", u.Expire, u.ID)
+		return tx.Commit()
+	}
+
+	// Else, attempt to update the session by its public key
+	tx.Exec("UPDATE sessions SET `expire` = ? WHERE public_key = ?;", u.Expire, u.PublicKey)
+	return tx.Commit()
+}
+
 // albumQuery loads a slice of Album structs matching the input query
 func (s *SqliteBackend) albumQuery(query string, args ...interface{}) ([]Album, error) {
 	// Open database
