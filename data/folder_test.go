@@ -7,8 +7,8 @@ import (
 // Mock folder
 var folder = Folder{
 	ParentID: 1,
-	Title: "TestFolder",
-	Path: "/some/folder",
+	Title:    "TestFolder",
+	Path:     "/some/folder",
 }
 
 // TestFolderDatabase verifies that an Folder can be saved and loaded from the database

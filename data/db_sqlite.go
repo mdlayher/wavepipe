@@ -372,7 +372,7 @@ func (s *SqliteBackend) SaveAlbum(a *Album) error {
 
 // Subfolders loads a slice of all Folder structs residing directly beneath this one from the database
 func (s *SqliteBackend) Subfolders(parentID int) ([]Folder, error) {
-	return s.folderQuery("SELECT * FROM folders WHERE parent_id = ?;", parentID);
+	return s.folderQuery("SELECT * FROM folders WHERE parent_id = ?;", parentID)
 }
 
 // DeleteFolder removes a Folder from the database
