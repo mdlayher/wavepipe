@@ -47,6 +47,7 @@ CREATE TABLE "sessions" (
 	"id"         INTEGER PRIMARY KEY AUTOINCREMENT,
 	"user_id"    INTEGER NOT NULL,
 	"client"     TEXT,
+	"expire"     INTEGER NOT NULL,
 	"public_key" TEXT,
 	"secret_key" TEXT
 );

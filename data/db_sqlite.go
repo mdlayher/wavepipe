@@ -622,9 +622,9 @@ func (s *SqliteBackend) SaveSession(u *Session) error {
 	defer db.Close()
 
 	// Insert new session
-	query := "INSERT INTO sessions (`user_id`, `client`, `public_key`, `secret_key`) VALUES (?, ?, ?, ?);"
+	query := "INSERT INTO sessions (`user_id`, `client`, `expire`, `public_key`, `secret_key`) VALUES (?, ?, ?, ?, ?);"
 	tx := db.MustBegin()
-	tx.Exec(query, u.UserID, u.Client, u.PublicKey, u.SecretKey)
+	tx.Exec(query, u.UserID, u.Client, u.Expire, u.PublicKey, u.SecretKey)
 
 	// Commit transaction
 	if err := tx.Commit(); err != nil {

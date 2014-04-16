@@ -5,6 +5,7 @@ import (
 	"crypto/sha1"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"code.google.com/p/go.crypto/pbkdf2"
 )
@@ -14,6 +15,7 @@ type Session struct {
 	ID        int    `json:"id"`
 	UserID    int    `db:"user_id" json:"userId"`
 	Client    string `json:"client"`
+	Expire    int64  `json:"expire"`
 	PublicKey string `db:"public_key" json:"publicKey"`
 	SecretKey string `db:"secret_key" json:"secretKey"`
 }
@@ -25,6 +27,9 @@ func NewSession(userID int, password string, client string) (*Session, error) {
 	session := new(Session)
 	session.UserID = userID
 	session.Client = client
+
+	// Make session expire in one day, without use
+	session.Expire = time.Now().Add(time.Duration(24 * time.Hour)).Unix()
 
 	// Generate salts for use with PBKDF2
 	saltBuf := make([]byte, 16)
