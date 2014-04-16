@@ -70,6 +70,37 @@ retrieved about a single artist.
 | 404 | artist ID not found | An artist with the specified ID does not exist. |
 | 500 | server error | An internal error occurred. wavepipe will log these errors to its console log. |
 
+## Login
+Used to generate a new API session on wavepipe.  Credentials may be provided either via query string,
+or using a HTTP Basic username and password combination.
+
+**Versions:** `v0`
+
+**URL:** `/api/v0/login`
+
+**Examples:** `http://localhost:8080/api/v0/login`
+
+**Parameters:**
+
+| Name | Versions | Type | Required | Description |
+| :--: | :------: | :--: | :------: | :---------: |
+| u | v0 | string | X | Username used to authenticate to wavepipe. Can also be passed via HTTP Basic. |
+| p | v0 | string | X | Associated password used to authenticate to wavepipe. Can also be passed via HTTP Basic. |
+
+**Return JSON:**
+
+| Name | Type | Description |
+| :--: | :--: | :---------: |
+| error | [Error](http://godoc.org/github.com/mdlayher/wavepipe/api#Error)/null | Information about any errors that occurred.  Value is null if no error occurred. |
+| session | string | Session ID for use with the API. On login failure, it is an empty string: "" |
+
+**Possible errors:**
+
+| Code | Message | Description |
+| :--: | :-----: | :---------: |
+| 400 | unsupported API version: vX | Attempted access to an invalid version of this API, or to a version before this API existed. |
+| 500 | server error | An internal error occurred. wavepipe will log these errors to its console log. |
+
 ## Songs
 Used to retrieve information about songs from wavepipe.  If an ID is specified, information will be
 retrieved about a single song.
