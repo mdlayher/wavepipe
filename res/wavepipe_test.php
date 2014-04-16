@@ -3,7 +3,7 @@
 require_once __DIR__ . "/wavepipe.php";
 
 // Attempt a login request using test credentials
-$login = json_decode(file_get_contents("http://localhost:8080/api/v0/login?u=test&p=test"), true);
+$login = json_decode(@file_get_contents("http://localhost:8080/api/v0/login?u=test&p=test"), true);
 if (empty($login)) {
 	printf("Failed to decode login JSON");
 	exit(1);
@@ -36,6 +36,14 @@ foreach ($apiCalls as $a) {
 	// Generate URL
 	$url = sprintf("http://localhost:8080%s?s=%s:%s:%s", $a, $publicKey, $nonce, $signature);
 
+	printf("%s:\n", $a);
+
 	// Perform API call
-	printf("%s: %s\n", $a, file_get_contents($url));
+	$contents = @file_get_contents($url);
+	if (empty($contents)) {
+		printf("Failed to retrieve data stream");
+		exit(1);
+	}
+
+	printf("%s\n", $contents);
 }
