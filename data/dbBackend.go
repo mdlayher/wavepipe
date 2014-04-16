@@ -26,6 +26,11 @@ type dbBackend interface {
 	LoadAlbum(*Album) error
 	SaveAlbum(*Album) error
 
+	Subfolders(int) ([]Folder, error)
+	DeleteFolder(*Folder) error
+	LoadFolder(*Folder) error
+	SaveFolder(*Folder) error
+
 	AllSongs() ([]Song, error)
 	SongsForAlbum(int) ([]Song, error)
 	SongsForArtist(int) ([]Song, error)

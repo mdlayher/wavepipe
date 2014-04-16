@@ -370,6 +370,87 @@ func (s *SqliteBackend) SaveAlbum(a *Album) error {
 	return nil
 }
 
+// Subfolders loads a slice of all Folder structs residing directly beneath this one from the database
+func (s *SqliteBackend) Subfolders(parentID int) ([]Folder, error) {
+	return s.folderQuery("SELECT * FROM folders WHERE parent_id = ?;", parentID);
+}
+
+// DeleteFolder removes a Folder from the database
+func (s *SqliteBackend) DeleteFolder(f *Folder) error {
+	// Open database
+	db, err := s.Open()
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	// Attempt to delete this folder by its ID, if available
+	tx := db.MustBegin()
+	if f.ID != 0 {
+		tx.Exec("DELETE FROM folders WHERE id = ?;", f.ID)
+		return tx.Commit()
+	}
+
+	// Else, attempt to remove the folder by its path
+	tx.Exec("DELETE FROM folders WHERE path = ?;", f.Path)
+	return tx.Commit()
+}
+
+// LoadFolder loads a Folder from the database, populating the parameter struct
+func (s *SqliteBackend) LoadFolder(f *Folder) error {
+	// Open database
+	db, err := s.Open()
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	// Load the folder via ID if available
+	if f.ID != 0 {
+		if err := db.Get(f, "SELECT * FROM folders WHERE id = ?;", f.ID); err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	// Load via path
+	if err := db.Get(f, "SELECT * FROM folders WHERE path = ?;", f.Path); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// SaveFolder attempts to save an Folder to the database
+func (s *SqliteBackend) SaveFolder(f *Folder) error {
+	// Open database
+	db, err := s.Open()
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	// Insert new folder
+	query := "INSERT INTO folders (`parent_id`, `title`, `path`) VALUES (?, ?, ?);"
+	tx := db.MustBegin()
+	tx.Exec(query, f.ParentID, f.Title, f.Path)
+
+	// Commit transaction
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+
+	// If no ID, reload to grab it
+	if f.ID == 0 {
+		if err := s.LoadFolder(f); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 // AllSongs loads a slice of all Song structs from the database
 func (s *SqliteBackend) AllSongs() ([]Song, error) {
 	return s.songQuery("SELECT songs.*,artists.title AS artist,albums.title AS album FROM songs " +
@@ -722,6 +803,37 @@ func (s *SqliteBackend) artistQuery(query string, args ...interface{}) ([]Artist
 	}
 
 	return artists, nil
+}
+
+// folderQuery loads a slice of Folder structs matching the input query
+func (s *SqliteBackend) folderQuery(query string, args ...interface{}) ([]Folder, error) {
+	// Open database
+	db, err := s.Open()
+	if err != nil {
+		return nil, err
+	}
+	defer db.Close()
+
+	// Perform input query with arguments
+	rows, err := db.Queryx(query, args...)
+	if err != nil && err != sql.ErrNoRows {
+		return nil, err
+	}
+
+	// Iterate all rows
+	folders := make([]Folder, 0)
+	a := Folder{}
+	for rows.Next() {
+		// Scan folder into struct
+		if err := rows.StructScan(&a); err != nil {
+			return nil, err
+		}
+
+		// Append to list
+		folders = append(folders, a)
+	}
+
+	return folders, nil
 }
 
 // songQuery loads a slice of Song structs matching the input query
