@@ -4,6 +4,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/mdlayher/wavepipe/api/auth"
 	"github.com/mdlayher/wavepipe/config"
 )
 
@@ -24,6 +25,9 @@ func cronManager(cronKillChan chan struct{}) {
 	// cronOrphanScan - scan every 30 minutes
 	orphanScan := time.NewTicker(30 * time.Minute)
 
+	// cronClearNonceFilter - clear the API nonce bloom filter every day
+	clearNonceFilter := time.NewTicker(24 * time.Hour)
+
 	// Trigger events via ticker
 	for {
 		select {
@@ -42,6 +46,10 @@ func cronManager(cronKillChan chan struct{}) {
 			o := new(fsOrphanScan)
 			o.SetFolders(conf.Media(), "")
 			fsQueue <- o
+		// Trigger a nonce filter reset
+		case <-clearNonceFilter.C:
+			log.Println("cron: clearing API nonce bloom filter")
+			auth.NonceFilter.ClearAll()
 		}
 	}
 }
