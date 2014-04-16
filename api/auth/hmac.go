@@ -13,5 +13,5 @@ type HMACAuth struct{}
 // Authenticate uses the HMAC-SHA1 authentication scheme for any calls outside of login
 func (a HMACAuth) Authenticate(req *http.Request) (*data.User, *data.Session, error, error) {
 	// TODO: implement this method
-	return nil, session, nil, errors.New("method not implemented")
+	return nil, nil, nil, errors.New("method not implemented")
 }
