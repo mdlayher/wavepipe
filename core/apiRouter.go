@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/mdlayher/wavepipe/api"
 	"github.com/mdlayher/wavepipe/api/auth"
@@ -44,12 +45,13 @@ func apiRouter(apiKillChan chan struct{}) {
 	})
 
 	// Authenticate all API calls
-	m.Use(func(req *http.Request, r render.Render) {
+	m.Use(func(req *http.Request, res http.ResponseWriter, r render.Render) {
 		// Set a different authentication method depending on endpoint
 		var authMethod auth.AuthMethod
 
 		// For login, use the bcrypt authenticator to generate a new session
-		if req.URL.Path == "/api/v0/login/" {
+		path := strings.TrimRight(req.URL.Path, "/")
+		if path == "/api/v0/login" {
 			authMethod = new(auth.BcryptAuth)
 		} else {
 			// Else, use the (TODO: name this) authenticatior
@@ -57,10 +59,30 @@ func apiRouter(apiKillChan chan struct{}) {
 		}
 
 		// Attempt authentication
-		if !authMethod.Authenticate(req) {
+		clientErr, serverErr := authMethod.Authenticate(req)
+
+		// Check for client error
+		if clientErr != nil {
+			// If no username or password, send a WWW-Authenticate header to prompt request
+			// This allows for manual exploration of the API if needed
+			if clientErr == auth.ErrNoUsername || clientErr == auth.ErrNoPassword {
+				res.Header().Set("WWW-Authenticate", "Basic")
+			}
+
 			r.JSON(http.StatusUnauthorized, api.Error{
 				Code:    http.StatusUnauthorized,
-				Message: "authentication failed",
+				Message: "authentication failed: " + clientErr.Error(),
+			})
+			return
+		}
+
+		// Check for server error
+		if serverErr != nil {
+			log.Println(serverErr)
+
+			r.JSON(http.StatusInternalServerError, api.Error{
+				Code:    http.StatusInternalServerError,
+				Message: "server error",
 			})
 			return
 		}
@@ -87,6 +109,9 @@ func apiRouter(apiKillChan chan struct{}) {
 		// Artists API
 		r.Get("/artists", api.GetArtists)
 		r.Get("/artists/:id", api.GetArtists)
+
+		// Login API
+		r.Get("/login", api.GetLogin)
 
 		// Songs API
 		r.Get("/songs", api.GetSongs)
