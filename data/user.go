@@ -34,6 +34,11 @@ func NewUser(username string, password string) (*User, error) {
 	return user, nil
 }
 
+// CreateSession generates a new API session for this user
+func (u User) CreateSession(client string) (*Session, error) {
+	return NewSession(u.ID, u.Password, client)
+}
+
 // Delete removes an existing User from the database
 func (u *User) Delete() error {
 	return DB.DeleteUser(u)

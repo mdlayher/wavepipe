@@ -1,7 +1,10 @@
 package api
 
 import (
+	"log"
 	"net/http"
+
+	"github.com/mdlayher/wavepipe/data"
 
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/render"
@@ -9,12 +12,12 @@ import (
 
 // LoginResponse represents the JSON response for /api/logins
 type LoginResponse struct {
-	Error   *Error `json:"error"`
-	Session string `json:"session"`
+	Error   *Error        `json:"error"`
+	Session *data.Session `json:"session"`
 }
 
 // GetLogin creates a new session on the wavepipe API, and returns a HTTP status and JSON
-func GetLogin(r render.Render, req *http.Request, params martini.Params) {
+func GetLogin(r render.Render, req *http.Request, sessionUser *data.User, params martini.Params) {
 	// Output struct for logins request
 	res := LoginResponse{}
 
@@ -30,11 +33,22 @@ func GetLogin(r render.Render, req *http.Request, params martini.Params) {
 		}
 	}
 
-	// TODO: implement session generation logic
+	// Generate a new API session for this user, with optional specified session name
+	// via "c" query parameter
+	session, err := sessionUser.CreateSession(req.URL.Query().Get("c"))
+	if err != nil {
+		log.Println(err)
+
+		res.Error = new(Error)
+		res.Error.Code = 500
+		res.Error.Message = "server error"
+		r.JSON(500, res)
+		return
+	}
 
 	// Build response
 	res.Error = nil
-	res.Session = "abcdef0123456789"
+	res.Session = session
 
 	// HTTP 200 OK with JSON
 	r.JSON(200, res)

@@ -45,7 +45,7 @@ func apiRouter(apiKillChan chan struct{}) {
 	})
 
 	// Authenticate all API calls
-	m.Use(func(req *http.Request, res http.ResponseWriter, r render.Render) {
+	m.Use(func(req *http.Request, res http.ResponseWriter, c martini.Context, r render.Render) {
 		// Set a different authentication method depending on endpoint
 		var authMethod auth.AuthMethod
 
@@ -59,7 +59,7 @@ func apiRouter(apiKillChan chan struct{}) {
 		}
 
 		// Attempt authentication
-		clientErr, serverErr := authMethod.Authenticate(req)
+		user, clientErr, serverErr := authMethod.Authenticate(req)
 
 		// Check for client error
 		if clientErr != nil {
@@ -86,6 +86,9 @@ func apiRouter(apiKillChan chan struct{}) {
 			})
 			return
 		}
+
+		// Successful login, map session user to martini context
+		c.Map(user)
 
 		// Print information about this API call
 		log.Printf("api: [%s] %s", req.RemoteAddr, req.URL.Path)

@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"crypto/sha1"
 	"encoding/json"
+	"fmt"
 
 	"code.google.com/p/go.crypto/pbkdf2"
 )
@@ -39,8 +40,8 @@ func NewSession(userID int, password string, client string) (*Session, error) {
 	salt2 := saltBuf
 
 	// Use PBKDF2 to generate a public key and secret key based off the user's password
-	session.PublicKey = string(pbkdf2.Key([]byte(password), salt1, 4096, 32, sha1.New))
-	session.SecretKey = string(pbkdf2.Key([]byte(password), salt2, 4096, 32, sha1.New))
+	session.PublicKey = fmt.Sprintf("%x", pbkdf2.Key([]byte(password), salt1, 4096, 16, sha1.New))
+	session.SecretKey = fmt.Sprintf("%x", pbkdf2.Key([]byte(password), salt2, 4096, 16, sha1.New))
 
 	// Save session
 	if err := session.Save(); err != nil {
