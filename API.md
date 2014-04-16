@@ -86,13 +86,14 @@ or using a HTTP Basic username and password combination.
 | :--: | :------: | :--: | :------: | :---------: |
 | u | v0 | string | X | Username used to authenticate to wavepipe. Can also be passed via HTTP Basic. |
 | p | v0 | string | X | Associated password used to authenticate to wavepipe. Can also be passed via HTTP Basic. |
+| c | v0 | string | | Optional client name used to identify this session. |
 
 **Return JSON:**
 
 | Name | Type | Description |
 | :--: | :--: | :---------: |
 | error | [Error](http://godoc.org/github.com/mdlayher/wavepipe/api#Error)/null | Information about any errors that occurred.  Value is null if no error occurred. |
-| session | string | Session ID for use with the API. On login failure, it is an empty string: "" |
+| session | [Session](http://godoc.org/github.com/mdlayher/wavepipe/data#Session) | Session object which contains the public and secret keys used to authenticate further API calls. |
 
 **Possible errors:**
 
