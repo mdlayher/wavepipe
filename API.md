@@ -9,6 +9,9 @@ such as the current API version, a link to this documentation, and a list of all
 
 At this time, the current API version is **v0**.  This API is **unstable**, and is subject to change.
 
+Unless otherwise noted, API endpoints should be accessed using the HTTP `GET` method, due to the vast majority
+of API endpoints being read-only.
+
 **Authentication:**
 
 In order to use the wavepipe API, all requests must be authenticated.  The first step is to generate a new
