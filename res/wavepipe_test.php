@@ -2,8 +2,15 @@
 
 require_once __DIR__ . "/wavepipe.php";
 
+// Check for host argument
+if (empty($argv[1])) {
+	printf("No host provided");
+	exit(1);
+}
+$host = $argv[1];
+
 // Attempt a login request using test credentials
-$login = json_decode(@file_get_contents("http://localhost:8080/api/v0/login?u=test&p=test"), true);
+$login = json_decode(@file_get_contents("http://" . $host . "/api/v0/login?u=test&p=test"), true);
 if (empty($login)) {
 	printf("Failed to decode login JSON");
 	exit(1);
@@ -34,7 +41,7 @@ foreach ($apiCalls as $a) {
 	$signature = apiSignature($publicKey, $nonce, "GET", $a, $secretKey);
 
 	// Generate URL
-	$url = sprintf("http://localhost:8080%s?s=%s:%s:%s", $a, $publicKey, $nonce, $signature);
+	$url = sprintf("http://%s%s?s=%s:%s:%s", $host, $a, $publicKey, $nonce, $signature);
 
 	printf("%s:\n", $a);
 
