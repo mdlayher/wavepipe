@@ -290,6 +290,13 @@ Used to retrieve a transcoded binary data stream of a media file from wavepipe. 
 | codec | v0 | string | | The codec selected for use by the transcoder.  If not specified, defaults to **MP3**.  Options are: **MP3**. |
 | quality | v0 | string/int | | The quality selected for use by the transcoder.  String options specify VBR encodings, while integer options specify CBR encodings.  If not specified, defaults to **192**. |
 
+**Available Codecs:**
+
+| Codec | Versions | Type | Options | Description |
+| :---: | :------: | :--: | :-----: | :---------: |
+| MP3 | v0 | CBR | 128, **192** (default), 256, 320 | Generates a constant bitrate encode using LAME. |
+| MP3 | v0 | VBR | V0 (~245kbps), V2 (~190kbps) | Generates a variable bitrate encode using a specific LAME quality level. |
+
 **Return Binary:** Binary data stream containing the transcoded media file stream.
 
 **Return JSON:**
