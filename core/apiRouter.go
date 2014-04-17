@@ -59,12 +59,15 @@ func apiRouter(apiKillChan chan struct{}) {
 		if strings.Contains(req.RemoteAddr, "127.0.0.1") && req.URL.Query().Get("p") == "simple" {
 			// Use simple authentication
 			authMethod = new(auth.SimpleAuth)
-		} else if path == "/api/v0/login" {
+		} else if path == "/api/" + api.APIVersion + "/login" {
 			// For login, use the bcrypt authenticator to generate a new session
 			authMethod = new(auth.BcryptAuth)
-		} else {
+		} else if len(path) > 3 && path[0:4] == "/api" {
 			// For other API methods, use the HMAC-SHA1 authenticator
 			authMethod = new(auth.HMACAuth)
+		} else {
+			// For any other endpoints, no authentication
+			return
 		}
 
 		// Attempt authentication
