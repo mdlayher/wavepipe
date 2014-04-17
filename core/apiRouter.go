@@ -143,6 +143,10 @@ func apiRouter(apiKillChan chan struct{}) {
 		// Stream API
 		r.Get("/stream", api.GetStream)
 		r.Get("/stream/:id", api.GetStream)
+
+		// Transcode API
+		r.Get("/transcode", api.GetTranscode)
+		r.Get("/transcode/:id", api.GetTranscode)
 	})
 
 	// Add router action, start server

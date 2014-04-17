@@ -75,6 +75,7 @@ $ curl http://localhost:8080/api/v0/albums?s=publicKey:nonce:signature
 | [Logout](#logout) | v0 | Used to destroy the current API session from wavepipe. |
 | [Songs](#songs) | v0 | Used to retrieve information about songs from wavepipe. |
 | [Stream](#stream) | v0 | Used to retrieve a raw, non-transcoded, binary data stream of a media file from wavepipe. |
+| [Transcode](#transcode) | v0 | Used to retrieve transcoded binary data stream of a media file from wavepipe. |
 
 ## Albums
 Used to retrieve information about albums from wavepipe.  If an ID is specified, information will be
@@ -256,6 +257,33 @@ Used to retrieve a raw, non-transcoded, binary data stream of a media file from 
 **Examples:** `http://localhost:8080/api/v0/stream/1`
 
 **Return Binary:** Binary data stream containing the media file stream.
+
+**Return JSON:**
+
+| Name | Type | Description |
+| :--: | :--: | :---------: |
+| error | [Error](http://godoc.org/github.com/mdlayher/wavepipe/api#Error) | Information about any errors that occurred. |
+
+**Possible errors:**
+
+| Code | Message | Description |
+| :--: | :-----: | :---------: |
+| 400 | unsupported API version: vX | Attempted access to an invalid version of this API, or to a version before this API existed. |
+| 400 | no integer stream ID provided | No integer ID was sent in request. |
+| 400 | invalid integer stream ID | A valid integer could not be parsed from the ID. |
+| 404 | song ID not found | A song with the specified ID does not exist. |
+| 500 | server error | An internal error occurred. wavepipe will log these errors to its console log. |
+
+## Transcode
+Used to retrieve a transcoded binary data stream of a media file from wavepipe.  An ID **must** be specified to access a file stream.  Successful calls with return a binary stream, and unsuccessful ones will return a JSON error.
+
+**Versions:** `v0`
+
+**URL:** `/api/v0/transcode/:id`
+
+**Examples:** `http://localhost:8080/api/v0/transcode/1`
+
+**Return Binary:** Binary data stream containing the transcoded media file stream.
 
 **Return JSON:**
 
