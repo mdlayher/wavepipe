@@ -9,6 +9,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -44,6 +45,11 @@ func (fsFileSource) MediaScan(mediaFolder string, verbose bool, walkCancelChan c
 	folderCount := 0
 	startTime := time.Now()
 
+	// Cache entries which have been seen previously, to reduce database load
+	folderCache := map[string]*data.Folder{}
+	artistCache := map[string]*data.Artist{}
+	albumCache := map[string]*data.Album{}
+
 	if verbose {
 		log.Println("fs: beginning media scan:", mediaFolder)
 	} else {
@@ -75,8 +81,10 @@ func (fsFileSource) MediaScan(mediaFolder string, verbose bool, walkCancelChan c
 			folder.Path = path.Dir(currPath)
 		}
 
-		// Attempt to load folder
-		if err := folder.Load(); err != nil && err == sql.ErrNoRows {
+		// Check for a cached folder, or attempt to load it
+		if tempFolder, ok := folderCache[folder.Path]; ok {
+			folder = tempFolder
+		} else if err := folder.Load(); err != nil && err == sql.ErrNoRows {
 			// Make sure items actually exist at this path
 			files, err := ioutil.ReadDir(folder.Path)
 			if err != nil {
@@ -121,6 +129,9 @@ func (fsFileSource) MediaScan(mediaFolder string, verbose bool, walkCancelChan c
 			folderCount++
 		}
 
+		// Cache this folder
+		folderCache[folder.Path] = folder
+
 		// Check for a valid media extension
 		if !validSet.Has(path.Ext(currPath)) {
 			return nil
@@ -158,7 +169,9 @@ func (fsFileSource) MediaScan(mediaFolder string, verbose bool, walkCancelChan c
 		// Check for existing artist
 		// Note: if the artist exists, this operation also loads necessary scanning information
 		// such as their artist ID, for use in album and song generation
-		if err := artist.Load(); err == sql.ErrNoRows {
+		if tempArtist, ok := artistCache[artist.Title]; ok {
+			artist = tempArtist
+		} else if err := artist.Load(); err == sql.ErrNoRows {
 			// Save new artist
 			if err := artist.Save(); err != nil {
 				log.Println(err)
@@ -168,14 +181,22 @@ func (fsFileSource) MediaScan(mediaFolder string, verbose bool, walkCancelChan c
 			}
 		}
 
+		// Cache this artist
+		artistCache[artist.Title] = artist
+
 		// Generate the album model from this song's metadata
 		album := data.AlbumFromSong(song)
 		album.ArtistID = artist.ID
 
+		// Generate cache key
+		albumCacheKey := strconv.Itoa(album.ArtistID) + "_" + album.Title
+
 		// Check for existing album
 		// Note: if the album exists, this operation also loads necessary scanning information
 		// such as the album ID, for use in song generation
-		if err := album.Load(); err == sql.ErrNoRows {
+		if tempAlbum, ok := albumCache[albumCacheKey]; ok {
+			album = tempAlbum
+		} else if err := album.Load(); err == sql.ErrNoRows {
 			// Save album
 			if err := album.Save(); err != nil {
 				log.Println(err)
@@ -184,6 +205,9 @@ func (fsFileSource) MediaScan(mediaFolder string, verbose bool, walkCancelChan c
 				albumCount++
 			}
 		}
+
+		// Cache this album
+		albumCache[albumCacheKey] = album
 
 		// Add ID fields to song
 		song.ArtistID = artist.ID
