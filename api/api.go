@@ -24,6 +24,7 @@ var endpoints = []string{
 	"/api/v0/logout",
 	"/api/v0/songs",
 	"/api/v0/stream",
+	"/api/v0/transcode",
 }
 
 // Error represents an error produced by the API
