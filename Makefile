@@ -19,6 +19,7 @@ fmt:
 	go fmt ${WPPATH}/config
 	go fmt ${WPPATH}/core
 	go fmt ${WPPATH}/data
+	go fmt ${WPPATH}/transcode
 	golint .
 
 # Run all tests

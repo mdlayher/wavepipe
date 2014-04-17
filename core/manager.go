@@ -76,12 +76,21 @@ func Manager(killChan chan struct{}, exitChan chan int) {
 	apiKillChan := make(chan struct{})
 	go apiRouter(apiKillChan)
 
+	// Launch transcode manager to handle ffmpeg and file transcoding
+	transcodeKillChan := make(chan struct{})
+	go transcodeManager(transcodeKillChan)
+
 	// Wait for termination signal
 	for {
 		select {
 		// Trigger a graceful shutdown
 		case <-killChan:
 			log.Println("manager: triggering graceful shutdown, press Ctrl+C again to force halt")
+
+			// Stop transcodes, wait for confirmation
+			transcodeKillChan <- struct{}{}
+			<-transcodeKillChan
+			close(transcodeKillChan)
 
 			// Stop API, wait for confirmation
 			apiKillChan <- struct{}{}
