@@ -295,7 +295,7 @@ Used to retrieve a transcoded binary data stream of a media file from wavepipe. 
 | Codec | Versions | Type | Options | Description |
 | :---: | :------: | :--: | :-----: | :---------: |
 | MP3 | v0 | CBR | 128, **192** (default), 256, 320 | Generates a constant bitrate encode using LAME. |
-| MP3 | v0 | VBR | V0 (~245kbps), V2 (~190kbps) | Generates a variable bitrate encode using a specific LAME quality level. |
+| MP3 | v0 | VBR | V0 (~245kbps), V2 (~190kbps), V4 (~165kbps) | Generates a variable bitrate encode using a specific LAME quality level. |
 
 **Return Binary:** Binary data stream containing the transcoded media file stream.
 

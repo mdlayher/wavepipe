@@ -33,7 +33,7 @@ func NewMP3Transcoder(quality string) (*MP3Transcoder, error) {
 		}
 	} else {
 		// Not an integer, so check for a valid VBR quality
-		if !set.New("v0", "V0", "v2", "V2").Has(quality) {
+		if !set.New("v0", "V0", "v2", "V2", "v4", "V4").Has(quality) {
 			return nil, ErrInvalidQuality
 		}
 
