@@ -20,6 +20,11 @@ func httpStream(song *data.Song, fileSize int64, stream io.ReadCloser, httpRes h
 	// Track the stream's progress via log
 	stopProgressChan := make(chan struct{})
 	go func() {
+		// If no file size set, no point in printing progress
+		if fileSize < 0 {
+			return
+		}
+
 		// Track start time
 		startTime := time.Now()
 
@@ -52,7 +57,7 @@ func httpStream(song *data.Song, fileSize int64, stream io.ReadCloser, httpRes h
 
 	// Stop progress on return
 	defer func() {
-		stopProgressChan <- struct{}{}
+		close(stopProgressChan)
 	}()
 
 	// Buffer to store and transfer file bytes
