@@ -281,7 +281,14 @@ Used to retrieve a transcoded binary data stream of a media file from wavepipe. 
 
 **URL:** `/api/v0/transcode/:id`
 
-**Examples:** `http://localhost:8080/api/v0/transcode/1`
+**Examples:** `http://localhost:8080/api/v0/transcode/1`, `http://localhost:8080/api/v0/transcode/1?codec=MP3&quality=320`
+
+**Parameters:**
+
+| Name | Versions | Type | Required | Description |
+| :--: | :------: | :--: | :------: | :---------: |
+| codec | v0 | string | | The codec selected for use by the transcoder.  If not specified, defaults to **MP3**.  Options are: **MP3**. |
+| quality | v0 | string/int | | The quality selected for use by the transcoder.  String options specify VBR encodings, while integer options specify CBR encodings.  If not specified, defaults to **192**. |
 
 **Return Binary:** Binary data stream containing the transcoded media file stream.
 
