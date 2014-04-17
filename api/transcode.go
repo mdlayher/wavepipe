@@ -14,25 +14,17 @@ import (
 	"github.com/martini-contrib/render"
 )
 
-// TranscodeResponse represents the JSON response for /api/transcode
-type TranscodeResponse struct {
-	Error *Error `json:"error"`
-}
-
 // GetTranscode returns a transcoded media file stream from wavepipe.  On success, this API will
 // return a binary transcode. On failure, it will return a JSON error.
 func GetTranscode(httpRes http.ResponseWriter, r render.Render, params martini.Params) {
-	// Output struct for transcodes request
-	res := TranscodeResponse{}
+	// Output struct for transcode errors
+	res := ErrorResponse{render: r}
 
 	// Check API version
 	if version, ok := params["version"]; ok {
 		// Check if this API call is supported in the advertised version
 		if !apiVersionSet.Has(version) {
-			res.Error = new(Error)
-			res.Error.Code = 400
-			res.Error.Message = "unsupported API version: " + version
-			r.JSON(400, res)
+			res.RenderError(400, "unsupported API version: "+version)
 			return
 		}
 	}
@@ -40,20 +32,14 @@ func GetTranscode(httpRes http.ResponseWriter, r render.Render, params martini.P
 	// Check for an ID parameter
 	pID, ok := params["id"]
 	if !ok {
-		res.Error = new(Error)
-		res.Error.Code = 400
-		res.Error.Message = "no integer transcode ID provided"
-		r.JSON(400, res)
+		res.RenderError(400, "no integer transcode ID provided")
 		return
 	}
 
 	// Verify valid integer ID
 	id, err := strconv.Atoi(pID)
 	if err != nil {
-		res.Error = new(Error)
-		res.Error.Code = 400
-		res.Error.Message = "invalid integer transcode ID"
-		r.JSON(400, res)
+		res.RenderError(400, "invalid integer transcode ID")
 		return
 	}
 
@@ -61,21 +47,15 @@ func GetTranscode(httpRes http.ResponseWriter, r render.Render, params martini.P
 	song := new(data.Song)
 	song.ID = id
 	if err := song.Load(); err != nil {
-		res.Error = new(Error)
-
 		// Check for invalid ID
 		if err == sql.ErrNoRows {
-			res.Error.Code = 404
-			res.Error.Message = "song ID not found"
-			r.JSON(404, res)
+			res.RenderError(404, "song ID not found")
 			return
 		}
 
 		// All other errors
 		log.Println(err)
-		res.Error.Code = 500
-		res.Error.Message = "server error"
-		r.JSON(500, res)
+		res.ServerError()
 		return
 	}
 
@@ -83,11 +63,7 @@ func GetTranscode(httpRes http.ResponseWriter, r render.Render, params martini.P
 	stream, err := song.Stream()
 	if err != nil {
 		log.Println(err)
-
-		res.Error = new(Error)
-		res.Error.Code = 500
-		res.Error.Message = "server error"
-		r.JSON(500, res)
+		res.ServerError()
 		return
 	}
 	defer stream.Close()
@@ -99,14 +75,19 @@ func GetTranscode(httpRes http.ResponseWriter, r render.Render, params martini.P
 	transcode, err := ffmpeg.StdoutPipe()
 	if err != nil {
 		log.Println(err)
+		res.ServerError()
 		return
 	}
 
 	// Invoke the ffmpeg process
 	if err := ffmpeg.Start(); err != nil {
 		log.Println(err)
+		res.ServerError()
 		return
 	}
+
+	// Now that ffmpeg has started, we must assume binary data is being transferred,
+	// so no more error JSON may be sent.
 
 	// Attempt to send transcoded file stream over HTTP
 	log.Printf("transcode: starting: [#%05d] %s - %s ", song.ID, song.Artist, song.Title)

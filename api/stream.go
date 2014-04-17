@@ -13,25 +13,17 @@ import (
 	"github.com/martini-contrib/render"
 )
 
-// StreamResponse represents the JSON response for /api/streams
-type StreamResponse struct {
-	Error *Error `json:"error"`
-}
-
 // GetStream a raw, non-transcoded, media file stream from wavepipe.  On success, this API will
 // return a binary stream. On failure, it will return a JSON error.
 func GetStream(httpRes http.ResponseWriter, r render.Render, params martini.Params) {
-	// Output struct for streams request
-	res := StreamResponse{}
+	// Output struct for stream errors
+	res := ErrorResponse{render: r}
 
 	// Check API version
 	if version, ok := params["version"]; ok {
 		// Check if this API call is supported in the advertised version
 		if !apiVersionSet.Has(version) {
-			res.Error = new(Error)
-			res.Error.Code = 400
-			res.Error.Message = "unsupported API version: " + version
-			r.JSON(400, res)
+			res.RenderError(400, "unsupported API version: "+version)
 			return
 		}
 	}
@@ -39,20 +31,14 @@ func GetStream(httpRes http.ResponseWriter, r render.Render, params martini.Para
 	// Check for an ID parameter
 	pID, ok := params["id"]
 	if !ok {
-		res.Error = new(Error)
-		res.Error.Code = 400
-		res.Error.Message = "no integer stream ID provided"
-		r.JSON(400, res)
+		res.RenderError(400, "no integer stream ID provided")
 		return
 	}
 
 	// Verify valid integer ID
 	id, err := strconv.Atoi(pID)
 	if err != nil {
-		res.Error = new(Error)
-		res.Error.Code = 400
-		res.Error.Message = "invalid integer stream ID"
-		r.JSON(400, res)
+		res.RenderError(400, "invalid integer stream ID")
 		return
 	}
 
@@ -60,21 +46,15 @@ func GetStream(httpRes http.ResponseWriter, r render.Render, params martini.Para
 	song := new(data.Song)
 	song.ID = id
 	if err := song.Load(); err != nil {
-		res.Error = new(Error)
-
 		// Check for invalid ID
 		if err == sql.ErrNoRows {
-			res.Error.Code = 404
-			res.Error.Message = "song ID not found"
-			r.JSON(404, res)
+			res.RenderError(404, "song ID not found")
 			return
 		}
 
 		// All other errors
 		log.Println(err)
-		res.Error.Code = 500
-		res.Error.Message = "server error"
-		r.JSON(500, res)
+		res.ServerError()
 		return
 	}
 
@@ -82,11 +62,7 @@ func GetStream(httpRes http.ResponseWriter, r render.Render, params martini.Para
 	stream, err := song.Stream()
 	if err != nil {
 		log.Println(err)
-
-		res.Error = new(Error)
-		res.Error.Code = 500
-		res.Error.Message = "server error"
-		r.JSON(500, res)
+		res.ServerError()
 		return
 	}
 	defer stream.Close()
