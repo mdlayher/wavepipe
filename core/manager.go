@@ -57,8 +57,12 @@ func Manager(killChan chan struct{}, exitChan chan int) {
 	}
 
 	// Launch database manager to handle database/ORM connections
+	dbLaunchChan := make(chan struct{})
 	dbKillChan := make(chan struct{})
-	go dbManager(*conf, dbKillChan)
+	go dbManager(*conf, dbLaunchChan, dbKillChan)
+
+	// Wait for database to be fully ready before other operations start
+	<-dbLaunchChan
 
 	// Launch cron manager to handle timed events
 	cronKillChan := make(chan struct{})
