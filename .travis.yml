@@ -22,6 +22,6 @@ script:
   - make
   - ./bin/wavepipe -test &
   - sleep 5
-  - php ./res/wavepipe_test.php
+  - php ./res/wavepipe_test.php localhost:8080
   - sleep 30
   - make test
