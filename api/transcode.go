@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/mdlayher/wavepipe/data"
+	"github.com/mdlayher/wavepipe/transcode"
 
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/render"
@@ -16,7 +17,7 @@ import (
 
 // GetTranscode returns a transcoded media file stream from wavepipe.  On success, this API will
 // return a binary transcode. On failure, it will return a JSON error.
-func GetTranscode(httpRes http.ResponseWriter, r render.Render, params martini.Params) {
+func GetTranscode(httpReq *http.Request, httpRes http.ResponseWriter, r render.Render, params martini.Params) {
 	// Output struct for transcode errors
 	res := ErrorResponse{render: r}
 
@@ -68,8 +69,43 @@ func GetTranscode(httpRes http.ResponseWriter, r render.Render, params martini.P
 	}
 	defer stream.Close()
 
+	// Check for an input codec
+	query := httpReq.URL.Query()
+	codec := query.Get("codec")
+	if codec == "" {
+		// Default to MP3
+		codec = "mp3"
+	}
+
+	// Check for an input quality
+	quality := query.Get("quality")
+	if quality == "" {
+		// Default to 192kbps
+		quality = "192"
+	}
+
+	// Create a transcoder using factory
+	transcoder, err := transcode.Factory(codec, quality)
+	if err != nil {
+		// Check for client errors
+		// Invalid codec selected
+		if err == transcode.ErrInvalidCodec {
+			res.RenderError(400, "invalid transcoder codec: "+codec)
+			return
+		} else if err == transcode.ErrInvalidQuality {
+			res.RenderError(400, "invalid quality for codec "+codec+": "+quality)
+			return
+		}
+
+		// All other errors, server errors
+		log.Println(err)
+		res.ServerError()
+		return
+	}
+
+	// TODO: move all fmpeg code into the transcode package
+
 	// Invoke ffmpeg to create a transcoded audio stream
-	// TODO: offer more options, bitrates, etc
 	ffmpeg := exec.Command("ffmpeg", "-i", song.FileName, "-codec:a", "libmp3lame", "-qscale:a", "2", "pipe:1.mp3")
 	mimeType := "audio/mpeg"
 
@@ -92,7 +128,7 @@ func GetTranscode(httpRes http.ResponseWriter, r render.Render, params martini.P
 	// so no more error JSON may be sent.
 
 	// Attempt to send transcoded file stream over HTTP
-	log.Printf("transcode: starting: [#%05d] %s - %s ", song.ID, song.Artist, song.Title)
+	log.Printf("transcode: starting: [#%05d] %s - %s [%s %s]", song.ID, song.Artist, song.Title, transcoder.Codec(), transcoder.Quality())
 
 	// Send transcode stream, no size for now (estimate later), set MIME type from options
 	if err := httpStream(song, mimeType, -1, transcode, httpRes); err != nil {
