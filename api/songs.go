@@ -13,14 +13,35 @@ import (
 
 // SongsResponse represents the JSON response for /api/songs
 type SongsResponse struct {
-	Error *Error      `json:"error"`
-	Songs []data.Song `json:"songs"`
+	Error  *Error        `json:"error"`
+	Songs  []data.Song   `json:"songs"`
+	render render.Render `json:"-"`
+}
+
+// RenderError renders a JSON error message with the specified HTTP status code and message
+func (s *SongsResponse) RenderError(code int, message string) {
+	// Nullify all other fields
+	s.Songs = nil
+
+	// Generate error
+	s.Error = new(Error)
+	s.Error.Code = code
+	s.Error.Message = message
+
+	// Render with specified HTTP status code
+	s.render.JSON(code, s)
+}
+
+// ServerError is a shortcut to render a HTTP 500 with generic "server error" message
+func (a *SongsResponse) ServerError() {
+	a.RenderError(500, "server error")
+	return
 }
 
 // GetSongs retrieves one or more songs from wavepipe, and returns a HTTP status and JSON
 func GetSongs(r render.Render, params martini.Params) {
 	// Output struct for songs request
-	res := SongsResponse{}
+	res := SongsResponse{render: r}
 
 	// List of songs to return
 	songs := make([]data.Song, 0)
@@ -29,10 +50,7 @@ func GetSongs(r render.Render, params martini.Params) {
 	if version, ok := params["version"]; ok {
 		// Check if this API call is supported in the advertised version
 		if !apiVersionSet.Has(version) {
-			res.Error = new(Error)
-			res.Error.Code = 400
-			res.Error.Message = "unsupported API version: " + version
-			r.JSON(400, res)
+			res.RenderError(400, "unsupported API version"+version)
 			return
 		}
 	}
@@ -42,10 +60,7 @@ func GetSongs(r render.Render, params martini.Params) {
 		// Verify valid integer ID
 		id, err := strconv.Atoi(pID)
 		if err != nil {
-			res.Error = new(Error)
-			res.Error.Code = 400
-			res.Error.Message = "invalid integer song ID"
-			r.JSON(400, res)
+			res.RenderError(400, "invalid integer song ID")
 			return
 		}
 
@@ -53,21 +68,15 @@ func GetSongs(r render.Render, params martini.Params) {
 		song := new(data.Song)
 		song.ID = id
 		if err := song.Load(); err != nil {
-			res.Error = new(Error)
-
 			// Check for invalid ID
 			if err == sql.ErrNoRows {
-				res.Error.Code = 404
-				res.Error.Message = "song ID not found"
-				r.JSON(404, res)
+				res.RenderError(404, "song ID not found")
 				return
 			}
 
 			// All other errors
 			log.Println(err)
-			res.Error.Code = 500
-			res.Error.Message = "server error"
-			r.JSON(500, res)
+			res.ServerError()
 			return
 		}
 
@@ -78,10 +87,7 @@ func GetSongs(r render.Render, params martini.Params) {
 		tempSongs, err := data.DB.AllSongs()
 		if err != nil {
 			log.Println(err)
-			res.Error = new(Error)
-			res.Error.Code = 500
-			res.Error.Message = "server error"
-			r.JSON(500, res)
+			res.ServerError()
 			return
 		}
 
