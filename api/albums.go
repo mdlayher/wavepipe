@@ -13,15 +13,37 @@ import (
 
 // AlbumsResponse represents the JSON response for /api/albums
 type AlbumsResponse struct {
-	Error  *Error       `json:"error"`
-	Albums []data.Album `json:"albums"`
-	Songs  []data.Song  `json:"songs"`
+	Error  *Error        `json:"error"`
+	Albums []data.Album  `json:"albums"`
+	Songs  []data.Song   `json:"songs"`
+	render render.Render `json:"-"`
+}
+
+// RenderError renders a JSON error message with the specified HTTP status code and message
+func (a *AlbumsResponse) RenderError(code int, message string) {
+	// Nullify all other fields
+	a.Albums = nil
+	a.Songs = nil
+
+	// Generate error
+	a.Error = new(Error)
+	a.Error.Code = code
+	a.Error.Message = message
+
+	// Render with specified HTTP status code
+	a.render.JSON(code, a)
+}
+
+// ServerError is a shortcut to render a HTTP 500 with generic "server error" message
+func (a *AlbumsResponse) ServerError() {
+	a.RenderError(500, "server error")
+	return
 }
 
 // GetAlbums retrieves one or more albums from wavepipe, and returns a HTTP status and JSON
 func GetAlbums(r render.Render, params martini.Params) {
 	// Output struct for albums request
-	res := AlbumsResponse{}
+	res := AlbumsResponse{render: r}
 
 	// List of albums to return
 	albums := make([]data.Album, 0)
@@ -30,10 +52,7 @@ func GetAlbums(r render.Render, params martini.Params) {
 	if version, ok := params["version"]; ok {
 		// Check if this API call is supported in the advertised version
 		if !apiVersionSet.Has(version) {
-			res.Error = new(Error)
-			res.Error.Code = 400
-			res.Error.Message = "unsupported API version: " + version
-			r.JSON(400, res)
+			res.RenderError(400, "unsupported API version: " + version)
 			return
 		}
 	}
@@ -43,10 +62,7 @@ func GetAlbums(r render.Render, params martini.Params) {
 		// Verify valid integer ID
 		id, err := strconv.Atoi(pID)
 		if err != nil {
-			res.Error = new(Error)
-			res.Error.Code = 400
-			res.Error.Message = "invalid integer album ID"
-			r.JSON(400, res)
+			res.RenderError(400, "invalid integer album ID")
 			return
 		}
 
@@ -54,21 +70,15 @@ func GetAlbums(r render.Render, params martini.Params) {
 		album := new(data.Album)
 		album.ID = id
 		if err := album.Load(); err != nil {
-			res.Error = new(Error)
-
 			// Check for invalid ID
 			if err == sql.ErrNoRows {
-				res.Error.Code = 404
-				res.Error.Message = "album ID not found"
-				r.JSON(404, res)
+				res.RenderError(404, "album ID not found")
 				return
 			}
 
 			// All other errors
 			log.Println(err)
-			res.Error.Code = 500
-			res.Error.Message = "server error"
-			r.JSON(500, res)
+			res.ServerError()
 			return
 		}
 
@@ -76,10 +86,7 @@ func GetAlbums(r render.Render, params martini.Params) {
 		songs, err := data.DB.SongsForAlbum(album.ID)
 		if err != nil {
 			log.Println(err)
-			res.Error = new(Error)
-			res.Error.Code = 500
-			res.Error.Message = "server error"
-			r.JSON(500, res)
+			res.ServerError()
 			return
 		}
 
@@ -93,10 +100,7 @@ func GetAlbums(r render.Render, params martini.Params) {
 		tempAlbums, err := data.DB.AllAlbums()
 		if err != nil {
 			log.Println(err)
-			res.Error = new(Error)
-			res.Error.Code = 500
-			res.Error.Message = "server error"
-			r.JSON(500, res)
+			res.ServerError()
 			return
 		}
 
