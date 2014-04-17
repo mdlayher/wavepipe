@@ -296,7 +296,7 @@ Used to retrieve a transcoded binary data stream of a media file from wavepipe. 
 | Code | Message | Description |
 | :--: | :-----: | :---------: |
 | 400 | unsupported API version: vX | Attempted access to an invalid version of this API, or to a version before this API existed. |
-| 400 | no integer stream ID provided | No integer ID was sent in request. |
-| 400 | invalid integer stream ID | A valid integer could not be parsed from the ID. |
+| 400 | no integer transcode ID provided | No integer ID was sent in request. |
+| 400 | invalid integer transcode ID | A valid integer could not be parsed from the ID. |
 | 404 | song ID not found | A song with the specified ID does not exist. |
 | 500 | server error | An internal error occurred. wavepipe will log these errors to its console log. |
