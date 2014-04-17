@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"log"
 	"net/http"
+	"os/exec"
 	"strconv"
 	"strings"
 
@@ -91,13 +92,25 @@ func GetTranscode(httpRes http.ResponseWriter, r render.Render, params martini.P
 	}
 	defer stream.Close()
 
-	// TODO: implement transcoding here, which will generate a transcoded stream from the
-	// TODO: open, raw file stream
-	transcode := stream
+	// Invoke ffmpeg to create a transcoded audio stream
+	ffmpeg := exec.Command("ffmpeg", "-i", song.FileName, "-codec:a", "libmp3lame", "-qscale:a", "2", "pipe:1.mp3")
+
+	// Generate an io.ReadCloser from ffmpeg's stdout stream
+	transcode, err := ffmpeg.StdoutPipe()
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	// Invoke the ffmpeg process
+	if err := ffmpeg.Start(); err != nil {
+		log.Println(err)
+		return
+	}
 
 	// Attempt to send transcoded file stream over HTTP
 	log.Printf("transcode: starting: [#%05d] %s - %s ", song.ID, song.Artist, song.Title)
-	if err := httpStream(song, transcode, httpRes); err != nil {
+	if err := httpStream(song, -1, transcode, httpRes); err != nil {
 		// Check for client reset
 		if strings.Contains(err.Error(), "connection reset by peer") || strings.Contains(err.Error(), "broken pipe") {
 			return
@@ -108,5 +121,12 @@ func GetTranscode(httpRes http.ResponseWriter, r render.Render, params martini.P
 	}
 
 	log.Printf("transcode: completed: [#%05d] %s - %s", song.ID, song.Artist, song.Title)
+
+	// Wait for ffmpeg to exit
+	if err := ffmpeg.Wait(); err != nil {
+		log.Println(err)
+		return
+	}
+
 	return
 }
