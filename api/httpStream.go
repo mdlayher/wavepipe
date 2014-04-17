@@ -3,9 +3,7 @@ package api
 import (
 	"io"
 	"log"
-	"mime"
 	"net/http"
-	"path"
 	"strconv"
 	"sync/atomic"
 	"time"
@@ -15,7 +13,7 @@ import (
 
 // httpStream provides a common method to transfer a file stream using a HTTP response writer
 // TODO: use this for transcoded file streams later on as well
-func httpStream(song *data.Song, stream io.ReadCloser, httpRes http.ResponseWriter) error {
+func httpStream(song *data.Song, fileSize int64, stream io.ReadCloser, httpRes http.ResponseWriter) error {
 	// Total bytes transferred
 	var total int64
 
@@ -29,7 +27,7 @@ func httpStream(song *data.Song, stream io.ReadCloser, httpRes http.ResponseWrit
 		progress := time.NewTicker(5 * time.Second)
 
 		// Calculate total file size
-		totalSize := float64(song.FileSize) / 1024 / 1024
+		totalSize := float64(fileSize) / 1024 / 1024
 		for {
 			select {
 			// Print progress
@@ -39,7 +37,7 @@ func httpStream(song *data.Song, stream io.ReadCloser, httpRes http.ResponseWrit
 				current := float64(currTotal) / 1024 / 1024
 
 				// Capture current percentage
-				percent := int64(float64(float64(currTotal)/float64(song.FileSize)) * 100)
+				percent := int64(float64(float64(currTotal)/float64(fileSize)) * 100)
 
 				// Capture current transfer rate
 				rate := float64(float64((currTotal*8)/1024/1024) / float64(time.Now().Sub(startTime).Seconds()))
@@ -64,8 +62,13 @@ func httpStream(song *data.Song, stream io.ReadCloser, httpRes http.ResponseWrit
 	streamComplete := false
 
 	// Set necessary output HTTP headers
-	httpRes.Header().Set("Content-Length", strconv.FormatInt(song.FileSize, 10))
-	httpRes.Header().Set("Content-Type", mime.TypeByExtension(path.Ext(song.FileName)))
+
+	// Set Content-Length if set
+	if fileSize > 0 {
+		httpRes.Header().Set("Content-Length", strconv.FormatInt(fileSize, 10))
+	}
+
+	// Set Last-Modified using filesystem modify time
 	httpRes.Header().Set("Last-Modified", time.Unix(song.LastModified, 0).UTC().Format(time.RFC1123))
 
 	// Begin transferring the data stream
