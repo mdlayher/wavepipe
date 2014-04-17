@@ -33,8 +33,8 @@ func (s *SongsResponse) RenderError(code int, message string) {
 }
 
 // ServerError is a shortcut to render a HTTP 500 with generic "server error" message
-func (a *SongsResponse) ServerError() {
-	a.RenderError(500, "server error")
+func (s *SongsResponse) ServerError() {
+	s.RenderError(500, "server error")
 	return
 }
 
