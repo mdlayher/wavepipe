@@ -220,7 +220,7 @@ func (fsFileSource) MediaScan(mediaFolder string, verbose bool, walkCancelChan c
 		// Check for existing song
 		if err := song2.Load(); err == sql.ErrNoRows {
 			// Save song (don't log these because they really slow things down)
-			if err2 := song.Save(); err2 != nil && er2r != sql.ErrNoRows {
+			if err2 := song.Save(); err2 != nil && err2 != sql.ErrNoRows {
 				log.Println(err2)
 			} else if err2 == nil {
 				songCount++
