@@ -69,7 +69,9 @@ func GetTranscode(httpRes http.ResponseWriter, r render.Render, params martini.P
 	defer stream.Close()
 
 	// Invoke ffmpeg to create a transcoded audio stream
+	// TODO: offer more options, bitrates, etc
 	ffmpeg := exec.Command("ffmpeg", "-i", song.FileName, "-codec:a", "libmp3lame", "-qscale:a", "2", "pipe:1.mp3")
+	mimeType := "audio/mpeg"
 
 	// Generate an io.ReadCloser from ffmpeg's stdout stream
 	transcode, err := ffmpeg.StdoutPipe()
@@ -91,7 +93,9 @@ func GetTranscode(httpRes http.ResponseWriter, r render.Render, params martini.P
 
 	// Attempt to send transcoded file stream over HTTP
 	log.Printf("transcode: starting: [#%05d] %s - %s ", song.ID, song.Artist, song.Title)
-	if err := httpStream(song, -1, transcode, httpRes); err != nil {
+
+	// Send transcode stream, no size for now (estimate later), set MIME type from options
+	if err := httpStream(song, mimeType, -1, transcode, httpRes); err != nil {
 		// Check for client reset
 		if strings.Contains(err.Error(), "connection reset by peer") || strings.Contains(err.Error(), "broken pipe") {
 			return
