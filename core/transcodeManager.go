@@ -24,7 +24,7 @@ func transcodeManager(transcodeKillChan chan struct{}) {
 	// Set ffmpeg location, enable transcoding
 	log.Println("transcode: found ffmpeg:", path)
 	transcode.Enabled = true
-	transcode.FFmpeg = path
+	transcode.FFmpegPath = path
 
 	// Trigger events via channel
 	for {
