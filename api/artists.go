@@ -55,7 +55,7 @@ func GetArtists(r render.Render, req *http.Request, params martini.Params) {
 	if version, ok := params["version"]; ok {
 		// Check if this API call is supported in the advertised version
 		if !apiVersionSet.Has(version) {
-			res.RenderError(400, "unsupported API version: " + version)
+			res.RenderError(400, "unsupported API version: "+version)
 			return
 		}
 	}
