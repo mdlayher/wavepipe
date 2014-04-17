@@ -37,6 +37,12 @@ func main() {
 	// Application entry point
 	log.Println(core.App, ": starting...")
 
+	// Check if running in debug mode, which will allow bypass of certain features such as
+	// API authentication.  USE THIS FOR DEVELOPMENT ONLY!
+	if os.Getenv("WAVEPIPE_DEBUG") == "1" {
+		log.Println(core.App, ": WARNING, running in debug mode; authentication disabled!")
+	}
+
 	// Gracefully handle termination via UNIX signal
 	sigChan := make(chan os.Signal, 1)
 

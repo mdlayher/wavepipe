@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"runtime"
 	"strconv"
 	"strings"
@@ -54,10 +55,11 @@ func apiRouter(apiKillChan chan struct{}) {
 		// Set a different authentication method depending on endpoint
 		var authMethod auth.AuthMethod
 
-		// Enable simple authentication for local clients, if special password set
+		// Enable simple authentication for clients, if debug environment set
 		path := strings.TrimRight(req.URL.Path, "/")
-		if strings.Contains(req.RemoteAddr, "127.0.0.1") && req.URL.Query().Get("p") == "simple" {
+		if os.Getenv("WAVEPIPE_DEBUG") == "1" {
 			// Use simple authentication
+			log.Println("api: warning: authenticating user in debug mode")
 			authMethod = new(auth.SimpleAuth)
 		} else if path == "/api/"+api.APIVersion+"/login" {
 			// For login, use the bcrypt authenticator to generate a new session
