@@ -32,6 +32,29 @@ type Error struct {
 	Message string `json:"message"`
 }
 
+// ErrorResponse represents the JSON response for endpoints which only return an error
+type ErrorResponse struct {
+	Error  *Error        `json:"error"`
+	render render.Render `json:"-"`
+}
+
+// RenderError renders a JSON error message with the specified HTTP status code and message
+func (e *ErrorResponse) RenderError(code int, message string) {
+	// Generate error
+	e.Error = new(Error)
+	e.Error.Code = code
+	e.Error.Message = message
+
+	// Render with specified HTTP status code
+	e.render.JSON(code, e)
+}
+
+// ServerError is a shortcut to render a HTTP 500 with generic "server error" message
+func (e *ErrorResponse) ServerError() {
+	e.RenderError(500, "server error")
+	return
+}
+
 // Information represents information about the API
 type Information struct {
 	Error         *Error   `json:"error"`

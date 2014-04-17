@@ -10,33 +10,10 @@ import (
 	"github.com/martini-contrib/render"
 )
 
-// LogoutResponse represents the JSON response for /api/logouts
-type LogoutResponse struct {
-	Error *Error `json:"error"`
-	render  render.Render `json:"-"`
-}
-
-// RenderError renders a JSON error message with the specified HTTP status code and message
-func (l *LogoutResponse) RenderError(code int, message string) {
-	// Generate error
-	l.Error = new(Error)
-	l.Error.Code = code
-	l.Error.Message = message
-
-	// Render with specified HTTP status code
-	l.render.JSON(code, l)
-}
-
-// ServerError is a shortcut to render a HTTP 500 with generic "server error" message
-func (l *LogoutResponse) ServerError() {
-	l.RenderError(500, "server error")
-	return
-}
-
 // GetLogout destroys a new session from the wavepipe API, and returns a HTTP status and JSON
 func GetLogout(r render.Render, req *http.Request, session *data.Session, params martini.Params) {
-	// Output struct for logouts request
-	res := LogoutResponse{render: r}
+	// Output struct for logout request
+	res := ErrorResponse{render: r}
 
 	// Check API version
 	if version, ok := params["version"]; ok {
