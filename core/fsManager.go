@@ -48,6 +48,12 @@ func fsManager(mediaFolder string, fsKillChan chan struct{}) {
 		fsSource = memFileSource{}
 	}
 
+	// Track the number of filesystem events fired
+	fsTaskCount := 0
+
+	// Initialize filesystem watcher when ready
+	watcherChan := make(chan struct{})
+
 	// Queue an initial, verbose orphan scan
 	o := new(fsOrphanScan)
 	o.SetFolders(mediaFolder, "")
@@ -81,93 +87,105 @@ func fsManager(mediaFolder string, fsKillChan chan struct{}) {
 				// On completion, close the cancel channel
 				cancelChan = <-cancelQueue
 				close(cancelChan)
-			}
-		}
-	}()
+				fsTaskCount++
 
-	// Create a filesystem watcher
-	watcher, err := fsmonitor.NewWatcher()
-	if err != nil {
-		log.Println(err)
-		return
-	}
-
-	// Wait for events on goroutine
-	go func() {
-		// Recently modified/renamed files sets, used as rate-limiters to prevent modify
-		// events from flooding the select statement.  The filesystem watcher may fire an
-		// excessive number of events, so these will block the extras for a couple seconds.
-		recentModifySet := set.New()
-		recentRenameSet := set.New()
-
-		for {
-			select {
-			// Event occurred
-			case ev := <-watcher.Event:
-				switch {
-				// On modify, trigger a media scan
-				case ev.IsModify():
-					// Add file to set, stopping it from propogating if the event was recently triggered
-					if !recentModifySet.Add(ev.Name) {
-						break
-					}
-
-					// Remove file from rate-limiting set after a couple seconds
-					go func() {
-						<-time.After(2 * time.Second)
-						recentModifySet.Remove(ev.Name)
-					}()
-
-					fallthrough
-				// On create, trigger a media scan
-				case ev.IsCreate():
-					// Invoke a slight delay to enable file creation
-					<-time.After(250 * time.Millisecond)
-
-					// Scan item as the "base folder", so it just adds this item
-					m := new(fsMediaScan)
-					m.SetFolders(ev.Name, "")
-					m.Verbose(false)
-					fsQueue <- m
-				// On rename, trigger an orphan scan
-				case ev.IsRename():
-					// Add file to set, stopping it from propogating if the event was recently triggered
-					if !recentRenameSet.Add(ev.Name) {
-						break
-					}
-
-					// Remove file from rate-limiting set after a couple seconds
-					go func() {
-						<-time.After(2 * time.Second)
-						recentRenameSet.Remove(ev.Name)
-					}()
-
-					fallthrough
-				// On delete, trigger an orphan scan
-				case ev.IsDelete():
-					// Invoke a slight delay to enable file deletion
-					<-time.After(250 * time.Millisecond)
-
-					// Scan item as the "subfolder", so it just removes this item
-					o := new(fsOrphanScan)
-					o.SetFolders("", ev.Name)
-					o.Verbose(false)
-					fsQueue <- o
+				// After both initial scans complete, start the filesystem watcher
+				if fsTaskCount == 2 {
+					close(watcherChan)
 				}
-			// Watcher errors
-			case err := <-watcher.Error:
-				log.Println(err)
-				return
 			}
 		}
 	}()
 
-	// Watch media folder
-	if err := watcher.Watch(mediaFolder); err != nil {
-		log.Println(err)
-		return
-	}
-	log.Println("fs: watching folder:", mediaFolder)
+	// Create a filesystem watcher, which is triggered after initial scans
+	go func() {
+		// Block until triggered
+		<-watcherChan
+
+		// Initialize the watcher
+		watcher, err := fsmonitor.NewWatcher()
+		if err != nil {
+			log.Println(err)
+			return
+		}
+
+		// Wait for events on goroutine
+		go func() {
+			// Recently modified/renamed files sets, used as rate-limiters to prevent modify
+			// events from flooding the select statement.  The filesystem watcher may fire an
+			// excessive number of events, so these will block the extras for a couple seconds.
+			recentModifySet := set.New()
+			recentRenameSet := set.New()
+
+			for {
+				select {
+				// Event occurred
+				case ev := <-watcher.Event:
+					switch {
+					// On modify, trigger a media scan
+					case ev.IsModify():
+						// Add file to set, stopping it from propogating if the event was recently triggered
+						if !recentModifySet.Add(ev.Name) {
+							break
+						}
+
+						// Remove file from rate-limiting set after a couple seconds
+						go func() {
+							<-time.After(2 * time.Second)
+							recentModifySet.Remove(ev.Name)
+						}()
+
+						fallthrough
+					// On create, trigger a media scan
+					case ev.IsCreate():
+						// Invoke a slight delay to enable file creation
+						<-time.After(250 * time.Millisecond)
+
+						// Scan item as the "base folder", so it just adds this item
+						m := new(fsMediaScan)
+						m.SetFolders(ev.Name, "")
+						m.Verbose(false)
+						fsQueue <- m
+					// On rename, trigger an orphan scan
+					case ev.IsRename():
+						// Add file to set, stopping it from propogating if the event was recently triggered
+						if !recentRenameSet.Add(ev.Name) {
+							break
+						}
+
+						// Remove file from rate-limiting set after a couple seconds
+						go func() {
+							<-time.After(2 * time.Second)
+							recentRenameSet.Remove(ev.Name)
+						}()
+
+						fallthrough
+					// On delete, trigger an orphan scan
+					case ev.IsDelete():
+						// Invoke a slight delay to enable file deletion
+						<-time.After(250 * time.Millisecond)
+
+						// Scan item as the "subfolder", so it just removes this item
+						o := new(fsOrphanScan)
+						o.SetFolders("", ev.Name)
+						o.Verbose(false)
+						fsQueue <- o
+					}
+				// Watcher errors
+				case err := <-watcher.Error:
+					log.Println(err)
+					return
+				}
+			}
+		}()
+
+		// Watch media folder
+		if err := watcher.Watch(mediaFolder); err != nil {
+			log.Println(err)
+			return
+		}
+		log.Println("fs: watching folder:", mediaFolder)
+	}()
 
 	// Trigger manager events via channel
 	for {
