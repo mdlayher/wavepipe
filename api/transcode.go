@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"log"
 	"net/http"
-	"os/exec"
 	"strconv"
 	"strings"
 
@@ -106,25 +105,22 @@ func GetTranscode(httpReq *http.Request, httpRes http.ResponseWriter, r render.R
 	// Set song into the transcoder
 	transcoder.SetSong(song)
 
-	// Output the command
-	path := transcode.FFmpegPath
-	cmd := transcoder.FFmpeg().Arguments()
-	log.Println("transcode: starting:", path, cmd)
+	// Retrieve the instance of ffmpeg
+	ffmpeg := transcoder.FFmpeg()
+
+	// Output the command ffmpeg will use to create the transcode
+	log.Println("transcode: starting:", transcode.FFmpegPath, ffmpeg.Arguments())
 
 	// Invoke ffmpeg to create a transcoded audio stream
-	ffmpeg := exec.Command(path, cmd...)
-	mimeType := transcoder.MIMEType()
-
-	// Generate an io.ReadCloser from ffmpeg's stdout stream
-	transcode, err := ffmpeg.StdoutPipe()
-	if err != nil {
+	if err := ffmpeg.Start(); err != nil {
 		log.Println(err)
 		res.ServerError()
 		return
 	}
 
-	// Invoke the ffmpeg process
-	if err := ffmpeg.Start(); err != nil {
+	// Retrieve the stream from ffmpeg
+	transcode, err := ffmpeg.Stream()
+	if err != nil {
 		log.Println(err)
 		res.ServerError()
 		return
@@ -135,6 +131,9 @@ func GetTranscode(httpReq *http.Request, httpRes http.ResponseWriter, r render.R
 
 	// Attempt to send transcoded file stream over HTTP
 	log.Printf("transcode: starting: [#%05d] %s - %s [%s %s]", song.ID, song.Artist, song.Title, transcoder.Codec(), transcoder.Quality())
+
+	// Detect MIME type from transcoder
+	mimeType := transcoder.MIMEType()
 
 	// Send transcode stream, no size for now (estimate later), set MIME type from options
 	if err := httpStream(song, mimeType, -1, transcode, httpRes); err != nil {
