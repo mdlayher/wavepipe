@@ -33,7 +33,7 @@ CREATE TABLE "songs" (
 	"comment"       TEXT,
 	"file_name"     TEXT,
 	"file_size"     INTEGER NOT NULL,
-	"file_type"     TEXT,
+	"file_type_id"  INTEGER NOT NULL,
 	"folder_id"     INTEGER NOT NULL,
 	"genre"         TEXT,
 	"last_modified" INTEGER NOT NULL,

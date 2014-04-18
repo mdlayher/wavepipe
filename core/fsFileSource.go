@@ -10,7 +10,6 @@ import (
 	"path"
 	"path/filepath"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 
@@ -155,13 +154,18 @@ func (fsFileSource) MediaScan(mediaFolder string, verbose bool, walkCancelChan c
 		// Populate filesystem-related struct fields using OS info
 		song.FileName = currPath
 		song.FileSize = info.Size()
+		song.LastModified = info.ModTime().Unix()
 
 		// Use this folder's ID
 		song.FolderID = folder.ID
 
-		// Extract type from the extension, capitalize it, drop the dot
-		song.FileType = strings.ToUpper(path.Ext(info.Name()))[1:]
-		song.LastModified = info.ModTime().Unix()
+		// Check for a valid wavepipe file type integer
+		ext := path.Ext(info.Name())
+		fileType, ok := data.FileTypeMap[ext]
+		if !ok {
+			return fmt.Errorf("fs: invalid file type: %s", ext)
+		}
+		song.FileTypeID = fileType
 
 		// Generate an artist model from this song's metadata
 		artist := data.ArtistFromSong(song)
