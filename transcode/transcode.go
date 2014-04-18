@@ -50,6 +50,9 @@ func Factory(codec string, quality string) (Transcoder, error) {
 	// MP3
 	case "mp3", "MP3":
 		return NewMP3Transcoder(quality)
+	// Ogg Vorbis
+	case "ogg", "OGG":
+		return NewOGGTranscoder(quality)
 	// Invalid choice
 	default:
 		return nil, ErrInvalidCodec
