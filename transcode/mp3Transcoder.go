@@ -9,9 +9,7 @@ import (
 
 // MP3Transcoder represents a MP3 transcoding operation
 type MP3Transcoder struct {
-	cbrQuality string
-	vbr        bool
-	vbrQuality string
+	Options Options
 }
 
 // NewMP3Transcoder creates a new MP3 transcoder, and initializes its associated fields
@@ -28,8 +26,9 @@ func NewMP3Transcoder(quality string) (*MP3Transcoder, error) {
 
 		// Create a CBR transcoder
 		transcoder = &MP3Transcoder{
-			cbrQuality: quality,
-			vbr:        false,
+			Options: MP3CBROptions{
+				quality: quality,
+			},
 		}
 	} else {
 		// Not an integer, so check for a valid VBR quality
@@ -39,8 +38,9 @@ func NewMP3Transcoder(quality string) (*MP3Transcoder, error) {
 
 		// Create a VBR transcoder
 		transcoder = &MP3Transcoder{
-			vbr:        true,
-			vbrQuality: strings.ToUpper(quality),
+			Options: MP3VBROptions{
+				quality: strings.ToUpper(quality),
+			},
 		}
 	}
 
@@ -48,23 +48,17 @@ func NewMP3Transcoder(quality string) (*MP3Transcoder, error) {
 	return transcoder, nil
 }
 
-// Codec returns the name of the codec used by the transcoder
+// Codec returns the selected cdoec used by the transcoder
 func (m MP3Transcoder) Codec() string {
-	return "MP3"
-}
-
-// FFmpegCodec returns the name of the codec ffmpeg will use to create the transcode
-func (m MP3Transcoder) FFmpegCodec() string {
-	return "libmp3lame"
+	return m.Options.Codec()
 }
 
 // Quality returns the selected quality used by the transcoder
 func (m MP3Transcoder) Quality() string {
-	// VBR quality
-	if m.vbr {
-		return "VBR " + m.vbrQuality
+	// Check for CBR or VBR
+	if _, ok := m.Options.(MP3CBROptions); ok {
+		return "CBR " + m.Options.Quality()
 	}
 
-	// CBR quality
-	return "CBR " + m.cbrQuality
+	return "VBR " + m.Options.Quality()
 }
