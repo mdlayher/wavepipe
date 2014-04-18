@@ -8,7 +8,7 @@ import (
 const mp3Codec = "MP3"
 
 // mp3FFmpegCodec contains the ffmpeg codec describing MP3
-const mp3FFmpegCodec = "libpm3lame"
+const mp3FFmpegCodec = "libmp3lame"
 
 // MP3CBROptions represents the options for a MP3 CBR transcoder
 type MP3CBROptions struct {
