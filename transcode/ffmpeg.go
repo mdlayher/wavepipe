@@ -24,7 +24,7 @@ func (f FFmpeg) Arguments() []string {
 	return []string{
 		"-i",
 		f.song.FileName,
-		"-codec:a",
+		"-acodec",
 		f.options.FFmpegCodec(),
 		f.options.FFmpegFlags(),
 		f.options.FFmpegQuality(),
