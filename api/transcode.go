@@ -2,6 +2,7 @@ package api
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -115,13 +116,17 @@ func GetTranscode(httpReq *http.Request, httpRes http.ResponseWriter, r render.R
 	}
 
 	// Output the command ffmpeg will use to create the transcode
-	log.Println("transcode: starting:", transcoder.Command())
+	log.Println("transcode: command:", transcoder.Command())
 
 	// Now that ffmpeg has started, we must assume binary data is being transferred,
 	// so no more error JSON may be sent.
 
+	// Generate a string used for logging this operation
+	opStr := fmt.Sprintf("[#%05d] %s - %s [%s %dkbps -> %s %s]", song.ID, song.Artist, song.Title,
+		data.CodecMap[song.FileTypeID], song.Bitrate, transcoder.Codec(), transcoder.Quality())
+
 	// Attempt to send transcoded file stream over HTTP
-	log.Printf("transcode: starting: [#%05d] %s - %s [%s %s]", song.ID, song.Artist, song.Title, transcoder.Codec(), transcoder.Quality())
+	log.Println("transcode: starting:", opStr)
 
 	// Detect MIME type from transcoder
 	mimeType := transcoder.MIMEType()
@@ -137,13 +142,12 @@ func GetTranscode(httpReq *http.Request, httpRes http.ResponseWriter, r render.R
 		return
 	}
 
-	log.Printf("transcode: completed: [#%05d] %s - %s", song.ID, song.Artist, song.Title)
-
 	// Wait for ffmpeg to exit
 	if err := transcoder.Wait(); err != nil {
 		log.Println(err)
 		return
 	}
 
+	log.Println("transcode: completed:", opStr)
 	return
 }

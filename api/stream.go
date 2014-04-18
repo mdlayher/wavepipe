@@ -2,6 +2,7 @@ package api
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -67,8 +68,12 @@ func GetStream(httpRes http.ResponseWriter, r render.Render, params martini.Para
 	}
 	defer stream.Close()
 
+	// Generate a string used for logging this operation
+	opStr := fmt.Sprintf("[#%05d] %s - %s [%s %dkbps]", song.ID, song.Artist, song.Title,
+		data.CodecMap[song.FileTypeID], song.Bitrate)
+
 	// Attempt to send file stream over HTTP
-	log.Printf("stream: starting: [#%05d] %s - %s ", song.ID, song.Artist, song.Title)
+	log.Println("stream: starting:", opStr)
 
 	// Pass stream using song's file size, auto-detect MIME type
 	if err := httpStream(song, "", song.FileSize, stream, httpRes); err != nil {
@@ -81,6 +86,6 @@ func GetStream(httpRes http.ResponseWriter, r render.Render, params martini.Para
 		return
 	}
 
-	log.Printf("stream: completed: [#%05d] %s - %s", song.ID, song.Artist, song.Title)
+	log.Println("stream: completed:", opStr)
 	return
 }
