@@ -9,6 +9,8 @@ import (
 )
 
 var (
+	// ErrFFmpegNotStarted is returned when ffmpeg is not started before attempting to
+	// retrieve its output stream, or wait for it to exit
 	ErrFFmpegNotStarted = errors.New("ffmpeg: transcoding process has not started")
 )
 
