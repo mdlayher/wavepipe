@@ -21,7 +21,6 @@ var FFmpegPath string
 // for a transcoder
 type Transcoder interface {
 	Codec() string
-	FFmpegCodec() string
 	Quality() string
 }
 
