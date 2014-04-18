@@ -4,12 +4,15 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/mdlayher/wavepipe/data"
+
 	"github.com/mdlayher/goset"
 )
 
 // MP3Transcoder represents a MP3 transcoding operation
 type MP3Transcoder struct {
 	Options Options
+	ffmpeg  *FFmpeg
 }
 
 // NewMP3Transcoder creates a new MP3 transcoder, and initializes its associated fields
@@ -48,9 +51,24 @@ func NewMP3Transcoder(quality string) (*MP3Transcoder, error) {
 	return transcoder, nil
 }
 
-// Codec returns the selected cdoec used by the transcoder
+// Codec returns the selected codec used by the transcoder
 func (m MP3Transcoder) Codec() string {
 	return m.Options.Codec()
+}
+
+// FFmpeg returns the instance of ffmpeg used by the transcoder
+func (m MP3Transcoder) FFmpeg() *FFmpeg {
+	return m.ffmpeg
+}
+
+// MIMEtype returns the MIME type contained within the options
+func (m MP3Transcoder) MIMEType() string {
+	return m.Options.MIMEType()
+}
+
+// SetSong sets the input song to be processed by the transcoder
+func (m *MP3Transcoder) SetSong(song *data.Song) {
+	m.ffmpeg = NewFFmpeg(song, m.Options)
 }
 
 // Quality returns the selected quality used by the transcoder

@@ -103,11 +103,17 @@ func GetTranscode(httpReq *http.Request, httpRes http.ResponseWriter, r render.R
 		return
 	}
 
-	// TODO: move all fmpeg code into the transcode package
+	// Set song into the transcoder
+	transcoder.SetSong(song)
+
+	// Output the command
+	path := transcode.FFmpegPath
+	cmd := transcoder.FFmpeg().Arguments()
+	log.Println("transcode: starting:", path, cmd)
 
 	// Invoke ffmpeg to create a transcoded audio stream
-	ffmpeg := exec.Command("ffmpeg", "-i", song.FileName, "-codec:a", "libmp3lame", "-qscale:a", "2", "pipe:1.mp3")
-	mimeType := "audio/mpeg"
+	ffmpeg := exec.Command(path, cmd...)
+	mimeType := transcoder.MIMEType()
 
 	// Generate an io.ReadCloser from ffmpeg's stdout stream
 	transcode, err := ffmpeg.StdoutPipe()
