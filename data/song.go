@@ -42,14 +42,14 @@ var FileTypeMap = map[string]int{
 
 // CodecMap maps wavepipe file type IDs to file types
 var CodecMap = map[int]string{
-	APE: "APE",
+	APE:  "APE",
 	FLAC: "FLAC",
-	M4A: "M4A",
-	MP3: "MP3",
-	MPC: "MPC",
-	OGG: "OGG",
-	WMA: "WMA",
-	WV: "WV",
+	M4A:  "M4A",
+	MP3:  "MP3",
+	MPC:  "MPC",
+	OGG:  "OGG",
+	WMA:  "WMA",
+	WV:   "WV",
 }
 
 // Song represents a song known to wavepipe, and contains metadata regarding
