@@ -1,6 +1,7 @@
 package transcode
 
 import (
+	"io"
 	"strconv"
 	"strings"
 
@@ -56,9 +57,14 @@ func (m MP3Transcoder) Codec() string {
 	return m.Options.Codec()
 }
 
-// FFmpeg returns the instance of ffmpeg used by the transcoder
-func (m MP3Transcoder) FFmpeg() *FFmpeg {
-	return m.ffmpeg
+// Command returns the command invoked by ffmpeg, for debugging
+func (m MP3Transcoder) Command() []string {
+	// If ffmpeg not started, return no arguments
+	if m.ffmpeg == nil {
+		return nil
+	}
+
+	return append([]string{FFmpegPath}, m.ffmpeg.Arguments()...)
 }
 
 // MIMEType returns the MIME type contained within the options
@@ -66,9 +72,18 @@ func (m MP3Transcoder) MIMEType() string {
 	return m.Options.MIMEType()
 }
 
-// SetSong sets the input song to be processed by the transcoder
-func (m *MP3Transcoder) SetSong(song *data.Song) {
+// Start begins the transcoding process, and returns a stream which contains its output
+func (m *MP3Transcoder) Start(song *data.Song) (io.ReadCloser, error) {
+	// Set up the ffmpeg instance
 	m.ffmpeg = NewFFmpeg(song, m.Options)
+
+	// Invoke ffmpeg to create a transcoded audio stream
+	if err := m.ffmpeg.Start(); err != nil {
+		return nil, err
+	}
+
+	// Retrieve the stream from ffmpeg
+	return m.ffmpeg.Stream()
 }
 
 // Quality returns the selected quality used by the transcoder
@@ -79,4 +94,21 @@ func (m MP3Transcoder) Quality() string {
 	}
 
 	return "VBR " + m.Options.Quality()
+}
+
+// Wait waits for the transcoding process to complete, returning an error if it fails
+func (m *MP3Transcoder) Wait() error {
+	// Make sure ffmpeg was started, to avoid panic
+	if m.ffmpeg == nil {
+		return ErrFFmpegNotStarted
+	}
+
+	// Wait for ffmpeg
+	if err := m.ffmpeg.Wait(); err != nil {
+		return err
+	}
+
+	// Nullify ffmpeg process
+	m.ffmpeg = nil
+	return nil
 }

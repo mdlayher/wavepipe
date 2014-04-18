@@ -102,29 +102,15 @@ func GetTranscode(httpReq *http.Request, httpRes http.ResponseWriter, r render.R
 		return
 	}
 
-	// Set song into the transcoder
-	transcoder.SetSong(song)
-
-	// Retrieve the instance of ffmpeg
-	ffmpeg := transcoder.FFmpeg()
-
-	// Output the command ffmpeg will use to create the transcode
-	log.Println("transcode: starting:", transcode.FFmpegPath, ffmpeg.Arguments())
-
-	// Invoke ffmpeg to create a transcoded audio stream
-	if err := ffmpeg.Start(); err != nil {
-		log.Println(err)
-		res.ServerError()
-		return
-	}
-
-	// Retrieve the stream from ffmpeg
-	transcode, err := ffmpeg.Stream()
+	// Start the transcoder, grab output stream
+	transcodeStream, err := transcoder.Start(song)
 	if err != nil {
 		log.Println(err)
 		res.ServerError()
-		return
 	}
+
+	// Output the command ffmpeg will use to create the transcode
+	log.Println("transcode: starting:", transcoder.Command())
 
 	// Now that ffmpeg has started, we must assume binary data is being transferred,
 	// so no more error JSON may be sent.
@@ -136,7 +122,7 @@ func GetTranscode(httpReq *http.Request, httpRes http.ResponseWriter, r render.R
 	mimeType := transcoder.MIMEType()
 
 	// Send transcode stream, no size for now (estimate later), set MIME type from options
-	if err := httpStream(song, mimeType, -1, transcode, httpRes); err != nil {
+	if err := httpStream(song, mimeType, -1, transcodeStream, httpRes); err != nil {
 		// Check for client reset
 		if strings.Contains(err.Error(), "connection reset by peer") || strings.Contains(err.Error(), "broken pipe") {
 			return
@@ -149,7 +135,7 @@ func GetTranscode(httpReq *http.Request, httpRes http.ResponseWriter, r render.R
 	log.Printf("transcode: completed: [#%05d] %s - %s", song.ID, song.Artist, song.Title)
 
 	// Wait for ffmpeg to exit
-	if err := ffmpeg.Wait(); err != nil {
+	if err := transcoder.Wait(); err != nil {
 		log.Println(err)
 		return
 	}
