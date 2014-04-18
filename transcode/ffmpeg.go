@@ -7,14 +7,14 @@ import (
 // FFmpeg represents the ffmpeg media encoder, and is used to provide a more flexible
 // interface than chaining together command-line arguments
 type FFmpeg struct {
-	song *data.Song
+	song    *data.Song
 	options Options
 }
 
 // NewFFmpeg creates a new FFmpeg instance using the input song and options
 func NewFFmpeg(song *data.Song, options Options) *FFmpeg {
 	return &FFmpeg{
-		song: song,
+		song:    song,
 		options: options,
 	}
 }

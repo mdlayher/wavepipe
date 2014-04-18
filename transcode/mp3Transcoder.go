@@ -61,7 +61,7 @@ func (m MP3Transcoder) FFmpeg() *FFmpeg {
 	return m.ffmpeg
 }
 
-// MIMEtype returns the MIME type contained within the options
+// MIMEType returns the MIME type contained within the options
 func (m MP3Transcoder) MIMEType() string {
 	return m.Options.MIMEType()
 }
