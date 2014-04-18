@@ -29,6 +29,18 @@ type Transcoder interface {
 	Quality() string
 }
 
+// Options represents an audio codec and its quality settings, and includes methods to
+// retrieve these settings
+type Options interface {
+	Codec() string
+	Ext() string
+	FFmpegCodec() string
+	FFmpegFlags() string
+	FFmpegQuality() string
+	MIMEType() string
+	Quality() string
+}
+
 // Factory generates a new Transcoder depending on the input parameters
 func Factory(codec string, quality string) (Transcoder, error) {
 	// Check for a valid codec
