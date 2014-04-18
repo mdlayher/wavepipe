@@ -12,6 +12,9 @@ var (
 	ErrInvalidCodec = errors.New("transcode: no such transcoder codec")
 	// ErrInvalidQuality is returned when an invalid quality is selected for a given codec
 	ErrInvalidQuality = errors.New("transcode: invalid quality for transcoder codec")
+	// ErrTranscodingDisabled is returned when the transcoding subsystem is disabled, due
+	// to not being able to find ffmpeg
+	ErrTranscodingDisabled = errors.New("transcode: could not find ffmpeg, transcoding is disabled")
 )
 
 // Enabled determines whether transcoding is available and enabled for wavepipe
@@ -45,6 +48,11 @@ type Options interface {
 
 // Factory generates a new Transcoder depending on the input parameters
 func Factory(codec string, quality string) (Transcoder, error) {
+	// Check if transcoding is disabled
+	if !Enabled {
+		return nil, ErrTranscodingDisabled
+	}
+
 	// Check for a valid codec
 	switch codec {
 	// MP3

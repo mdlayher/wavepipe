@@ -92,7 +92,12 @@ func GetTranscode(httpReq *http.Request, httpRes http.ResponseWriter, r render.R
 			res.RenderError(400, "invalid transcoder codec: "+codec)
 			return
 		} else if err == transcode.ErrInvalidQuality {
+			// Invalid quality for codec
 			res.RenderError(400, "invalid quality for codec "+codec+": "+quality)
+			return
+		} else if err == transcode.ErrTranscodingDisabled {
+			// Transcoding subsystem is disabled
+			res.RenderError(503, "could not find ffmpeg, transcoding is disabled")
 			return
 		}
 
