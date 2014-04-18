@@ -2,6 +2,8 @@ package transcode
 
 import (
 	"errors"
+
+	"github.com/mdlayher/wavepipe/data"
 )
 
 var (
@@ -21,6 +23,9 @@ var FFmpegPath string
 // for a transcoder
 type Transcoder interface {
 	Codec() string
+	FFmpeg() *FFmpeg
+	MIMEType() string
+	SetSong(*data.Song)
 	Quality() string
 }
 
