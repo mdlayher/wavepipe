@@ -287,7 +287,7 @@ Used to retrieve a transcoded binary data stream of a media file from wavepipe. 
 
 | Name | Versions | Type | Required | Description |
 | :--: | :------: | :--: | :------: | :---------: |
-| codec | v0 | string | | The codec selected for use by the transcoder.  If not specified, defaults to **MP3**.  Options are: **MP3**. |
+| codec | v0 | string | | The codec selected for use by the transcoder.  If not specified, defaults to **MP3**.  Options are: **MP3**, OGG. |
 | quality | v0 | string/int | | The quality selected for use by the transcoder.  String options specify VBR encodings, while integer options specify CBR encodings.  If not specified, defaults to **192**. |
 
 **Available Codecs:**
@@ -296,6 +296,8 @@ Used to retrieve a transcoded binary data stream of a media file from wavepipe. 
 | :---: | :------: | :--: | :-----: | :---------: |
 | MP3 | v0 | CBR | 128, **192** (default), 256, 320 | Generates a constant bitrate encode using LAME. |
 | MP3 | v0 | VBR | V0 (~245kbps), V2 (~190kbps), V4 (~165kbps) | Generates a variable bitrate encode using a specific LAME quality level. |
+| OGG | v0 | CBR | 128, **192** (default), 256, 320, 500 | Generates a constant bitrate encode using Ogg Vorbis. |
+| OGG | v0 | VBR | Q10 (~500kbps), Q8 (~256kbps), Q6 (~192kbps) | Generates a variable bitrate encode using a specific Ogg Vorbis quality level. |
 
 **Return Binary:** Binary data stream containing the transcoded media file stream.
 
