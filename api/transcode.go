@@ -71,10 +71,10 @@ func GetTranscode(httpReq *http.Request, httpRes http.ResponseWriter, r render.R
 
 	// Check for an input codec
 	query := httpReq.URL.Query()
-	codec := query.Get("codec")
+	codec := strings.ToUpper(query.Get("codec"))
 	if codec == "" {
 		// Default to MP3
-		codec = "mp3"
+		codec = "MP3"
 	}
 
 	// Check for an input quality

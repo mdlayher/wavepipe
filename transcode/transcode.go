@@ -5,6 +5,8 @@ import (
 	"io"
 
 	"github.com/mdlayher/wavepipe/data"
+
+	"github.com/mdlayher/goset"
 )
 
 var (
@@ -26,15 +28,11 @@ var (
 // Enabled determines whether transcoding is available and enabled for wavepipe
 var Enabled bool
 
-var (
-	// MP3Enabled determines whether transcoding to MP3 using libmp3lame is available
-	MP3Enabled bool
-	// OGGEnabled determines whether transcoding to Ogg Vorbis using libvorbis is available
-	OGGEnabled bool
-)
-
 // FFmpegPath is the path to the ffmpeg binary detected by the transcode manager
 var FFmpegPath string
+
+// CodecSet is the set of codecs which wavepipe detected for use with ffmpeg
+var CodecSet = set.New()
 
 // Transcoder represents a transcoding operation, and the methods which must be defined
 // for a transcoder
@@ -69,17 +67,17 @@ func Factory(codec string, quality string) (Transcoder, error) {
 	// Check for a valid codec
 	switch codec {
 	// MP3
-	case "mp3", "MP3":
+	case "MP3":
 		// Verify MP3 transcoding is enabled
-		if !MP3Enabled {
+		if !CodecSet.Has("MP3") {
 			return nil, ErrMP3Disabled
 		}
 
 		return NewMP3Transcoder(quality)
 	// Ogg Vorbis
-	case "ogg", "OGG":
+	case "OGG":
 		// Verify OGG transcoding is enabled
-		if !OGGEnabled {
+		if !CodecSet.Has("OGG") {
 			return nil, ErrOGGDisabled
 		}
 
