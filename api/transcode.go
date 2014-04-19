@@ -88,24 +88,33 @@ func GetTranscode(httpReq *http.Request, httpRes http.ResponseWriter, r render.R
 	transcoder, err := transcode.Factory(codec, quality)
 	if err != nil {
 		// Check for client errors
+		switch err {
 		// Invalid codec selected
-		if err == transcode.ErrInvalidCodec {
+		case transcode.ErrInvalidCodec:
 			res.RenderError(400, "invalid transcoder codec: "+codec)
 			return
-		} else if err == transcode.ErrInvalidQuality {
-			// Invalid quality for codec
+		// Invalid quality for codec
+		case transcode.ErrInvalidQuality:
 			res.RenderError(400, "invalid quality for codec "+codec+": "+quality)
 			return
-		} else if err == transcode.ErrTranscodingDisabled {
-			// Transcoding subsystem is disabled
+		// Transcoding subsystem disabled
+		case transcode.ErrTranscodingDisabled:
 			res.RenderError(503, "could not find ffmpeg, transcoding is disabled")
 			return
+		// MP3 transcoding disabled
+		case transcode.ErrMP3Disabled:
+			res.RenderError(503, "could not find libmp3lame, MP3 transcoding is disabled")
+			return
+		// OGG transcoding disabled
+		case transcode.ErrOGGDisabled:
+			res.RenderError(503, "could not find libvorbis, OGG transcoding is disabled")
+			return
+		// All other errors
+		default:
+			log.Println(err)
+			res.ServerError()
+			return
 		}
-
-		// All other errors, server errors
-		log.Println(err)
-		res.ServerError()
-		return
 	}
 
 	// Start the transcoder, grab output stream
