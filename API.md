@@ -314,5 +314,10 @@ Used to retrieve a transcoded binary data stream of a media file from wavepipe. 
 | 400 | unsupported API version: vX | Attempted access to an invalid version of this API, or to a version before this API existed. |
 | 400 | no integer transcode ID provided | No integer ID was sent in request. |
 | 400 | invalid integer transcode ID | A valid integer could not be parsed from the ID. |
+| 400 | invalid transcoder codec: X | A non-existant transcoder codec was passed via the codec parameter. |
+| 400 | invalid quality for codec X: X | A non-existant quality setting for the specified codec was passed via the quality parameter. |
 | 404 | song ID not found | A song with the specified ID does not exist. |
 | 500 | server error | An internal error occurred. wavepipe will log these errors to its console log. |
+| 503 | ffmpeg not found, transcoding disabled | ffmpeg binary could not be detected in system PATH, so the transcoding subsystem is disabled. |
+| 503 | ffmpeg codec libmp3lame not found, MP3 transcoding disabled | ffmpeg was not compiled with libmp3lame codec, so MP3 transcoding is disabled. |
+| 503 | ffmpeg codec libvorbis not found, OGG transcoding disabled | ffmpeg was not compiled with libvorbis codec, so Ogg Vorbis transcoding is disabled. |
