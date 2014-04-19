@@ -14,6 +14,24 @@ import (
 func transcodeManager(transcodeKillChan chan struct{}) {
 	log.Println("transcode: starting...")
 
+	// Perform setup routines for ffmpeg transcoding
+	go ffmpegSetup()
+
+	// Trigger events via channel
+	for {
+		select {
+		// Stop transcode manager
+		case <-transcodeKillChan:
+			// Inform manager that shutdown is complete
+			log.Println("transcode: stopped!")
+			transcodeKillChan <- struct{}{}
+			return
+		}
+	}
+}
+
+// ffmpegSetup performs setup routines for ffmpeg transcoding
+func ffmpegSetup() {
 	// Disable transcoding until ffmpeg is available
 	transcode.Enabled = false
 
@@ -21,7 +39,6 @@ func transcodeManager(transcodeKillChan chan struct{}) {
 	path, err := exec.LookPath("ffmpeg")
 	if err != nil {
 		log.Println("transcode: cannot find ffmpeg, transcoding will be disabled")
-		close(transcodeKillChan)
 		return
 	}
 
@@ -43,7 +60,6 @@ func transcodeManager(transcodeKillChan chan struct{}) {
 	// Check errors
 	if err != nil || err2 != nil || err3 != nil || err4 != nil {
 		log.Println("transcode: could not detect ffmpeg codecs, transcoding will be disabled")
-		close(transcodeKillChan)
 		return
 	}
 
@@ -62,17 +78,5 @@ func transcodeManager(transcodeKillChan chan struct{}) {
 		transcode.CodecSet.Add("OGG")
 	} else {
 		log.Println("transcode: could not find libvorbis, disabling OGG transcoding")
-	}
-
-	// Trigger events via channel
-	for {
-		select {
-		// Stop transcode manager
-		case <-transcodeKillChan:
-			// Inform manager that shutdown is complete
-			log.Println("transcode: stopped!")
-			transcodeKillChan <- struct{}{}
-			return
-		}
 	}
 }
