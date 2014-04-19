@@ -60,8 +60,6 @@ func transcodeManager(transcodeKillChan chan struct{}) {
 		transcode.OGGEnabled = true
 	}
 
-	transcode.MP3Enabled = false
-
 	// Trigger events via channel
 	for {
 		select {
