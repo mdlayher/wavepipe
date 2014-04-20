@@ -28,10 +28,10 @@ var (
 	ErrTranscodingDisabled = errors.New("transcode: could not find ffmpeg, transcoding is disabled")
 	// ErrMP3Disabled is returned when MP3 transcoding is disabled, due to ffmpeg not
 	// containing the necessary codec
-	ErrMP3Disabled = errors.New("transcode: "+FFMpegMP3Codec+" codec not found, MP3 transcoding is disabled")
+	ErrMP3Disabled = errors.New("transcode: " + FFMpegMP3Codec + " codec not found, MP3 transcoding is disabled")
 	// ErrOGGDisabled is returned when OGG transcoding is disabled, due to ffmpeg not
 	// containing the necessary codec
-	ErrOGGDisabled = errors.New("transcode: "+FFMpegOGGCodec+" codec not found, OGG transcoding is disabled")
+	ErrOGGDisabled = errors.New("transcode: " + FFMpegOGGCodec + " codec not found, OGG transcoding is disabled")
 )
 
 // Enabled determines whether transcoding is available and enabled for wavepipe
