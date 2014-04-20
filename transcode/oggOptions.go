@@ -31,7 +31,7 @@ func (m OGGCBROptions) FFmpegFlags() string {
 
 // FFmpegCodec returns the codec used by ffmpeg
 func (m OGGCBROptions) FFmpegCodec() string {
-	return FFMpegOGGCodec
+	return FFmpegOGGCodec
 }
 
 // MIMEType returns the MIME type of this item
@@ -66,7 +66,7 @@ func (m OGGVBROptions) Ext() string {
 
 // FFmpegCodec returns the codec used by ffmpeg
 func (m OGGVBROptions) FFmpegCodec() string {
-	return FFMpegOGGCodec
+	return FFmpegOGGCodec
 }
 
 // FFmpegFlags returns the flag used by ffmpeg to signify this encoding

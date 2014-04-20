@@ -31,7 +31,7 @@ func (m MP3CBROptions) FFmpegFlags() string {
 
 // FFmpegCodec returns the codec used by ffmpeg
 func (m MP3CBROptions) FFmpegCodec() string {
-	return FFMpegMP3Codec
+	return FFmpegMP3Codec
 }
 
 // MIMEType returns the MIME type of this item
@@ -66,7 +66,7 @@ func (m MP3VBROptions) Ext() string {
 
 // FFmpegCodec returns the codec used by ffmpeg
 func (m MP3VBROptions) FFmpegCodec() string {
-	return FFMpegMP3Codec
+	return FFmpegMP3Codec
 }
 
 // FFmpegFlags returns the flag used by ffmpeg to signify this encoding
