@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/mdlayher/wavepipe/config"
-	"github.com/mdlayher/wavepipe/transcode"
 )
 
 // App is the application's name
@@ -88,12 +87,10 @@ func Manager(killChan chan struct{}, exitChan chan int) {
 		case <-killChan:
 			log.Println("manager: triggering graceful shutdown, press Ctrl+C again to force halt")
 
-			// If transcoding enabled, stop transcodes, wait for confirmation
-			if transcode.Enabled {
-				transcodeKillChan <- struct{}{}
-				<-transcodeKillChan
-				close(transcodeKillChan)
-			}
+			// Stop transcodes, wait for confirmation
+			transcodeKillChan <- struct{}{}
+			<-transcodeKillChan
+			close(transcodeKillChan)
 
 			// Stop API, wait for confirmation
 			apiKillChan <- struct{}{}

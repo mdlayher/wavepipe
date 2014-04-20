@@ -25,8 +25,11 @@ Once the TagLib library is installed, wavepipe can be downloaded, built, and ins
 
 `$ go get github.com/mdlayher/wavepipe`
 
-To enable wavepipe's transcoding functionality, you must have `ffmpeg` and the `libmp3lame` codec installed.
-This can be done on newer versions of Ubuntu as follows:
+To enable wavepipe's transcoding functionality, you must have `ffmpeg` installed.  In order to enable MP3
+and Ogg Vorbis transcoding, `ffmpeg` must have the `libmp3lame` and `libvorbis` codecs, respectively.  If
+the codec is missing, transcoding to that codec will be disabled.
+
+On newer versions of Ubuntu, `ffmpeg` with `libmp3lame` and `libvorbis` can be installed as follows:
 
 `$ sudo apt-get install ffmpeg libavcodec-extra-53`
 

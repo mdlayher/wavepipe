@@ -130,6 +130,12 @@ func (s *SqliteBackend) AllArtists() ([]Artist, error) {
 	return s.artistQuery("SELECT * FROM artists;")
 }
 
+// SearchArtists loads a slice of all Artist structs from the database which contain
+// titles that match the specified search query
+func (s *SqliteBackend) SearchArtists(query string) ([]Artist, error) {
+	return s.artistQuery("SELECT * FROM artists WHERE title LIKE ?;", "%"+query+"%")
+}
+
 // PurgeOrphanArtists deletes all artists who are "orphaned", meaning that they no
 // longer have any songs which reference their ID
 func (s *SqliteBackend) PurgeOrphanArtists() (int, error) {
@@ -253,6 +259,12 @@ func (s *SqliteBackend) AllAlbums() ([]Album, error) {
 func (s *SqliteBackend) AlbumsForArtist(ID int) ([]Album, error) {
 	return s.albumQuery("SELECT albums.*,artists.title AS artist FROM albums "+
 		"JOIN artists ON albums.artist_id = artists.id WHERE albums.artist_id = ?;", ID)
+}
+
+// SearchAlbums loads a slice of all Album structs from the database which contain
+// titles that match the specified search query
+func (s *SqliteBackend) SearchAlbums(query string) ([]Album, error) {
+	return s.albumQuery("SELECT * FROM albums WHERE title LIKE ?;", "%"+query+"%")
 }
 
 // PurgeOrphanAlbums deletes all albums who are "orphaned", meaning that they no
@@ -390,6 +402,12 @@ func (s *SqliteBackend) FoldersNotInPath(path string) ([]Folder, error) {
 	return s.folderQuery("SELECT * FROM folders WHERE path NOT LIKE ?;", path+"%")
 }
 
+// SearchFolders loads a slice of all Folder structs from the database which contain
+// titles that match the specified search query
+func (s *SqliteBackend) SearchFolders(query string) ([]Folder, error) {
+	return s.folderQuery("SELECT * FROM folders WHERE title LIKE ?;", "%"+query+"%")
+}
+
 // DeleteFolder removes a Folder from the database
 func (s *SqliteBackend) DeleteFolder(f *Folder) error {
 	// Open database
@@ -470,6 +488,12 @@ func (s *SqliteBackend) SaveFolder(f *Folder) error {
 func (s *SqliteBackend) AllSongs() ([]Song, error) {
 	return s.songQuery("SELECT songs.*,artists.title AS artist,albums.title AS album FROM songs " +
 		"JOIN artists ON songs.artist_id = artists.id JOIN albums ON songs.album_id = albums.id;")
+}
+
+// SearchSongs loads a slice of all Song structs from the database which contain
+// titles that match the specified search query
+func (s *SqliteBackend) SearchSongs(query string) ([]Song, error) {
+	return s.songQuery("SELECT * FROM songs WHERE title LIKE ?;", "%"+query+"%")
 }
 
 // SongsForAlbum loads a slice of all Song structs which have the matching album ID

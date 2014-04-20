@@ -28,6 +28,7 @@ $apiCalls = array(
 	"/api/v0/artists/1",
 	"/api/v0/folders",
 	"/api/v0/folders/1",
+	"/api/v0/search/song",
 	"/api/v0/songs",
 	"/api/v0/songs/1",
 	"/api/v0/logout",
