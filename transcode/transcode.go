@@ -10,12 +10,12 @@ import (
 )
 
 const (
-	// FFMpegMP3Codec contains the ffmpeg codec used to transcode to MP3
-	FFMpegMP3Codec = "libmp3lame"
-	// FFMpegOGGCodec contains the ffmpeg codec used to transcode to Ogg Vorbis
-	FFMpegOGGCodec = "libvorbis"
-	// OPUSFFmpegCodec contains the ffmpeg codec used to transcode to Opus
-	OPUSFFmpegCodec = "libopus"
+	// FFmpegMP3Codec contains the ffmpeg codec used to transcode to MP3
+	FFmpegMP3Codec = "libmp3lame"
+	// FFmpegOGGCodec contains the ffmpeg codec used to transcode to Ogg Vorbis
+	FFmpegOGGCodec = "libvorbis"
+	// FFmpegOPUSCodec contains the ffmpeg codec used to transcode to Opus
+	FFmpegOPUSCodec = "libopus"
 )
 
 var (
@@ -28,10 +28,13 @@ var (
 	ErrTranscodingDisabled = errors.New("transcode: could not find ffmpeg, transcoding is disabled")
 	// ErrMP3Disabled is returned when MP3 transcoding is disabled, due to ffmpeg not
 	// containing the necessary codec
-	ErrMP3Disabled = errors.New("transcode: " + FFMpegMP3Codec + " codec not found, MP3 transcoding is disabled")
+	ErrMP3Disabled = errors.New("transcode: " + FFmpegMP3Codec + " codec not found, MP3 transcoding is disabled")
 	// ErrOGGDisabled is returned when OGG transcoding is disabled, due to ffmpeg not
 	// containing the necessary codec
-	ErrOGGDisabled = errors.New("transcode: " + FFMpegOGGCodec + " codec not found, OGG transcoding is disabled")
+	ErrOGGDisabled = errors.New("transcode: " + FFmpegOGGCodec + " codec not found, OGG transcoding is disabled")
+	// ErrOPUSDisabled is returned when OPUS transcoding is disabled, due to ffmpeg not
+	// containing the necessary codec
+	ErrOPUSDisabled = errors.New("transcode: " + FFmpegOPUSCodec + " codec not found, OPUS transcoding is disabled")
 )
 
 // Enabled determines whether transcoding is available and enabled for wavepipe
@@ -91,6 +94,14 @@ func Factory(codec string, quality string) (Transcoder, error) {
 		}
 
 		return NewOGGTranscoder(quality)
+	// Ogg Opus
+	case "OPUS":
+		// Verify OPUS transcoding is enabled
+		if !CodecSet.Has("OPUS") {
+			return nil, ErrOPUSDisabled
+		}
+
+		return NewOPUSTranscoder(quality)
 	// Invalid choice
 	default:
 		return nil, ErrInvalidCodec
