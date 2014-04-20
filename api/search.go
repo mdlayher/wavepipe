@@ -14,12 +14,12 @@ import (
 
 // SearchResponse represents the JSON response for /api/search
 type SearchResponse struct {
-	Error  *Error        `json:"error"`
+	Error   *Error        `json:"error"`
 	Artists []data.Artist `json:"artists"`
-	Albums []data.Album `json:"albums"`
-	Songs []data.Song `json:"songs"`
+	Albums  []data.Album  `json:"albums"`
+	Songs   []data.Song   `json:"songs"`
 	Folders []data.Folder `json:"folders"`
-	render render.Render `json:"-"`
+	render  render.Render `json:"-"`
 }
 
 // RenderError renders a JSON error message with the specified HTTP status code and message
