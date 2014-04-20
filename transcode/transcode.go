@@ -9,6 +9,15 @@ import (
 	"github.com/mdlayher/goset"
 )
 
+const (
+	// FFMpegMP3Codec contains the ffmpeg codec used to transcode to MP3
+	FFMpegMP3Codec = "libmp3lame"
+	// FFMpegOGGCodec contains the ffmpeg codec used to transcode to Ogg Vorbis
+	FFMpegOGGCodec = "libvorbis"
+	// OPUSFFmpegCodec contains the ffmpeg codec used to transcode to Opus
+	OPUSFFmpegCodec = "libopus"
+)
+
 var (
 	// ErrInvalidCodec is returned when an invalid transcoder codec is selected
 	ErrInvalidCodec = errors.New("transcode: no such transcoder codec")
@@ -18,11 +27,11 @@ var (
 	// to not being able to find ffmpeg
 	ErrTranscodingDisabled = errors.New("transcode: could not find ffmpeg, transcoding is disabled")
 	// ErrMP3Disabled is returned when MP3 transcoding is disabled, due to ffmpeg not
-	// containing the libmp3lame codec
-	ErrMP3Disabled = errors.New("transcode: libmp3lame codec not found, MP3 transcoding is disabled")
+	// containing the necessary codec
+	ErrMP3Disabled = errors.New("transcode: "+FFMpegMP3Codec+" codec not found, MP3 transcoding is disabled")
 	// ErrOGGDisabled is returned when OGG transcoding is disabled, due to ffmpeg not
-	// containing the libvorbis codec
-	ErrOGGDisabled = errors.New("transcode: libvorbis codec not found, OGG transcoding is disabled")
+	// containing the necessary codec
+	ErrOGGDisabled = errors.New("transcode: "+FFMpegOGGCodec+" codec not found, OGG transcoding is disabled")
 )
 
 // Enabled determines whether transcoding is available and enabled for wavepipe

@@ -47,21 +47,21 @@ func transcodeManager(transcodeKillChan chan struct{}) {
 		return
 	}
 
-	// Check for libmp3lame, for MP3 transcoding
+	// Check for MP3 transcoding codec
 	codecStr := string(codecs)
-	if strings.Contains(codecStr, "libmp3lame") {
-		log.Println("transcode: found libmp3lame, enabling MP3 transcoding")
+	if strings.Contains(codecStr, transcode.FFMpegMP3Codec) {
+		log.Println("transcode: found", transcode.FFMpegMP3Codec, ", enabling MP3 transcoding")
 		transcode.CodecSet.Add("MP3")
 	} else {
-		log.Println("transcode: could not find libmp3lame, disabling MP3 transcoding")
+		log.Println("transcode: could not find", transcode.FFMpegMP3Codec, ", disabling MP3 transcoding")
 	}
 
-	// Check for libvorbis, for OGG transcoding
-	if strings.Contains(codecStr, "libvorbis") {
-		log.Println("transcode: found libvorbis, enabling OGG transcoding")
+	// Check for OGG transcoding codec
+	if strings.Contains(codecStr, transcode.FFMpegOGGCodec) {
+		log.Println("transcode: found", transcode.FFMpegOGGCodec, ", enabling OGG transcoding")
 		transcode.CodecSet.Add("OGG")
 	} else {
-		log.Println("transcode: could not find libvorbis, disabling OGG transcoding")
+		log.Println("transcode: could not find", transcode.FFMpegOGGCodec, ", disabling OGG transcoding")
 	}
 
 	// Trigger events via channel

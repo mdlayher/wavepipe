@@ -6,9 +6,6 @@ const oggCodec = "Ogg Vorbis"
 // oggExt contains the extension describing OGG
 const oggExt = "ogg"
 
-// oggFFmpegCodec contains the ffmpeg codec describing OGG
-const oggFFmpegCodec = "libvorbis"
-
 // oggMIMEType contains the MIME type describing OGG
 const oggMIMEType = "audio/ogg"
 
@@ -34,7 +31,7 @@ func (m OGGCBROptions) FFmpegFlags() string {
 
 // FFmpegCodec returns the codec used by ffmpeg
 func (m OGGCBROptions) FFmpegCodec() string {
-	return oggFFmpegCodec
+	return FFMpegOGGCodec
 }
 
 // MIMEType returns the MIME type of this item
@@ -69,7 +66,7 @@ func (m OGGVBROptions) Ext() string {
 
 // FFmpegCodec returns the codec used by ffmpeg
 func (m OGGVBROptions) FFmpegCodec() string {
-	return oggFFmpegCodec
+	return FFMpegOGGCodec
 }
 
 // FFmpegFlags returns the flag used by ffmpeg to signify this encoding

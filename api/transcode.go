@@ -103,11 +103,11 @@ func GetTranscode(httpReq *http.Request, httpRes http.ResponseWriter, r render.R
 			return
 		// MP3 transcoding disabled
 		case transcode.ErrMP3Disabled:
-			res.RenderError(503, "ffmpeg codec libmp3lame not found, MP3 transcoding disabled")
+			res.RenderError(503, "ffmpeg codec "+transcode.FFMpegMP3Codec+" not found, MP3 transcoding disabled")
 			return
 		// OGG transcoding disabled
 		case transcode.ErrOGGDisabled:
-			res.RenderError(503, "ffmpeg codec libvorbis not found, OGG transcoding disabled")
+			res.RenderError(503, "ffmpeg codec "+transcode.FFMpegOGGCodec+" not found, OGG transcoding disabled")
 			return
 		// All other errors
 		default:
