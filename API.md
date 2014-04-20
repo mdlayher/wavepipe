@@ -73,6 +73,7 @@ $ curl http://localhost:8080/api/v0/albums?s=publicKey:nonce:signature
 | [Folders](#folders) | v0 | Used to retrieve information about folders from wavepipe. |
 | [Login](#login) | v0 | Used to generate a new API session on wavepipe. |
 | [Logout](#logout) | v0 | Used to destroy the current API session from wavepipe. |
+| [Search](#search) | v0 | Used to retrieve artists, albums, songs, and folders which match a specified search query. |
 | [Songs](#songs) | v0 | Used to retrieve information about songs from wavepipe. |
 | [Stream](#stream) | v0 | Used to retrieve a raw, non-transcoded, binary data stream of a media file from wavepipe. |
 | [Transcode](#transcode) | v0 | Used to retrieve transcoded binary data stream of a media file from wavepipe. |
