@@ -103,11 +103,15 @@ func GetTranscode(httpReq *http.Request, httpRes http.ResponseWriter, r render.R
 			return
 		// MP3 transcoding disabled
 		case transcode.ErrMP3Disabled:
-			res.RenderError(503, "ffmpeg codec "+transcode.FFMpegMP3Codec+" not found, MP3 transcoding disabled")
+			res.RenderError(503, "ffmpeg codec "+transcode.FFmpegMP3Codec+" not found, MP3 transcoding disabled")
 			return
 		// OGG transcoding disabled
 		case transcode.ErrOGGDisabled:
-			res.RenderError(503, "ffmpeg codec "+transcode.FFMpegOGGCodec+" not found, OGG transcoding disabled")
+			res.RenderError(503, "ffmpeg codec "+transcode.FFmpegOGGCodec+" not found, OGG transcoding disabled")
+			return
+		// OPUS transcoding disabled
+		case transcode.ErrOPUSDisabled:
+			res.RenderError(503, "ffmpeg codec "+transcode.FFmpegOPUSCodec+" not found, OPUS transcoding disabled")
 			return
 		// All other errors
 		default:
