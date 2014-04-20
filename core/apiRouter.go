@@ -138,6 +138,10 @@ func apiRouter(apiKillChan chan struct{}) {
 		// Logout API
 		r.Get("/logout", api.GetLogout)
 
+		// Search API
+		r.Get("/search", api.GetSearch)
+		r.Get("/search/:query", api.GetSearch)
+
 		// Songs API
 		r.Get("/songs", api.GetSongs)
 		r.Get("/songs/:id", api.GetSongs)

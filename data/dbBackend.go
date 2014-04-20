@@ -14,6 +14,7 @@ type dbBackend interface {
 	DSN(string)
 
 	AllArtists() ([]Artist, error)
+	SearchArtists(string) ([]Artist, error)
 	PurgeOrphanArtists() (int, error)
 	DeleteArtist(*Artist) error
 	LoadArtist(*Artist) error
@@ -21,6 +22,7 @@ type dbBackend interface {
 
 	AllAlbums() ([]Album, error)
 	AlbumsForArtist(int) ([]Album, error)
+	SearchAlbums(string) ([]Album, error)
 	PurgeOrphanAlbums() (int, error)
 	DeleteAlbum(*Album) error
 	LoadAlbum(*Album) error
@@ -30,11 +32,13 @@ type dbBackend interface {
 	Subfolders(int) ([]Folder, error)
 	FoldersInPath(string) ([]Folder, error)
 	FoldersNotInPath(string) ([]Folder, error)
+	SearchFolders(string) ([]Folder, error)
 	DeleteFolder(*Folder) error
 	LoadFolder(*Folder) error
 	SaveFolder(*Folder) error
 
 	AllSongs() ([]Song, error)
+	SearchSongs(string) ([]Song, error)
 	SongsForAlbum(int) ([]Song, error)
 	SongsForArtist(int) ([]Song, error)
 	SongsForFolder(int) ([]Song, error)

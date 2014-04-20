@@ -221,6 +221,40 @@ Used to destroy the current API session from wavepipe.
 | 400 | unsupported API version: vX | Attempted access to an invalid version of this API, or to a version before this API existed. |
 | 500 | server error | An internal error occurred. wavepipe will log these errors to its console log. |
 
+## Search
+Used to retrieve artists, albums, songs, and folders which match a specified search query.  A search query **must** be
+specified to retrieve results.
+
+**Versions:** `v0`
+
+**URL:** `/api/v0/search/:query`
+
+**Examples:** `http://localhost:8080/api/v0/search/boston`, `http://localhost:8080/api/v0/search/boston?type=artists,songs`
+
+**Parameters:**
+
+| Name | Versions | Type | Required | Description |
+| :--: | :------: | :--: | :------: | :---------: |
+| type | v0 | string | | Comma-separated string containing object types (`artists`, `albums`, `songs`, `folders`) to return search results. If not specified, equivalent to `artists,albums,songs,folders`. |
+
+**Return JSON:**
+
+| Name | Type | Description |
+| :--: | :--: | :---------: |
+| error | [Error](http://godoc.org/github.com/mdlayher/wavepipe/api#Error) | Information about any errors that occurred. |
+| artists | \[\][Artist](http://godoc.org/github.com/mdlayher/wavepipe/data#Artist) | Array of Artist objects with titles matching the search query. |
+| albums | \[\][Album](http://godoc.org/github.com/mdlayher/wavepipe/data#Album) | Array of Album objects with titles matching the search query. |
+| songs | \[\][Song](http://godoc.org/github.com/mdlayher/wavepipe/data#Song) | Array of Song objects with titles matching the search query. |
+| folders | \[\][Folder](http://godoc.org/github.com/mdlayher/wavepipe/data#Folder) | Array of Folder objects with titles matching the search query. |
+
+**Possible errors:**
+
+| Code | Message | Description |
+| :--: | :-----: | :---------: |
+| 400 | unsupported API version: vX | Attempted access to an invalid version of this API, or to a version before this API existed. |
+| 400 | no search query specified | No search query was specified in the URL. A search query **must** be specified to retrieve results. |
+| 500 | server error | An internal error occurred. wavepipe will log these errors to its console log. |
+
 ## Songs
 Used to retrieve information about songs from wavepipe.  If an ID is specified, information will be
 retrieved about a single song.
