@@ -333,6 +333,8 @@ Used to retrieve a transcoded binary data stream of a media file from wavepipe. 
 | MP3 | v0 | VBR | V0 (~245kbps), V2 (~190kbps), V4 (~165kbps) | Generates a variable bitrate encode using a specific LAME quality level. |
 | OGG | v0 | CBR | 128, **192** (default), 256, 320, 500 | Generates a constant bitrate encode using Ogg Vorbis. |
 | OGG | v0 | VBR | Q10 (~500kbps), Q8 (~256kbps), Q6 (~192kbps) | Generates a variable bitrate encode using a specific Ogg Vorbis quality level. |
+| OPUS | v0 | CBR | 128, **192** (default), 256, 320, 500 | Generates a constant bitrate encode using Ogg Opus. |
+| OPUS | v0 | VBR | Q10 (~500kbps), Q8 (~256kbps), Q6 (~192kbps) | Generates a variable bitrate encode using a specific Ogg Opus quality level. |
 
 **Return Binary:** Binary data stream containing the transcoded media file stream.
 
@@ -356,3 +358,4 @@ Used to retrieve a transcoded binary data stream of a media file from wavepipe. 
 | 503 | ffmpeg not found, transcoding disabled | ffmpeg binary could not be detected in system PATH, so the transcoding subsystem is disabled. |
 | 503 | ffmpeg codec libmp3lame not found, MP3 transcoding disabled | ffmpeg was not compiled with libmp3lame codec, so MP3 transcoding is disabled. |
 | 503 | ffmpeg codec libvorbis not found, OGG transcoding disabled | ffmpeg was not compiled with libvorbis codec, so Ogg Vorbis transcoding is disabled. |
+| 503 | ffmpeg codec libopus not found, OPUS transcoding disabled | ffmpeg was not compiled with libopus codec, so Ogg Opus transcoding is disabled. |
