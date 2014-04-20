@@ -322,7 +322,7 @@ Used to retrieve a transcoded binary data stream of a media file from wavepipe. 
 
 | Name | Versions | Type | Required | Description |
 | :--: | :------: | :--: | :------: | :---------: |
-| codec | v0 | string | | The codec selected for use by the transcoder.  If not specified, defaults to **MP3**.  Options are: **MP3**, OGG (lowercase variants will be automatically capitalized). |
+| codec | v0 | string | | The codec selected for use by the transcoder.  If not specified, defaults to **MP3**.  Options are: **MP3**, OGG, OPUS (lowercase variants will be automatically capitalized). |
 | quality | v0 | string/int | | The quality selected for use by the transcoder.  String options specify VBR encodings, while integer options specify CBR encodings.  If not specified, defaults to **192**. |
 
 **Available Codecs:**
