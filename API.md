@@ -114,7 +114,7 @@ Successful calls with return a binary stream, and unsuccessful ones will return 
 
 **URL:** `/api/v0/art/:id`
 
-**Examples:** `http://localhost:8080/api/v0/art/1`
+**Examples:** `http://localhost:8080/api/v0/art/1`, `http://localhost:8080/api/v0/art/1?size=500`
 
 **Parameters:**
 
