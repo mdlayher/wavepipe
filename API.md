@@ -137,6 +137,7 @@ Successful calls with return a binary stream, and unsuccessful ones will return 
 | 400 | unsupported API version: vX | Attempted access to an invalid version of this API, or to a version before this API existed. |
 | 400 | no integer art ID provided | No integer ID was sent in request. |
 | 400 | invalid art stream ID | A valid integer could not be parsed from the ID. |
+| 400 | negative integer size | A negative integer was passed to the size parameter. Size **must** be a positive integer. |
 | 404 | art ID not found | An art file with the specified ID does not exist. |
 | 500 | server error | An internal error occurred. wavepipe will log these errors to its console log. |
 
