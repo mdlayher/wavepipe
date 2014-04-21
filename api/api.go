@@ -18,6 +18,7 @@ var apiVersionSet = set.New(APIVersion)
 // endpoints is a list of supported API endpoints
 var endpoints = []string{
 	"/api/v0/albums",
+	"/api/v0/art",
 	"/api/v0/artists",
 	"/api/v0/folders",
 	"/api/v0/login",
