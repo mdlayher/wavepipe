@@ -69,6 +69,7 @@ $ curl http://localhost:8080/api/v0/albums?s=publicKey:nonce:signature
 | Name | Versions | Description |
 | :--: | :------: | :---------: |
 | [Albums](#albums) | v0 | Used to retrieve information about albums from wavepipe. |
+| [Art](#art) | v0 | Used to retrieve a binary data stream of an art file from wavepipe. |
 | [Artists](#artists) | v0 | Used to retrieve information about artists from wavepipe. |
 | [Folders](#folders) | v0 | Used to retrieve information about folders from wavepipe. |
 | [Login](#login) | v0 | Used to generate a new API session on wavepipe. |
