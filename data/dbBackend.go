@@ -13,6 +13,12 @@ type dbBackend interface {
 	Setup() error
 	DSN(string)
 
+	ArtInPath(string) ([]Art, error)
+	ArtNotInPath(string) ([]Art, error)
+	DeleteArt(*Art) error
+	LoadArt(*Art) error
+	SaveArt(*Art) error
+
 	AllArtists() ([]Artist, error)
 	SearchArtists(string) ([]Artist, error)
 	PurgeOrphanArtists() (int, error)

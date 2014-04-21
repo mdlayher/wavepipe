@@ -125,6 +125,89 @@ func (s *SqliteBackend) Open() (*sqlx.DB, error) {
 	return db, nil
 }
 
+// ArtInPath loads a slice of all Art structs contained within the specified file path
+func (s *SqliteBackend) ArtInPath(path string) ([]Art, error) {
+	return s.artQuery("SELECT * FROM art WHERE file_name LIKE ?;", path+"%")
+}
+
+// ArtNotInPath loads a slice of all Art structs NOT contained within the specified file path
+func (s *SqliteBackend) ArtNotInPath(path string) ([]Art, error) {
+	return s.artQuery("SELECT * FROM art WHERE file_name NOT LIKE ?;", path+"%")
+}
+
+// DeleteArt removes Art from the database
+func (s *SqliteBackend) DeleteArt(a *Art) error {
+	// Open database
+	db, err := s.Open()
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	// Attempt to delete this art by its ID
+	tx := db.MustBegin()
+	tx.Exec("DELETE FROM art WHERE id = ?;", a.ID)
+
+	// Update any songs using this art ID to have a zero ID
+	tx.Exec("UPDATE songs SET art_id = 0 WHERE art_id = ?;", a.ID)
+	return tx.Commit()
+}
+
+// LoadArt loads Art from the database, populating the parameter struct
+func (s *SqliteBackend) LoadArt(a *Art) error {
+	// Open database
+	db, err := s.Open()
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	// Load the artist via ID if available
+	if a.ID != 0 {
+		if err := db.Get(a, "SELECT * FROM art WHERE id = ?;", a.ID); err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	// Load via file name
+	if err := db.Get(a, "SELECT * FROM art WHERE file_name = ?;", a.FileName); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// SaveArt attempts to save Art to the database
+func (s *SqliteBackend) SaveArt(a *Art) error {
+	// Open database
+	db, err := s.Open()
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	// Insert new artist
+	query := "INSERT INTO art (`file_name`, `file_size`, `last_modified`) VALUES (?, ?, ?);"
+	tx := db.MustBegin()
+	tx.Exec(query, a.FileName, a.FileSize, a.LastModified)
+
+	// Commit transaction
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+
+	// If no ID, reload to grab it
+	if a.ID == 0 {
+		if err := s.LoadArt(a); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 // AllArtists loads a slice of all Artist structs from the database
 func (s *SqliteBackend) AllArtists() ([]Artist, error) {
 	return s.artistQuery("SELECT * FROM artists;")
@@ -594,11 +677,11 @@ func (s *SqliteBackend) SaveSong(a *Song) error {
 	defer db.Close()
 
 	// Insert new song
-	query := "INSERT INTO songs (`album_id`, `artist_id`, `bitrate`, `channels`, `comment`, `file_name`, " +
+	query := "INSERT INTO songs (`album_id`, `art_id`, `artist_id`, `bitrate`, `channels`, `comment`, `file_name`, " +
 		"`file_size`, `file_type_id`, `folder_id`, `genre`, `last_modified`, `length`, `sample_rate`, `title`, `track`, `year`) " +
-		" VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"
+		" VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"
 	tx := db.MustBegin()
-	tx.Exec(query, a.AlbumID, a.ArtistID, a.Bitrate, a.Channels, a.Comment, a.FileName, a.FileSize, a.FileTypeID,
+	tx.Exec(query, a.AlbumID, a.ArtID, a.ArtistID, a.Bitrate, a.Channels, a.Comment, a.FileName, a.FileSize, a.FileTypeID,
 		a.FolderID, a.Genre, a.LastModified, a.Length, a.SampleRate, a.Title, a.Track, a.Year)
 
 	// Commit transaction
@@ -626,11 +709,11 @@ func (s *SqliteBackend) UpdateSong(a *Song) error {
 	defer db.Close()
 
 	// Update existing song
-	query := "UPDATE songs SET `album_id` = ?, `artist_id` = ?, `bitrate` = ?, `channels` = ?, `comment` = ?, " +
+	query := "UPDATE songs SET `album_id` = ?, `art_id` = ?, `artist_id` = ?, `bitrate` = ?, `channels` = ?, `comment` = ?, " +
 		"`file_size` = ?, `folder_id` = ?,  `genre` = ?, `last_modified` = ?, `length` = ?, `sample_rate` = ?, " +
 		"`title` = ?, `track` = ?, `year` = ? WHERE `id` = ?;"
 	tx := db.MustBegin()
-	tx.Exec(query, a.AlbumID, a.ArtistID, a.Bitrate, a.Channels, a.Comment, a.FileSize,
+	tx.Exec(query, a.AlbumID, a.ArtID, a.ArtistID, a.Bitrate, a.Channels, a.Comment, a.FileSize,
 		a.FolderID, a.Genre, a.LastModified, a.Length, a.SampleRate, a.Title, a.Track, a.Year, a.ID)
 
 	// Commit transaction
@@ -839,6 +922,37 @@ func (s *SqliteBackend) albumQuery(query string, args ...interface{}) ([]Album, 
 	}
 
 	return albums, nil
+}
+
+// artQuery loads a slice of Art structs matching the input query
+func (s *SqliteBackend) artQuery(query string, args ...interface{}) ([]Art, error) {
+	// Open database
+	db, err := s.Open()
+	if err != nil {
+		return nil, err
+	}
+	defer db.Close()
+
+	// Perform input query with arguments
+	rows, err := db.Queryx(query, args...)
+	if err != nil && err != sql.ErrNoRows {
+		return nil, err
+	}
+
+	// Iterate all rows
+	art := make([]Art, 0)
+	a := Art{}
+	for rows.Next() {
+		// Scan artist into struct
+		if err := rows.StructScan(&a); err != nil {
+			return nil, err
+		}
+
+		// Append to list
+		art = append(art, a)
+	}
+
+	return art, nil
 }
 
 // artistQuery loads a slice of Artist structs matching the input query

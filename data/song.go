@@ -58,6 +58,7 @@ type Song struct {
 	ID           int    `json:"id"`
 	Album        string `json:"album"`
 	AlbumID      int    `db:"album_id" json:"albumId"`
+	ArtID        int    `db:"art_id" json:"artId"`
 	Artist       string `json:"artist"`
 	ArtistID     int    `db:"artist_id" json:"artistId"`
 	Bitrate      int    `json:"bitrate"`
