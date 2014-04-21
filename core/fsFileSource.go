@@ -21,6 +21,12 @@ import (
 // fsFileSource represents a file source which indexes files in the local filesystem
 type fsFileSource struct{}
 
+// folderArtPair contains a folder ID and associated art ID
+type folderArtPair struct {
+	folderID int
+	artID    int
+}
+
 // MediaScan scans for media files in the local filesystem
 func (fsFileSource) MediaScan(mediaFolder string, verbose bool, walkCancelChan chan struct{}) error {
 	// Halt walk if needed
@@ -37,12 +43,16 @@ func (fsFileSource) MediaScan(mediaFolder string, verbose bool, walkCancelChan c
 	}()
 
 	// Track metrics about the walk
+	artCount := 0
 	artistCount := 0
 	albumCount := 0
 	songCount := 0
 	songUpdateCount := 0
 	folderCount := 0
 	startTime := time.Now()
+
+	// Track all folder IDs containing new art, and hold their art IDs
+	artFiles := make([]folderArtPair, 0)
 
 	// Cache entries which have been seen previously, to reduce database load
 	folderCache := map[string]*data.Folder{}
@@ -131,8 +141,38 @@ func (fsFileSource) MediaScan(mediaFolder string, verbose bool, walkCancelChan c
 		// Cache this folder
 		folderCache[folder.Path] = folder
 
-		// Check for a valid media extension
-		if !validSet.Has(path.Ext(currPath)) {
+		// Check for a valid media or art extension
+		ext := path.Ext(currPath)
+		if !mediaSet.Has(ext) && !artSet.Has(ext) {
+			return nil
+		}
+
+		// If item is art, check for existing art
+		if artSet.Has(ext) {
+			// Attempt to load existing art
+			art := new(data.Art)
+			art.FileName = currPath
+			if err := art.Load(); err == sql.ErrNoRows {
+				// On new art, capture art information from filesystem
+				art.FileSize = info.Size()
+				art.LastModified = info.ModTime().Unix()
+
+				// Save new art
+				if err := art.Save(); err != nil {
+					log.Println(err)
+				} else if err == nil {
+					log.Printf("Art: [#%05d] %s", art.ID, art.FileName)
+					artCount++
+
+					// Add folder ID and to new art ID to slice
+					artFiles = append(artFiles, folderArtPair{
+						folderID: folder.ID,
+						artID: art.ID,
+					})
+				}
+			}
+
+			// Continue to next file
 			return nil
 		}
 
@@ -160,7 +200,7 @@ func (fsFileSource) MediaScan(mediaFolder string, verbose bool, walkCancelChan c
 		song.FolderID = folder.ID
 
 		// Check for a valid wavepipe file type integer
-		ext := path.Ext(info.Name())
+		ext = path.Ext(info.Name())
 		fileType, ok := data.FileTypeMap[ext]
 		if !ok {
 			return fmt.Errorf("fs: invalid file type: %s", ext)
@@ -251,10 +291,28 @@ func (fsFileSource) MediaScan(mediaFolder string, verbose bool, walkCancelChan c
 		return err
 	}
 
+	// Iterate all new folder/art ID pairs
+	for _, a := range artFiles {
+		// Fetch all songs for the folder from the pair
+		songs, err := data.DB.SongsForFolder(a.folderID)
+		if err != nil {
+			return err
+		}
+
+		// Iterate and update songs with their new art ID
+		for _, s := range songs {
+			s.ArtID = a.artID
+			if err := s.Update(); err != nil {
+				return err
+			}
+		}
+	}
+
 	// Print metrics
 	if verbose {
 		log.Printf("fs: media scan complete [time: %s]", time.Since(startTime).String())
-		log.Printf("fs: added: [artists: %d] [albums: %d] [songs: %d] [folders: %d]", artistCount, albumCount, songCount, folderCount)
+		log.Printf("fs: added: [art: %d] [artists: %d] [albums: %d] [songs: %d] [folders: %d]",
+			artCount, artistCount, albumCount, songCount, folderCount)
 		log.Printf("fs: updated: [songs: %d]", songUpdateCount)
 	}
 
@@ -278,6 +336,7 @@ func (fsFileSource) OrphanScan(baseFolder string, subFolder string, verbose bool
 	}()
 
 	// Track metrics about the scan
+	artCount := 0
 	folderCount := 0
 	songCount := 0
 	startTime := time.Now()
@@ -286,6 +345,24 @@ func (fsFileSource) OrphanScan(baseFolder string, subFolder string, verbose bool
 	if baseFolder != "" {
 		if verbose {
 			log.Println("fs: orphan scanning base folder:", baseFolder)
+		}
+
+		// Scan for all art NOT under the base folder
+		art, err := data.DB.ArtNotInPath(baseFolder)
+		if err != nil {
+			log.Println(err)
+			return err
+		}
+
+		// Remove all art which is not in this path
+		for _, a := range art {
+			// Remove art from database
+			if err := a.Delete(); err != nil {
+				log.Println(err)
+				return err
+			}
+
+			artCount++
 		}
 
 		// Scan for all songs NOT under the base folder
@@ -334,6 +411,27 @@ func (fsFileSource) OrphanScan(baseFolder string, subFolder string, verbose bool
 		log.Println("fs: orphan scanning subfolder:", subFolder)
 	} else {
 		log.Println("fs: removing:", subFolder)
+	}
+
+	// Scan for all art in subfolder
+	art, err := data.DB.ArtInPath(subFolder)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	// Iterate all art in this path
+	for _, a := range art {
+		// Check that the art still exists in this place
+		if _, err := os.Stat(a.FileName); os.IsNotExist(err) {
+			// Remove art from database
+			if err := a.Delete(); err != nil {
+				log.Println(err)
+				return err
+			}
+
+			artCount++
+		}
 	}
 
 	// Scan for all songs in subfolder
@@ -400,7 +498,8 @@ func (fsFileSource) OrphanScan(baseFolder string, subFolder string, verbose bool
 	// Print metrics
 	if verbose {
 		log.Printf("fs: orphan scan complete [time: %s]", time.Since(startTime).String())
-		log.Printf("fs: removed: [artists: %d] [albums: %d] [songs: %d] [folders: %d]", artistCount, albumCount, songCount, folderCount)
+		log.Printf("fs: removed: [art: %d] [artists: %d] [albums: %d] [songs: %d] [folders: %d]",
+			artCount, artistCount, albumCount, songCount, folderCount)
 	}
 	return nil
 }
