@@ -6,7 +6,9 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/mdlayher/wavepipe/data"
@@ -42,6 +44,36 @@ var NonceFilter = bloom.New(20000, 5)
 // AuthMethod represents a method of authenticating with the API
 type AuthMethod interface {
 	Authenticate(*http.Request) (*data.User, *data.Session, error, error)
+}
+
+// Factory generates the appropriate authorization method by using input parameters
+func Factory(path string) AuthMethod {
+	// Check if path does not reside under the /api, meaning it is unauthenticated
+	if !strings.HasPrefix(path, "/api") {
+		return nil
+	}
+
+	// Strip any trailing slashes from the path
+	path = strings.TrimRight(path, "/")
+
+	// Check for request to API root (/api, /api/vX), which is unauthenticated
+	if path == "/api" || (strings.HasPrefix(path, "/api/v") && len(path) == 7) {
+		return nil
+	}
+
+	// Check for a login request: /api/vX/login, use bcrypt authenticator
+	if strings.HasPrefix(path, "/api/v") && strings.HasSuffix(path, "/login") {
+		return new(BcryptAuth)
+	}
+
+	// Check for debug mode, and if it's set, automatically use the Simple method
+	if os.Getenv("WAVEPIPE_DEBUG") == "1" {
+		log.Println("api: warning: authenticating user in debug mode")
+		return new(SimpleAuth)
+	}
+
+	// All other situations, use the HMAC-SHA1 authenticator
+	return new(HMACAuth)
 }
 
 // apiSignature generates a HMAC-SHA1 signature for use with the API

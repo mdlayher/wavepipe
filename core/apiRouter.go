@@ -7,7 +7,6 @@ import (
 	"os"
 	"runtime"
 	"strconv"
-	"strings"
 
 	"github.com/mdlayher/wavepipe/api"
 	"github.com/mdlayher/wavepipe/api/auth"
@@ -52,34 +51,21 @@ func apiRouter(apiKillChan chan struct{}) {
 
 	// Authenticate all API calls
 	m.Use(func(req *http.Request, res http.ResponseWriter, c martini.Context, r render.Render) {
-		// Set a different authentication method depending on endpoint
-		var authMethod auth.AuthMethod
-
-		// Enable simple authentication for clients, if debug environment set
-		path := strings.TrimRight(req.URL.Path, "/")
-		if os.Getenv("WAVEPIPE_DEBUG") == "1" {
-			// Use simple authentication
-			log.Println("api: warning: authenticating user in debug mode")
-			authMethod = new(auth.SimpleAuth)
-		} else if path == "/api/"+api.APIVersion+"/login" {
-			// For login, use the bcrypt authenticator to generate a new session
-			authMethod = new(auth.BcryptAuth)
-		} else if len(path) > 3 && path[0:4] == "/api" {
-			// For other API methods, use the HMAC-SHA1 authenticator
-			authMethod = new(auth.HMACAuth)
-		} else {
-			// For any other endpoints, no authentication
+		// Use factory to determine the proper authentication method for this path
+		method := auth.Factory(req.URL.Path)
+		if method == nil {
+			// If no method returned, path is not authenticated
 			return
 		}
 
 		// Attempt authentication
-		user, session, clientErr, serverErr := authMethod.Authenticate(req)
+		user, session, clientErr, serverErr := method.Authenticate(req)
 
 		// Check for client error
 		if clientErr != nil {
-			// If no username or password, send a WWW-Authenticate header to prompt request
+			// If debug mode, and no username or password, send a WWW-Authenticate header to prompt request
 			// This allows for manual exploration of the API if needed
-			if clientErr == auth.ErrNoUsername || clientErr == auth.ErrNoPassword {
+			if os.Getenv("WAVEPIPE_DEBUG") == "1" && (clientErr == auth.ErrNoUsername || clientErr == auth.ErrNoPassword) {
 				res.Header().Set("WWW-Authenticate", "Basic")
 			}
 
