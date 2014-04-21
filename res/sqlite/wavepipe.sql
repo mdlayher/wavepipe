@@ -9,6 +9,14 @@ CREATE TABLE "albums" (
 	"year"      INTEGER
 );
 CREATE UNIQUE INDEX "albums_unique_artistId_title" ON "albums" ("artist_id", "title");
+/* art */
+CREATE TABLE "art" (
+	"id"            INTEGER PRIMARY KEY AUTOINCREMENT,
+	"file_size"     INTEGER NOT NULL,
+	"file_name"     TEXT,
+	"last_modified" INTEGER NOT NULL
+);
+CREATE UNIQUE INDEX "art_unique_fileName" ON "art" ("file_name");
 /* artists */
 CREATE TABLE "artists" (
 	"id"    INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -38,6 +46,7 @@ CREATE UNIQUE INDEX "sessions_unique_secret_key" ON "sessions" ("secret_key");
 CREATE TABLE "songs" (
 	"id"            INTEGER PRIMARY KEY AUTOINCREMENT,
 	"album_id"      INTEGER NOT NULL,
+	"art_id"        INTEGER NOT NULL,
 	"artist_id"     INTEGER NOT NULL,
 	"bitrate"       INTEGER NOT NULL,
 	"channels"      INTEGER NOT NULL,
