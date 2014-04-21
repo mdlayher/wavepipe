@@ -116,6 +116,12 @@ Successful calls with return a binary stream, and unsuccessful ones will return 
 
 **Examples:** `http://localhost:8080/api/v0/art/1`
 
+**Parameters:**
+
+| Name | Versions | Type | Required | Description |
+| :--: | :------: | :--: | :------: | :---------: |
+| size | v0 | integer | | Scale the art to the specified size in pixels. The art's original aspect ratio will be preserved. |
+
 **Return Binary:** Binary data stream containing the art file stream.
 
 **Return JSON:**
