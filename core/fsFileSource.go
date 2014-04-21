@@ -167,7 +167,7 @@ func (fsFileSource) MediaScan(mediaFolder string, verbose bool, walkCancelChan c
 					// Add folder ID and to new art ID to slice
 					artFiles = append(artFiles, folderArtPair{
 						folderID: folder.ID,
-						artID: art.ID,
+						artID:    art.ID,
 					})
 				}
 			}

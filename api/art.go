@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"database/sql"
 	"image"
-	_ "image/jpeg"
 	"image/png"
 	"io"
 	"io/ioutil"
@@ -15,6 +14,9 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	// Extra image manipulation formats
+	_ "image/jpeg"
 
 	"github.com/mdlayher/wavepipe/data"
 
