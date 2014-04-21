@@ -66,25 +66,25 @@ func ffmpegSetup() {
 	// Check for MP3 transcoding codec
 	codecStr := string(codecs)
 	if strings.Contains(codecStr, transcode.FFmpegMP3Codec) {
-		log.Println("transcode: found", transcode.FFmpegMP3Codec, ", enabling MP3 transcoding")
+		log.Println("transcode:", transcode.FFmpegMP3Codec, "found, enabling MP3 transcoding")
 		transcode.CodecSet.Add("MP3")
 	} else {
-		log.Println("transcode: could not find", transcode.FFmpegMP3Codec, ", disabling MP3 transcoding")
+		log.Println("transcode:", transcode.FFmpegMP3Codec, "not found, disabling MP3 transcoding")
 	}
 
 	// Check for OGG transcoding codec
 	if strings.Contains(codecStr, transcode.FFmpegOGGCodec) {
-		log.Println("transcode: found", transcode.FFmpegOGGCodec, ", enabling OGG transcoding")
+		log.Println("transcode:", transcode.FFmpegOGGCodec, "found, enabling OGG transcoding")
 		transcode.CodecSet.Add("OGG")
 	} else {
-		log.Println("transcode: could not find", transcode.FFmpegOGGCodec, ", disabling OGG transcoding")
+		log.Println("transcode:", transcode.FFmpegOGGCodec, "not found, disabling OGG transcoding")
 	}
 
 	// Check for OPUS transcoding codec
 	if strings.Contains(codecStr, transcode.FFmpegOPUSCodec) {
-		log.Println("transcode: found", transcode.FFmpegOPUSCodec, ", enabling OPUS transcoding")
+		log.Println("transcode:", transcode.FFmpegOPUSCodec, "found, enabling OPUS transcoding")
 		transcode.CodecSet.Add("OPUS")
 	} else {
-		log.Println("transcode: could not find", transcode.FFmpegOPUSCodec, ", disabling OPUS transcoding")
+		log.Println("transcode:", transcode.FFmpegOPUSCodec, "not found, disabling OPUS transcoding")
 	}
 }
