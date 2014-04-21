@@ -92,6 +92,9 @@ func httpStream(song *data.Song, mimeType string, fileSize int64, stream io.Read
 	// Set Last-Modified using filesystem modify time
 	httpRes.Header().Set("Last-Modified", lastMod)
 
+	// Specify connection close on send
+	httpRes.Header().Set("Connection", "close")
+
 	// Begin transferring the data stream
 	for {
 		// Read in a buffer from the file
