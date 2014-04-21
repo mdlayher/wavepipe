@@ -105,6 +105,34 @@ retrieved about a single album.
 | 404 | album ID not found | An album with the specified ID does not exist. |
 | 500 | server error | An internal error occurred. wavepipe will log these errors to its console log. |
 
+## Art
+Used to retrieve a binary data stream of an art file from wavepipe.  An ID **must** be specified to access an art stream.
+Successful calls with return a binary stream, and unsuccessful ones will return a JSON error.
+
+**Versions:** `v0`
+
+**URL:** `/api/v0/art/:id`
+
+**Examples:** `http://localhost:8080/api/v0/art/1`
+
+**Return Binary:** Binary data stream containing the art file stream.
+
+**Return JSON:**
+
+| Name | Type | Description |
+| :--: | :--: | :---------: |
+| error | [Error](http://godoc.org/github.com/mdlayher/wavepipe/api#Error) | Information about any errors that occurred. |
+
+**Possible errors:**
+
+| Code | Message | Description |
+| :--: | :-----: | :---------: |
+| 400 | unsupported API version: vX | Attempted access to an invalid version of this API, or to a version before this API existed. |
+| 400 | no integer art ID provided | No integer ID was sent in request. |
+| 400 | invalid art stream ID | A valid integer could not be parsed from the ID. |
+| 404 | art ID not found | An art file with the specified ID does not exist. |
+| 500 | server error | An internal error occurred. wavepipe will log these errors to its console log. |
+
 ## Artists
 Used to retrieve information about artists from wavepipe.  If an ID is specified, information will be
 retrieved about a single artist.
