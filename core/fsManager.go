@@ -10,9 +10,12 @@ import (
 	"github.com/romanoff/fsmonitor"
 )
 
-// validSet is a set of valid file extensions which we should scan as media, as they are the ones
+// artSet is a set of valid file extensions which we should scan as art
+var artSet = set.New(".jpg", ".jpeg", ".png")
+
+// mediaSet is a set of valid file extensions which we should scan as media, as they are the ones
 // which TagLib is capable of reading
-var validSet = set.New(".ape", ".flac", ".m4a", ".mp3", ".mpc", ".ogg", ".wma", ".wv")
+var mediaSet = set.New(".ape", ".flac", ".m4a", ".mp3", ".mpc", ".ogg", ".wma", ".wv")
 
 // fsQueue is a queue of tasks to be performed by the filesystem, such as media and orphan scans
 var fsQueue = make(chan fsTask, 10)
@@ -20,7 +23,7 @@ var fsQueue = make(chan fsTask, 10)
 // fsSource is the data source used to scan for media files (could be filesystem, memory, etc)
 var fsSource fileSource
 
-// fsTask is the interface which defines a filesystem task, such as a media scan, or an orphan scan
+// fsTask is the interface which defines a filesystem task, such as a media, or orphan scan
 type fsTask interface {
 	Folders() (string, string)
 	SetFolders(string, string)
