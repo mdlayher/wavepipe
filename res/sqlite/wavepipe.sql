@@ -23,6 +23,17 @@ CREATE TABLE "folders" (
 	"path"      TEXT
 );
 CREATE UNIQUE INDEX "folders_unique_path" ON "folders" ("path");
+/* sessions */
+CREATE TABLE "sessions" (
+	"id"         INTEGER PRIMARY KEY AUTOINCREMENT,
+	"user_id"    INTEGER NOT NULL,
+	"client"     TEXT,
+	"expire"     INTEGER NOT NULL,
+	"public_key" TEXT,
+	"secret_key" TEXT
+);
+CREATE UNIQUE INDEX "sessions_unique_public_key" ON "sessions" ("public_key");
+CREATE UNIQUE INDEX "sessions_unique_secret_key" ON "sessions" ("secret_key");
 /* songs */
 CREATE TABLE "songs" (
 	"id"            INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -51,15 +62,4 @@ CREATE TABLE "users" (
 	"password" TEXT
 );
 CREATE UNIQUE INDEX "users_unique_username" ON "users" ("username");
-/* sessions */
-CREATE TABLE "sessions" (
-	"id"         INTEGER PRIMARY KEY AUTOINCREMENT,
-	"user_id"    INTEGER NOT NULL,
-	"client"     TEXT,
-	"expire"     INTEGER NOT NULL,
-	"public_key" TEXT,
-	"secret_key" TEXT
-);
-CREATE UNIQUE INDEX "sessions_unique_public_key" ON "sessions" ("public_key");
-CREATE UNIQUE INDEX "sessions_unique_secret_key" ON "sessions" ("secret_key");
 COMMIT;
