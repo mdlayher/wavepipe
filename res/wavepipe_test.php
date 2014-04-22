@@ -39,10 +39,11 @@ foreach ($apiCalls as $a) {
 	$nonce = generateNonce();
 
 	// Create the necessary API signature
-	$signature = apiSignature($publicKey, $nonce, "GET", $a, $secretKey);
+	//$signature = apiSignature($publicKey, $nonce, "GET", $a, $secretKey);
 
 	// Generate URL
-	$url = sprintf("http://%s%s?s=%s:%s:%s", $host, $a, $publicKey, $nonce, $signature);
+	//$url = sprintf("http://%s%s?s=%s:%s:%s", $host, $a, $publicKey, $nonce, $signature);
+	$url = sprintf("http://%s%s?s=%s", $host, $a, $publicKey);
 
 	printf("%s:\n", $a);
 
