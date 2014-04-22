@@ -26,6 +26,8 @@ var (
 	ErrInvalidPublicKey = errors.New("no such public key")
 	// ErrNoSignature is returned when no API signature is provided on all other API calls
 	ErrNoSignature = errors.New("no signature provided")
+	// ErrNoToken is returned when no API token is provided on all other API calls
+	ErrNoToken = errors.New("no token provided")
 	// ErrInvalidSignature is returned when a mismatched API signature is provided
 	ErrInvalidSignature = errors.New("invalid signature provided")
 	// ErrMalformedSignature is returned when a malformed API signature is provided
@@ -72,8 +74,8 @@ func Factory(path string) AuthMethod {
 		return new(SimpleAuth)
 	}
 
-	// All other situations, use the HMAC-SHA1 authenticator
-	return new(HMACAuth)
+	// All other situations, use the token authenticator
+	return new(TokenAuth)
 }
 
 // apiSignature generates a HMAC-SHA1 signature for use with the API

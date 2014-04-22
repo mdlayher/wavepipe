@@ -8,7 +8,8 @@ import (
 	"github.com/mdlayher/wavepipe/data"
 )
 
-// SimpleAuth represents the simple authentication method, which can be used by local clients
+// SimpleAuth represents the simple authentication method, which is used when the environment
+// variable WAVEPIPE_DEBUG is set to "1". It is meant for development ONLY.
 type SimpleAuth struct{}
 
 // Authenticate uses the simple authentication method to log in to the API, returning
