@@ -9,6 +9,10 @@ func TestUserDatabase(t *testing.T) {
 	// Load database configuration
 	DB = new(SqliteBackend)
 	DB.DSN("~/.config/wavepipe/wavepipe.db")
+	if err := DB.Open(); err != nil {
+		t.Fatalf("Could not open database connection: %s", err.Error())
+	}
+	defer DB.Close()
 
 	// Attempt to create and save the user
 	user, err := NewUser("TestUser", "TestPassword")
