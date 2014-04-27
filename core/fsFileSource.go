@@ -161,7 +161,6 @@ func (fsFileSource) MediaScan(mediaFolder string, verbose bool, walkCancelChan c
 				if err := art.Save(); err != nil {
 					log.Println(err)
 				} else if err == nil {
-					log.Printf("Art: [#%05d] %s", art.ID, art.FileName)
 					artCount++
 
 					// Add folder ID and to new art ID to slice
