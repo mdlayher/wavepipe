@@ -42,6 +42,11 @@ func dbManager(conf config.Config, dbLaunchChan chan struct{}, dbKillChan chan s
 			log.Fatalf("db: database file does not exist: %s", conf.Sqlite.File)
 		}
 
+		// Open the database connection
+		if err := data.DB.Open(); err != nil {
+			log.Fatalf("db: could not open database: %s", err)
+		}
+
 		// TODO: temporary, create a test user
 		data.NewUser("test", "test")
 	} else {
@@ -57,6 +62,11 @@ func dbManager(conf config.Config, dbLaunchChan chan struct{}, dbKillChan chan s
 		select {
 		// Stop database manager
 		case <-dbKillChan:
+			// Close the database connection pool
+			if err := data.DB.Close(); err != nil {
+				log.Fatalf("db: could not close connection")
+			}
+
 			// Inform manager that shutdown is complete
 			log.Println("db: stopped!")
 			dbKillChan <- struct{}{}

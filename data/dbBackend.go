@@ -1,15 +1,12 @@
 package data
 
-import (
-	"github.com/jmoiron/sqlx"
-)
-
 // DB is the current database backend
 var DB dbBackend
 
 // dbBackend represents the database backend that the program will connect to
 type dbBackend interface {
-	Open() (*sqlx.DB, error)
+	Open() error
+	Close() error
 	Setup() error
 	DSN(string)
 
