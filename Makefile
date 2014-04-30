@@ -17,6 +17,7 @@ fmt:
 	go fmt ${WPPATH}
 	go fmt ${WPPATH}/api
 	go fmt ${WPPATH}/api/auth
+	go fmt ${WPPATH}/common
 	go fmt ${WPPATH}/config
 	go fmt ${WPPATH}/core
 	go fmt ${WPPATH}/data

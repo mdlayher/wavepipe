@@ -1,10 +1,13 @@
-package core
+package common
 
 import (
 	"os"
 	"runtime"
 	"time"
 )
+
+// startTime represents the application's starting UNIX timestamp
+var startTime = time.Now().Unix()
 
 // osInfo represents basic, static information about the host operating system for this process
 type osInfo struct {
@@ -62,7 +65,7 @@ func Status() (*status, error) {
 	memMB := float64((float64(mem.Alloc) / 1000) / 1000)
 
 	// Get current uptime
-	uptime := time.Now().Unix() - StartTime
+	uptime := time.Now().Unix() - startTime
 
 	// Return status
 	return &status{

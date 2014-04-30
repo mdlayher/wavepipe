@@ -3,8 +3,8 @@ package core
 import (
 	"log"
 	"os"
-	"time"
 
+	"github.com/mdlayher/wavepipe/common"
 	"github.com/mdlayher/wavepipe/config"
 )
 
@@ -17,15 +17,12 @@ const Version = "git-master"
 // ConfigPath is the application's configuration path
 var ConfigPath string
 
-// StartTime is the application's starting UNIX timestamp
-var StartTime = time.Now().Unix()
-
 // Manager is responsible for coordinating the application
 func Manager(killChan chan struct{}, exitChan chan int) {
 	log.Printf("manager: initializing %s %s...", App, Version)
 
 	// Gather information about the operating system
-	stat, err := OSInfo()
+	stat, err := common.OSInfo()
 	if err != nil {
 		log.Println("manager: could not get operating system info:", err)
 	} else {
