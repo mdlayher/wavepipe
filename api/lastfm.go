@@ -140,7 +140,7 @@ func GetLastFM(req *http.Request, user *data.User, r render.Render, params marti
 
 	// Make sure this user has logged in using wavepipe before
 	if user.LastFMToken == "" {
-		res.RenderError(400, action+": user must authenticate to Last.fm")
+		res.RenderError(401, action+": user must authenticate to last.fm")
 		return
 	}
 
