@@ -144,6 +144,9 @@ func apiRouter(apiKillChan chan struct{}) {
 		r.Get("/songs", api.GetSongs)
 		r.Get("/songs/:id", api.GetSongs)
 
+		// Status API
+		r.Get("/status", api.GetStatus)
+
 		// Stream API
 		r.Get("/stream", api.GetStream)
 		r.Get("/stream/:id", api.GetStream)

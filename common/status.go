@@ -18,17 +18,17 @@ type osInfo struct {
 	Platform     string
 }
 
-// status represents information about the current process, including the basic, static
+// Status represents information about the current process, including the basic, static
 // information provided by osInfo
-type status struct {
-	Architecture string
-	Hostname     string
-	MemoryMB     float64
-	NumCPU       int
-	NumGoroutine int
-	PID          int
-	Platform     string
-	Uptime       int64
+type Status struct {
+	Architecture string  `json:"architecture"`
+	Hostname     string  `json:"hostname"`
+	MemoryMB     float64 `json:"memoryMb"`
+	NumCPU       int     `json:"numCpu"`
+	NumGoroutine int     `json:"numGoroutine"`
+	PID          int     `json:"pid"`
+	Platform     string  `json:"platform"`
+	Uptime       int64   `json:"uptime"`
 }
 
 // OSInfo returns information about the host operating system for this process
@@ -49,8 +49,8 @@ func OSInfo() (*osInfo, error) {
 	}, nil
 }
 
-// Status returns information about the current process status
-func Status() (*status, error) {
+// ServerStatus returns information about the current process status
+func ServerStatus() (*Status, error) {
 	// Retrieve basic OS information
 	osStat, err := OSInfo()
 	if err != nil {
@@ -68,7 +68,7 @@ func Status() (*status, error) {
 	uptime := time.Now().Unix() - startTime
 
 	// Return status
-	return &status{
+	return &Status{
 		Architecture: osStat.Architecture,
 		Hostname:     osStat.Hostname,
 		MemoryMB:     memMB,

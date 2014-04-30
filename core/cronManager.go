@@ -74,7 +74,7 @@ func cronManager(cronKillChan chan struct{}) {
 // cronPrintCurrentStatus logs the regular status check banner
 func cronPrintCurrentStatus() {
 	// Get server status
-	stat, err := common.Status()
+	stat, err := common.ServerStatus()
 	if err != nil {
 		log.Printf("cron: could not get current status: %s", err.Error())
 		return
