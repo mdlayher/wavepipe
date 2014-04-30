@@ -55,6 +55,7 @@ type dbBackend interface {
 	DeleteUser(*User) error
 	LoadUser(*User) error
 	SaveUser(*User) error
+	UpdateUser(*User) error
 
 	DeleteSession(*Session) error
 	LoadSession(*Session) error

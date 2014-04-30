@@ -8,9 +8,10 @@ import (
 
 // User represents an user registered to wavepipe
 type User struct {
-	ID       int    `json:"id"`
-	Username string `json:"username"`
-	Password string `json:"password"`
+	ID          int    `json:"id"`
+	Username    string `json:"username"`
+	Password    string `json:"password"`
+	LastFMToken string `db:"lastfm_token" json:"lastfmToken"`
 }
 
 // NewUser generates and saves a new user, while also hashing the input password
@@ -52,6 +53,11 @@ func (u *User) Load() error {
 // Save creates a new User in the database
 func (u *User) Save() error {
 	return DB.SaveUser(u)
+}
+
+// Update updates an existing User in the database
+func (u *User) Update() error {
+	return DB.UpdateUser(u)
 }
 
 // ToJSON generates a JSON representation of a User
