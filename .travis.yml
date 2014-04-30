@@ -17,6 +17,7 @@ before_script:
   - go get github.com/mdlayher/goset
   - go get github.com/nfnt/resize
   - go get github.com/romanoff/fsmonitor
+  - go get github.com/shkh/lastfm-go/lastfm
   - go get github.com/willf/bloom
   - go get github.com/wtolson/go-taglib
 script:

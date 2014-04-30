@@ -130,6 +130,11 @@ func apiRouter(apiKillChan chan struct{}) {
 		r.Get("/folders", api.GetFolders)
 		r.Get("/folders/:id", api.GetFolders)
 
+		// LastFM API
+		r.Get("/lastfm", api.GetLastFM)
+		r.Get("/lastfm/:action", api.GetLastFM)
+		r.Get("/lastfm/:action/:id", api.GetLastFM)
+
 		// Login API
 		r.Get("/login", api.GetLogin)
 
