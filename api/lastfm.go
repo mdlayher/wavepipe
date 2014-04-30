@@ -197,7 +197,7 @@ func GetLastFM(req *http.Request, user *data.User, r render.Render, params marti
 	}
 
 	// Log the current action
-	log.Printf("%s : %s: %s - %s - %s", action, user.Username, song.Artist, song.Album, song.Title)
+	log.Printf("%s : %s : [#%05d] %s - %s", action, user.Username, song.ID, song.Artist, song.Title)
 
 	// Create the track entity required by Last.fm from the song
 	track := lastfm.P{
