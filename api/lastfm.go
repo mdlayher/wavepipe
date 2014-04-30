@@ -39,9 +39,6 @@ type LastFMResponse struct {
 
 // RenderError renders a JSON error message with the specified HTTP status code and message
 func (l *LastFMResponse) RenderError(code int, message string) {
-	// Nullify other fields
-	l.URL = ""
-
 	// Generate error
 	l.Error = new(Error)
 	l.Error.Code = code
@@ -149,16 +146,8 @@ func GetLastFM(req *http.Request, user *data.User, r render.Render, params marti
 		// Check if token has not been authorized
 		if strings.HasPrefix(err.Error(), "LastfmError[14]") {
 			// Generate error output, but add the token authorization URL
-			res = LastFMResponse{
-				Error: &Error{
-					Code:    401,
-					Message: action + ": last.fm token not yet authorized",
-				},
-				URL: lfm.GetAuthTokenUrl(user.LastFMToken),
-			}
-
-			// Output JSON
-			r.JSON(401, res)
+			res.URL = lfm.GetAuthTokenUrl(user.LastFMToken)
+			res.RenderError(401, action+": last.fm token not yet authorized")
 			return
 		}
 
