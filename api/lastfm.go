@@ -150,9 +150,9 @@ func GetLastFM(req *http.Request, user *data.User, r render.Render, params marti
 		if strings.HasPrefix(err.Error(), "LastfmError[14]") {
 			// Generate error output, but add the token authorization URL
 			res = LastFMResponse{
-				Error: &Error {
-					Code: 401,
-					Message: action+": last.fm token not yet authorized",
+				Error: &Error{
+					Code:    401,
+					Message: action + ": last.fm token not yet authorized",
 				},
 				URL: lfm.GetAuthTokenUrl(user.LastFMToken),
 			}
@@ -201,9 +201,9 @@ func GetLastFM(req *http.Request, user *data.User, r render.Render, params marti
 
 	// Create the track entity required by Last.fm from the song
 	track := lastfm.P{
-		"artist": song.Artist,
-		"album": song.Album,
-		"track": song.Title,
+		"artist":    song.Artist,
+		"album":     song.Album,
+		"track":     song.Title,
 		"timestamp": time.Now().Unix(),
 	}
 
