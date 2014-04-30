@@ -15,21 +15,6 @@ const APIDocumentation = "https://github.com/mdlayher/wavepipe/blob/master/API.m
 // apiVersionSet is the set of all currently supported API versions
 var apiVersionSet = set.New(APIVersion)
 
-// endpoints is a list of supported API endpoints
-var endpoints = []string{
-	"/api/v0/albums",
-	"/api/v0/art",
-	"/api/v0/artists",
-	"/api/v0/folders",
-	"/api/v0/login",
-	"/api/v0/logout",
-	"/api/v0/search",
-	"/api/v0/songs",
-	"/api/v0/status",
-	"/api/v0/stream",
-	"/api/v0/transcode",
-}
-
 // Error represents an error produced by the API
 type Error struct {
 	Code    int    `json:"code"`
@@ -65,7 +50,6 @@ type Information struct {
 	Version       string   `json:"version"`
 	Supported     []string `json:"supported"`
 	Documentation string   `json:"documentation"`
-	Endpoints     []string `json:"endpoints"`
 }
 
 // APIInfo returns information about the API
@@ -82,7 +66,6 @@ func APIInfo(r render.Render, params martini.Params) {
 		Version:       APIVersion,
 		Supported:     versions,
 		Documentation: APIDocumentation,
-		Endpoints:     endpoints,
 	}
 
 	// Check if a "version" was set
