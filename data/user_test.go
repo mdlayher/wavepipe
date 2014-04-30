@@ -25,6 +25,12 @@ func TestUserDatabase(t *testing.T) {
 		t.Fatalf("Could not load user: %s", err.Error())
 	}
 
+	// Attempt to update the user
+	user.LastFMToken = "hello"
+	if err := user.Update(); err != nil {
+		t.Fatalf("Could not update user: %s", err.Error())
+	}
+
 	// Attempt to delete the user
 	if err := user.Delete(); err != nil {
 		t.Fatalf("Could not delete user: %s", err.Error())
