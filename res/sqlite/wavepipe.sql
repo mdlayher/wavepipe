@@ -72,5 +72,4 @@ CREATE TABLE "users" (
 	"lastfm_token" TEXT
 );
 CREATE UNIQUE INDEX "users_unique_username" ON "users" ("username");
-CREATE UNIQUE INDEX "users_unique_lastfmToken" ON "users" ("lastfm_token");
 COMMIT;
