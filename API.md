@@ -76,6 +76,7 @@ $ curl http://localhost:8080/api/v0/albums?s=publicKey:nonce:signature
 | [Logout](#logout) | v0 | Used to destroy the current API session from wavepipe. |
 | [Search](#search) | v0 | Used to retrieve artists, albums, songs, and folders which match a specified search query. |
 | [Songs](#songs) | v0 | Used to retrieve information about songs from wavepipe. |
+| [Status](#status) | v0 | Used to retrieve current server status from wavepipe. |
 | [Stream](#stream) | v0 | Used to retrieve a raw, non-transcoded, binary data stream of a media file from wavepipe. |
 | [Transcode](#transcode) | v0 | Used to retrieve transcoded binary data stream of a media file from wavepipe. |
 
@@ -316,6 +317,29 @@ retrieved about a single song.
 | 400 | unsupported API version: vX | Attempted access to an invalid version of this API, or to a version before this API existed. |
 | 400 | invalid integer song ID | A valid integer could not be parsed from the ID. |
 | 404 | song ID not found | A song with the specified ID does not exist. |
+| 500 | server error | An internal error occurred. wavepipe will log these errors to its console log. |
+
+## Status
+Used to retrieve current server status from wavepipe.
+
+**Versions:** `v0`
+
+**URL:** `/api/v0/status`
+
+**Examples:** `http://localhost:8080/api/v0/status`
+
+**Return JSON:**
+
+| Name | Type | Description |
+| :--: | :--: | :---------: |
+| error | [Error](http://godoc.org/github.com/mdlayher/wavepipe/api#Error)/null | Information about any errors that occurred.  Value is null if no error occurred. |
+| status | [Status](http://godoc.org/github.com/mdlayher/wavepipe/common#Status) | Status object containing current server information, returned by the API. |
+
+**Possible errors:**
+
+| Code | Message | Description |
+| :--: | :-----: | :---------: |
+| 400 | unsupported API version: vX | Attempted access to an invalid version of this API, or to a version before this API existed. |
 | 500 | server error | An internal error occurred. wavepipe will log these errors to its console log. |
 
 ## Stream

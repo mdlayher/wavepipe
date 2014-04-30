@@ -25,6 +25,7 @@ var endpoints = []string{
 	"/api/v0/logout",
 	"/api/v0/search",
 	"/api/v0/songs",
+	"/api/v0/status",
 	"/api/v0/stream",
 	"/api/v0/transcode",
 }
