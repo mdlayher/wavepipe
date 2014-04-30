@@ -210,6 +210,10 @@ Used to scrobble songs from wavepipe to Last.fm.  The user must first complete a
 credentials, and then the `nowplaying` and `scrobble` actions may be used.  After the initial `login`, wavepipe
 will store an API key for the user, and use this key for future requests.
 
+Ideally, a `nowplaying` action will be triggered by clients as soon as the track begins playing on that client.
+After a fair amount of time has passed (for example, 50-75% of the song), a `scrobble` request should be triggered
+to commit the play to Last.fm.
+
 **Versions:** `v0`
 
 **URL:** `/api/v0/lastfm/:action/:id`
