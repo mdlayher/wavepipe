@@ -5,7 +5,7 @@ wavepipe features a simple API which is used to retrieve metadata from media fil
 to retrieve a file stream from the server.
 
 An information endpoint can be found at the root of the API, `/api`.  This endpoint contains API metadata
-such as the current API version, a link to this documentation, and a list of all currently available API endpoints.
+such as the current API version, supported API versions, and a link to this documentation.
 
 At this time, the current API version is **v0**.  This API is **unstable**, and is subject to change.
 
