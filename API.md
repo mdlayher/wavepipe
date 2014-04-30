@@ -72,6 +72,7 @@ $ curl http://localhost:8080/api/v0/albums?s=publicKey:nonce:signature
 | [Art](#art) | v0 | Used to retrieve a binary data stream of an art file from wavepipe. |
 | [Artists](#artists) | v0 | Used to retrieve information about artists from wavepipe. |
 | [Folders](#folders) | v0 | Used to retrieve information about folders from wavepipe. |
+| [LastFM](#lastfm) | v0 | Used to scrobble songs from wavepipe to Last.fm. |
 | [Login](#login) | v0 | Used to generate a new API session on wavepipe. |
 | [Logout](#logout) | v0 | Used to destroy the current API session from wavepipe. |
 | [Search](#search) | v0 | Used to retrieve artists, albums, songs, and folders which match a specified search query. |
@@ -202,6 +203,46 @@ retrieved about a single folder.
 | 400 | unsupported API version: vX | Attempted access to an invalid version of this API, or to a version before this API existed. |
 | 400 | invalid integer folder ID | A valid integer could not be parsed from the ID. |
 | 404 | folder ID not found | An folder with the specified ID does not exist. |
+| 500 | server error | An internal error occurred. wavepipe will log these errors to its console log. |
+
+## LastFM
+Used to scrobble songs from wavepipe to Last.fm.  The user must first complete a `login` action with their Last.fm
+credentials, and then the `nowplaying` and `scrobble` actions may be used.  After the initial `login`, wavepipe
+will store an API key for the user, and use this key for future requests.
+
+**Versions:** `v0`
+
+**URL:** `/api/v0/lastfm/:action/:id`
+
+**Examples:** `http://localhost:8080/api/v0/lastfm/login?lfmu=test&lfmp=test`, `http://localhost:8080/api/v0/lastfm/nowplaying/1`, `http://localhost:8080/api/v0/lastfm/scrobble/1`
+
+**Parameters:**
+
+| Name | Versions | Type | Required | Description |
+| :--: | :------: | :--: | :------: | :---------: |
+| lfmu | v0 | string | | Username used to authenticate to Last.fm via wavepipe. Only used for the `login` action. |
+| lfmp | v0 | string | | Associated password used to authenticate to Last.fm via wavepipe. Only used for the `login` action. |
+
+**Return JSON:**
+
+| Name | Type | Description |
+| :--: | :--: | :---------: |
+| error | [Error](http://godoc.org/github.com/mdlayher/wavepipe/api#Error)/null | Information about any errors that occurred.  Value is null if no error occurred. |
+| url | string | String containing the URL required to authorize wavepipe's Last.fm token for this user. Only returned on the `login` action, or if other actions are accessed while the token is not authorized. |
+
+**Possible errors:**
+
+| Code | Message | Description |
+| :--: | :-----: | :---------: |
+| 400 | unsupported API version: vX | Attempted access to an invalid version of this API, or to a version before this API existed. |
+| 400 | login: no username provided | No Last.fm username was passed via `lfmu` in query string. Only returned on `login` action. |
+| 400 | login: no password provided | No Last.fm password was passed via `lfmp` in query string. Only returned on `login` action. |
+| 400 | no integer song ID provided | No integer ID was sent in request. Only returned on `nowplaying` and `scrobble` actions. |
+| 400 | invalid integer song ID | A valid integer could not be parsed from the ID. Only returned on `nowplaying` and `scrobble` actions. |
+| 401 | action: last.fm authentication failed | Could not authenticate to Last.fm. Could be due to invalid username/password, or an invalid API token. |
+| 401 | action: user must authenticate to last.fm | User attempted to perform `nowplaying` or `scrobble` action, without first completing `login` action. |
+| 401 | action: last.fm token not yet authorized | User must authorize wavepipe to access their Last.fm account, via the provided URL. |
+| 404 | song ID not found | A song with the specified ID does not exist. Only returned on `nowplaying` and `scrobble` actions. |
 | 500 | server error | An internal error occurred. wavepipe will log these errors to its console log. |
 
 ## Login
