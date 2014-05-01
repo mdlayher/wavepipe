@@ -196,6 +196,20 @@ func GetLastFM(req *http.Request, user *data.User, r render.Render, params marti
 		"timestamp": time.Now().Unix(),
 	}
 
+	// Check for optional timestamp parameter, which could be useful for sending scrobbles at
+	// past times, etc
+	if pTS, ok := params["timestamp"]; ok {
+		// Verify valid integer timestamp
+		ts, err := strconv.Atoi(pTS)
+		if err != nil || ts < 0 {
+			res.RenderError(400, action+": invalid integer timestamp")
+			return
+		}
+
+		// Override previously set timestamp with this one
+		track["timestamp"] = ts
+	}
+
 	// Send a now playing request to the Last.fm API
 	if action == lfmNowPlaying {
 		// Perform the action

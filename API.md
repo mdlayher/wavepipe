@@ -226,6 +226,7 @@ to commit the play to Last.fm.
 | :--: | :------: | :--: | :------: | :---------: |
 | lfmu | v0 | string | | Username used to authenticate to Last.fm via wavepipe. Only used for the `login` action. |
 | lfmp | v0 | string | | Associated password used to authenticate to Last.fm via wavepipe. Only used for the `login` action. |
+| timestamp | v0 | int | | Optional integer UNIX timestamp, which can be used to specify a past timestamp. The current timestamp is used if not specified. |
 
 **Return JSON:**
 
