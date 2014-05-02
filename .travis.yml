@@ -7,19 +7,7 @@ before_install:
 install:
   - sudo apt-get install libtagc0-dev php5-cli php5-json
 before_script:
-  - go get code.google.com/p/go.crypto/bcrypt
-  - go get code.google.com/p/go.crypto/pbkdf2
-  - go get github.com/go-martini/martini
-  - go get github.com/jmoiron/sqlx
-  - go get github.com/martini-contrib/gzip
-  - go get github.com/martini-contrib/render
-  - go get github.com/mattn/go-sqlite3
-  - go get github.com/mdlayher/goset
-  - go get github.com/nfnt/resize
-  - go get github.com/romanoff/fsmonitor
-  - go get github.com/shkh/lastfm-go/lastfm
-  - go get github.com/willf/bloom
-  - go get github.com/wtolson/go-taglib
+  - go get ./...
 script:
   - make
   - ./bin/wavepipe -test &
