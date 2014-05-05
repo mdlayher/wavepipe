@@ -76,7 +76,7 @@ func GetStream(httpRes http.ResponseWriter, r render.Render, params martini.Para
 	log.Println("stream: starting:", opStr)
 
 	// Pass stream using song's file size, auto-detect MIME type
-	if err := httpStream(song, "", song.FileSize, stream, httpRes); err != nil {
+	if err := HTTPStream(song, "", song.FileSize, stream, httpRes); err != nil {
 		// Check for client reset
 		if strings.Contains(err.Error(), "connection reset by peer") || strings.Contains(err.Error(), "broken pipe") {
 			return

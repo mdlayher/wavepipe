@@ -145,7 +145,7 @@ func GetTranscode(httpReq *http.Request, httpRes http.ResponseWriter, r render.R
 	mimeType := transcoder.MIMEType()
 
 	// Send transcode stream, no size for now (estimate later), set MIME type from options
-	if err := httpStream(song, mimeType, -1, transcodeStream, httpRes); err != nil {
+	if err := HTTPStream(song, mimeType, -1, transcodeStream, httpRes); err != nil {
 		// Check for client reset
 		if strings.Contains(err.Error(), "connection reset by peer") || strings.Contains(err.Error(), "broken pipe") {
 			return

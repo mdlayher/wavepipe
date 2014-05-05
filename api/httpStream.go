@@ -14,8 +14,8 @@ import (
 	"github.com/mdlayher/wavepipe/data"
 )
 
-// httpStream provides a common method to transfer a file stream using a HTTP response writer
-func httpStream(song *data.Song, mimeType string, fileSize int64, stream io.ReadCloser, httpRes http.ResponseWriter) error {
+// HTTPStream provides a common method to transfer a file stream using a HTTP response writer
+func HTTPStream(song *data.Song, mimeType string, fileSize int64, stream io.ReadCloser, httpRes http.ResponseWriter) error {
 	// Total bytes transferred
 	var total int64
 
