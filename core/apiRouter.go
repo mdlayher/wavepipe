@@ -36,7 +36,13 @@ func apiRouter(apiKillChan chan struct{}) {
 
 	// Enable graceful shutdown when triggered by manager
 	stopAPI := false
-	m.Use(func(res http.ResponseWriter, r render.Render) {
+	m.Use(func(req *http.Request, res http.ResponseWriter, r render.Render) {
+		// On debug, log everything
+		if os.Getenv("WAVEPIPE_DEBUG") == "1" {
+			log.Println(req.Header)
+			log.Println(req.URL)
+		}
+
 		// Send a Server header with all responses
 		res.Header().Set("Server", fmt.Sprintf("%s/%s (%s_%s)", App, Version, runtime.GOOS, runtime.GOARCH))
 
