@@ -19,6 +19,8 @@ import (
 var (
 	// ErrCannotSeek is returned when the input stream is not seekable
 	ErrCannotSeek = errors.New("httpStream: cannot seek input stream")
+	// ErrInvalidRange is returned when the client attempts to retrieve an out-of-bounds part of the stream
+	ErrInvalidRange = errors.New("httpStream: invalid range")
 )
 
 // HTTPStream provides a common method to transfer a file stream using a HTTP response writer
@@ -57,6 +59,11 @@ func HTTPStream(song *data.Song, mimeType string, contentLength int64, inputStre
 			}
 
 			endOffset = tempEndOffset
+		}
+
+		// Check for invalid boundaries for seeking
+		if startOffset > contentLength || endOffset > contentLength {
+			return ErrInvalidRange
 		}
 
 		// Seek the file stream to the starting offset

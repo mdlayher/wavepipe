@@ -84,6 +84,12 @@ func GetStream(httpReq *http.Request, httpRes http.ResponseWriter, r render.Rend
 			return
 		}
 
+		// Check for invalid range, return HTTP 416
+		if err == ErrInvalidRange {
+			res.RenderError(416, "invalid HTTP Range header boundaries")
+			return
+		}
+
 		log.Println("stream: error:", err)
 		return
 	}
