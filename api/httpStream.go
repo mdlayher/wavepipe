@@ -19,8 +19,8 @@ func HTTPStream(song *data.Song, contentLength int64, inputStream io.Reader, req
 	// Total bytes transferred
 	var total int64
 
-	// Output data stream
-	var stream io.Reader = inputStream
+	// Output data stream, which uses the input stream by default
+	stream := inputStream
 
 	// Check for a Range header with bytes request, meaning the client is seeking through the stream
 	rawRange := req.Header.Get("Range")
