@@ -139,6 +139,12 @@ func GetTranscode(httpReq *http.Request, httpRes http.ResponseWriter, r render.R
 			return
 		}
 
+		// Check for cannot seek error, since transcodes cannot currently take advantage of seeking
+		if err == ErrCannotSeek {
+			// We can send JSON HTTP 416 error, because no data is written on this error
+			res.RenderError(416, "seeking is unavailable on transcoded media")
+		}
+
 		log.Println("transcode: error:", err)
 		return
 	}

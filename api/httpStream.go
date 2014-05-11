@@ -14,6 +14,11 @@ import (
 	"github.com/mdlayher/wavepipe/data"
 )
 
+var (
+	// ErrCannotSeek is returned when the input stream is not seekable
+	ErrCannotSeek = errors.New("httpStream: cannot seek input stream")
+)
+
 // HTTPStream provides a common method to transfer a file stream using a HTTP response writer
 func HTTPStream(song *data.Song, contentLength int64, inputStream io.Reader, req *http.Request, res http.ResponseWriter) error {
 	// Total bytes transferred
@@ -27,8 +32,8 @@ func HTTPStream(song *data.Song, contentLength int64, inputStream io.Reader, req
 	if rawRange != "" && strings.HasPrefix(rawRange, "bytes=") {
 		// Check if input stream is seekable
 		seekStream, ok := inputStream.(io.ReadSeeker)
-		if !ok {
-			return errors.New("cannot seek")
+		if !ok || contentLength < 0 {
+			return ErrCannotSeek
 		}
 
 		// Attempt to parse byte range
