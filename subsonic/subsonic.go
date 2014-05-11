@@ -363,7 +363,7 @@ func GetStream(req *http.Request, res http.ResponseWriter) {
 	log.Println("stream: starting:", opStr)
 
 	// Pass stream using song's file size, auto-detect MIME type
-	if err := api.HTTPStream(song, "", song.FileSize, stream, res); err != nil {
+	if err := api.HTTPStream(song, song.FileSize, stream, req, res); err != nil {
 		// Check for client reset
 		if strings.Contains(err.Error(), "connection reset by peer") || strings.Contains(err.Error(), "broken pipe") {
 			return
