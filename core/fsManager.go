@@ -277,8 +277,10 @@ func (fs *fsOrphanScan) Verbose(verbose bool) {
 
 // Scan scans for media files which have been removed from the media directory, and removes
 // them as appropriate.  An orphan is defined as follows:
+//   - Art: art file is no longer present in the filesystem
 //   - Artist: no more songs contain this artist's ID
 //   - Album: no more songs contain this album's ID
+//   - Folder: folder no longer present in the filesystem, or folder contains no items
 //   - Song: song is no longer present in the filesystem
 // The baseFolder is the root location of the media folder.  As wavepipe currently supports only
 // one media folder, any media which does not reside in this folder is orphaned.  If left blank,

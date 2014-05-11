@@ -137,7 +137,7 @@ func (s *Song) Update() error {
 }
 
 // Stream generates a binary file stream from this Song's file location
-func (s Song) Stream() (io.ReadCloser, error) {
+func (s Song) Stream() (io.ReadSeeker, error) {
 	// Attempt to open the file associated with this song
 	return os.Open(s.FileName)
 }

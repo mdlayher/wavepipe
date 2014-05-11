@@ -60,15 +60,6 @@ func GetTranscode(httpReq *http.Request, httpRes http.ResponseWriter, r render.R
 		return
 	}
 
-	// Attempt to access data stream
-	stream, err := song.Stream()
-	if err != nil {
-		log.Println(err)
-		res.ServerError()
-		return
-	}
-	defer stream.Close()
-
 	// Check for an input codec
 	query := httpReq.URL.Query()
 	codec := strings.ToUpper(query.Get("codec"))
@@ -141,11 +132,8 @@ func GetTranscode(httpReq *http.Request, httpRes http.ResponseWriter, r render.R
 	// Attempt to send transcoded file stream over HTTP
 	log.Println("transcode: starting:", opStr)
 
-	// Detect MIME type from transcoder
-	mimeType := transcoder.MIMEType()
-
-	// Send transcode stream, no size for now (estimate later), set MIME type from options
-	if err := HTTPStream(song, mimeType, -1, transcodeStream, httpRes); err != nil {
+	// Send transcode stream, no size for now (estimate later)
+	if err := HTTPStream(song, -1, transcodeStream, httpReq, httpRes); err != nil {
 		// Check for client reset
 		if strings.Contains(err.Error(), "connection reset by peer") || strings.Contains(err.Error(), "broken pipe") {
 			return
