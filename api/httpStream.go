@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"mime"
 	"net/http"
+	"path"
 	"strconv"
 	"strings"
 	"sync/atomic"
@@ -14,8 +16,13 @@ import (
 	"github.com/mdlayher/wavepipe/data"
 )
 
+var (
+	// ErrCannotSeek is returned when the input stream is not seekable
+	ErrCannotSeek = errors.New("httpStream: cannot seek input stream")
+)
+
 // HTTPStream provides a common method to transfer a file stream using a HTTP response writer
-func HTTPStream(song *data.Song, contentLength int64, inputStream io.Reader, req *http.Request, res http.ResponseWriter) error {
+func HTTPStream(song *data.Song, mimeType string, contentLength int64, inputStream io.Reader, req *http.Request, res http.ResponseWriter) error {
 	// Total bytes transferred
 	var total int64
 
@@ -23,12 +30,13 @@ func HTTPStream(song *data.Song, contentLength int64, inputStream io.Reader, req
 	stream := inputStream
 
 	// Check for a Range header with bytes request, meaning the client is seeking through the stream
+	// If client requests the entire stream (browsers, "bytes=0-"), skip range logic
 	rawRange := req.Header.Get("Range")
-	if rawRange != "" && strings.HasPrefix(rawRange, "bytes=") {
+	if rawRange != "" && rawRange != "bytes=0-" && strings.HasPrefix(rawRange, "bytes=") {
 		// Check if input stream is seekable
 		seekStream, ok := inputStream.(io.ReadSeeker)
-		if !ok {
-			return errors.New("cannot seek")
+		if !ok || contentLength < 0 {
+			return ErrCannotSeek
 		}
 
 		// Attempt to parse byte range
@@ -138,6 +146,13 @@ func HTTPStream(song *data.Song, contentLength int64, inputStream io.Reader, req
 	if contentLength > 0 {
 		res.Header().Set("Content-Length", strconv.FormatInt(contentLength, 10))
 	}
+
+	// Override Content-Type if set
+	contentType := mime.TypeByExtension(path.Ext(song.FileName))
+	if mimeType != "" {
+		contentType = mimeType
+	}
+	res.Header().Set("Content-Type", contentType)
 
 	// Get song modify time in RFC1123 format, replace UTC with GMT
 	lastMod := strings.Replace(time.Unix(song.LastModified, 0).UTC().Format(time.RFC1123), "UTC", "GMT", 1)
