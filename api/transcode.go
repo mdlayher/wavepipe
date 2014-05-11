@@ -133,7 +133,7 @@ func GetTranscode(httpReq *http.Request, httpRes http.ResponseWriter, r render.R
 	log.Println("transcode: starting:", opStr)
 
 	// Send transcode stream, no size for now (estimate later)
-	if err := HTTPStream(song, -1, transcodeStream, httpReq, httpRes); err != nil {
+	if err := HTTPStream(song, transcoder.MIMEType(), -1, transcodeStream, httpReq, httpRes); err != nil {
 		// Check for client reset
 		if strings.Contains(err.Error(), "connection reset by peer") || strings.Contains(err.Error(), "broken pipe") {
 			return
@@ -143,6 +143,7 @@ func GetTranscode(httpReq *http.Request, httpRes http.ResponseWriter, r render.R
 		if err == ErrCannotSeek {
 			// We can send JSON HTTP 416 error, because no data is written on this error
 			res.RenderError(416, "seeking is unavailable on transcoded media")
+			return
 		}
 
 		log.Println("transcode: error:", err)

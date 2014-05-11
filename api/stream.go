@@ -77,8 +77,8 @@ func GetStream(httpReq *http.Request, httpRes http.ResponseWriter, r render.Rend
 	// Attempt to send file stream over HTTP
 	log.Println("stream: starting:", opStr)
 
-	// Pass stream using song's file size
-	if err := HTTPStream(song, song.FileSize, stream, httpReq, httpRes); err != nil {
+	// Pass stream using song's file size, auto-detect MIME type
+	if err := HTTPStream(song, "", song.FileSize, stream, httpReq, httpRes); err != nil {
 		// Check for client reset
 		if strings.Contains(err.Error(), "connection reset by peer") || strings.Contains(err.Error(), "broken pipe") {
 			return
