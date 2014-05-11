@@ -16,9 +16,12 @@ import (
 
 // GetStream a raw, non-transcoded, media file stream from wavepipe.  On success, this API will
 // return a binary stream. On failure, it will return a JSON error.
-func GetStream(httpRes http.ResponseWriter, r render.Render, params martini.Params) {
+func GetStream(httpReq *http.Request, httpRes http.ResponseWriter, r render.Render, params martini.Params) {
 	// Output struct for stream errors
 	res := ErrorResponse{render: r}
+
+	// Advertise that clients may send Range requests
+	httpRes.Header().Set("Accept-Ranges", "bytes")
 
 	// Check API version
 	if version, ok := params["version"]; ok {
@@ -66,7 +69,6 @@ func GetStream(httpRes http.ResponseWriter, r render.Render, params martini.Para
 		res.ServerError()
 		return
 	}
-	defer stream.Close()
 
 	// Generate a string used for logging this operation
 	opStr := fmt.Sprintf("[#%05d] %s - %s [%s %dkbps]", song.ID, song.Artist, song.Title,
@@ -75,8 +77,8 @@ func GetStream(httpRes http.ResponseWriter, r render.Render, params martini.Para
 	// Attempt to send file stream over HTTP
 	log.Println("stream: starting:", opStr)
 
-	// Pass stream using song's file size, auto-detect MIME type
-	if err := httpStream(song, "", song.FileSize, stream, httpRes); err != nil {
+	// Pass stream using song's file size
+	if err := HTTPStream(song, song.FileSize, stream, httpReq, httpRes); err != nil {
 		// Check for client reset
 		if strings.Contains(err.Error(), "connection reset by peer") || strings.Contains(err.Error(), "broken pipe") {
 			return
