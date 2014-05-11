@@ -11,6 +11,7 @@ import (
 	"github.com/mdlayher/wavepipe/api"
 	"github.com/mdlayher/wavepipe/api/auth"
 	"github.com/mdlayher/wavepipe/config"
+	"github.com/mdlayher/wavepipe/subsonic"
 
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/gzip"
@@ -165,6 +166,21 @@ func apiRouter(apiKillChan chan struct{}) {
 		// Transcode API
 		r.Get("/transcode", api.GetTranscode)
 		r.Get("/transcode/:id", api.GetTranscode)
+	})
+
+	// Set up emulated Subsonic API routes
+	r.Group("/subsonic/rest", func(r martini.Router) {
+		// Ping - used to check connectivity
+		r.Get("/ping.view", subsonic.GetPing)
+
+		// GetAlbumList2 - used to return a list of all albums by tags
+		r.Get("/getAlbumList2.view", subsonic.GetAlbumList2)
+
+		// GetAlbum - used to retrieve information about one album
+		r.Get("/getAlbum.view", subsonic.GetAlbum)
+
+		// Stream - used to return a binary file stream
+		r.Get("/stream.view", subsonic.GetStream)
 	})
 
 	// Add router action, start server
