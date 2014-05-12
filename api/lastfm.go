@@ -32,39 +32,24 @@ const (
 
 // LastFMResponse represents the JSON response for the Last.fm API
 type LastFMResponse struct {
-	Error  *Error        `json:"error"`
-	URL    string        `json:"url"`
-	render render.Render `json:"-"`
-}
-
-// RenderError renders a JSON error message with the specified HTTP status code and message
-func (l *LastFMResponse) RenderError(code int, message string) {
-	// Generate error
-	l.Error = new(Error)
-	l.Error.Code = code
-	l.Error.Message = message
-
-	// Render with specified HTTP status code
-	l.render.JSON(code, l)
-}
-
-// ServerError is a shortcut to render a HTTP 500 with generic "server error" message
-func (l *LastFMResponse) ServerError() {
-	l.RenderError(500, "server error")
-	return
+	Error *Error `json:"error"`
+	URL   string `json:"url"`
 }
 
 // GetLastFM allows access to the Last.fm API, enabling wavepipe to set a user's currently-playing
 // track, as well as to enable scrobbling
 func GetLastFM(req *http.Request, user *data.User, r render.Render, params martini.Params) {
 	// Output struct for Last.fm response
-	res := LastFMResponse{render: r}
+	res := LastFMResponse{}
+
+	// Output struct for errors
+	errRes := ErrorResponse{render: r}
 
 	// Check API version
 	if version, ok := params["version"]; ok {
 		// Check if this API call is supported in the advertised version
 		if !apiVersionSet.Has(version) {
-			res.RenderError(400, "unsupported API version: "+version)
+			errRes.RenderError(400, "unsupported API version: "+version)
 			return
 		}
 	}
@@ -72,13 +57,13 @@ func GetLastFM(req *http.Request, user *data.User, r render.Render, params marti
 	// Check API action
 	action, ok := params["action"]
 	if !ok {
-		res.RenderError(400, "no string action provided")
+		errRes.RenderError(400, "no string action provided")
 		return
 	}
 
 	// Check for valid action
 	if !set.New(lfmLogin, lfmNowPlaying, lfmScrobble).Has(action) {
-		res.RenderError(400, "invalid string action provided")
+		errRes.RenderError(400, "invalid string action provided")
 	}
 
 	// Instantiate Last.fm package
@@ -89,20 +74,20 @@ func GetLastFM(req *http.Request, user *data.User, r render.Render, params marti
 		// Retrieve username from query
 		username := req.URL.Query().Get("lfmu")
 		if username == "" {
-			res.RenderError(400, lfmLogin+": no username provided")
+			errRes.RenderError(400, lfmLogin+": no username provided")
 			return
 		}
 
 		// Retrieve password from query
 		password := req.URL.Query().Get("lfmp")
 		if password == "" {
-			res.RenderError(400, lfmLogin+": no password provided")
+			errRes.RenderError(400, lfmLogin+": no password provided")
 			return
 		}
 
 		// Send a login request to Last.fm
 		if err := lfm.Login(username, password); err != nil {
-			res.RenderError(401, lfmLogin+": last.fm authentication failed")
+			errRes.RenderError(401, lfmLogin+": last.fm authentication failed")
 			return
 		}
 
@@ -110,7 +95,7 @@ func GetLastFM(req *http.Request, user *data.User, r render.Render, params marti
 		token, err := lfm.GetToken()
 		if err != nil {
 			log.Println(err)
-			res.ServerError()
+			errRes.ServerError()
 			return
 		}
 
@@ -118,7 +103,7 @@ func GetLastFM(req *http.Request, user *data.User, r render.Render, params marti
 		user.LastFMToken = token
 		if err := user.Update(); err != nil {
 			log.Println(err)
-			res.ServerError()
+			errRes.ServerError()
 			return
 		}
 
@@ -137,7 +122,7 @@ func GetLastFM(req *http.Request, user *data.User, r render.Render, params marti
 
 	// Make sure this user has logged in using wavepipe before
 	if user.LastFMToken == "" {
-		res.RenderError(401, action+": user must authenticate to last.fm")
+		errRes.RenderError(401, action+": user must authenticate to last.fm")
 		return
 	}
 
@@ -147,26 +132,26 @@ func GetLastFM(req *http.Request, user *data.User, r render.Render, params marti
 		if strings.HasPrefix(err.Error(), "LastfmError[14]") {
 			// Generate error output, but add the token authorization URL
 			res.URL = lfm.GetAuthTokenUrl(user.LastFMToken)
-			res.RenderError(401, action+": last.fm token not yet authorized")
+			errRes.RenderError(401, action+": last.fm token not yet authorized")
 			return
 		}
 
 		// All other failures
-		res.RenderError(401, action+": last.fm authentication failed")
+		errRes.RenderError(401, action+": last.fm authentication failed")
 		return
 	}
 
 	// Check for an ID parameter
 	pID, ok := params["id"]
 	if !ok {
-		res.RenderError(400, action+": no integer song ID provided")
+		errRes.RenderError(400, action+": no integer song ID provided")
 		return
 	}
 
 	// Verify valid integer ID
 	id, err := strconv.Atoi(pID)
 	if err != nil {
-		res.RenderError(400, action+": invalid integer song ID")
+		errRes.RenderError(400, action+": invalid integer song ID")
 		return
 	}
 
@@ -175,13 +160,13 @@ func GetLastFM(req *http.Request, user *data.User, r render.Render, params marti
 	if err := song.Load(); err != nil {
 		// Check for invalid ID
 		if err == sql.ErrNoRows {
-			res.RenderError(404, action+": song ID not found")
+			errRes.RenderError(404, action+": song ID not found")
 			return
 		}
 
 		// All other errors
 		log.Println(err)
-		res.ServerError()
+		errRes.ServerError()
 		return
 	}
 
@@ -202,7 +187,7 @@ func GetLastFM(req *http.Request, user *data.User, r render.Render, params marti
 		// Verify valid integer timestamp
 		ts, err := strconv.Atoi(pTS)
 		if err != nil || ts < 0 {
-			res.RenderError(400, action+": invalid integer timestamp")
+			errRes.RenderError(400, action+": invalid integer timestamp")
 			return
 		}
 
@@ -215,7 +200,7 @@ func GetLastFM(req *http.Request, user *data.User, r render.Render, params marti
 		// Perform the action
 		if _, err := lfm.Track.UpdateNowPlaying(track); err != nil {
 			log.Println(err)
-			res.ServerError()
+			errRes.ServerError()
 			return
 		}
 
@@ -230,7 +215,7 @@ func GetLastFM(req *http.Request, user *data.User, r render.Render, params marti
 		// Perform the action
 		if _, err := lfm.Track.Scrobble(track); err != nil {
 			log.Println(err)
-			res.ServerError()
+			errRes.ServerError()
 			return
 		}
 
@@ -242,6 +227,6 @@ func GetLastFM(req *http.Request, user *data.User, r render.Render, params marti
 
 	// Invalid action, meaning programmer error, HTTP 500
 	log.Println("no such Last.fm action:", action)
-	res.ServerError()
+	errRes.ServerError()
 	return
 }

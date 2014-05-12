@@ -18,35 +18,15 @@ type ArtistsResponse struct {
 	Artists []data.Artist `json:"artists"`
 	Albums  []data.Album  `json:"albums"`
 	Songs   []data.Song   `json:"songs"`
-	render  render.Render `json:"-"`
-}
-
-// RenderError renders a JSON error message with the specified HTTP status code and message
-func (a *ArtistsResponse) RenderError(code int, message string) {
-	// Nullify all other fields
-	a.Artists = nil
-	a.Albums = nil
-	a.Songs = nil
-
-	// Generate error
-	a.Error = new(Error)
-	a.Error.Code = code
-	a.Error.Message = message
-
-	// Render with specified HTTP status code
-	a.render.JSON(code, a)
-}
-
-// ServerError is a shortcut to render a HTTP 500 with generic "server error" message
-func (a *ArtistsResponse) ServerError() {
-	a.RenderError(500, "server error")
-	return
 }
 
 // GetArtists retrieves one or more artists from wavepipe, and returns a HTTP status and JSON
 func GetArtists(r render.Render, req *http.Request, params martini.Params) {
 	// Output struct for artists request
-	res := ArtistsResponse{render: r}
+	res := ArtistsResponse{}
+
+	// Output struct for errors
+	errRes := ErrorResponse{render: r}
 
 	// List of artists to return
 	artists := make([]data.Artist, 0)
@@ -55,7 +35,7 @@ func GetArtists(r render.Render, req *http.Request, params martini.Params) {
 	if version, ok := params["version"]; ok {
 		// Check if this API call is supported in the advertised version
 		if !apiVersionSet.Has(version) {
-			res.RenderError(400, "unsupported API version: "+version)
+			errRes.RenderError(400, "unsupported API version: "+version)
 			return
 		}
 	}
@@ -65,7 +45,7 @@ func GetArtists(r render.Render, req *http.Request, params martini.Params) {
 		// Verify valid integer ID
 		id, err := strconv.Atoi(pID)
 		if err != nil {
-			res.RenderError(400, "invalid integer artist ID")
+			errRes.RenderError(400, "invalid integer artist ID")
 			return
 		}
 
@@ -75,13 +55,13 @@ func GetArtists(r render.Render, req *http.Request, params martini.Params) {
 		if err := artist.Load(); err != nil {
 			// Check for invalid ID
 			if err == sql.ErrNoRows {
-				res.RenderError(404, "artist ID not found")
+				errRes.RenderError(404, "artist ID not found")
 				return
 			}
 
 			// All other errors
 			log.Println(err)
-			res.ServerError()
+			errRes.ServerError()
 			return
 		}
 
@@ -89,7 +69,7 @@ func GetArtists(r render.Render, req *http.Request, params martini.Params) {
 		albums, err := data.DB.AlbumsForArtist(artist.ID)
 		if err != nil {
 			log.Println(err)
-			res.ServerError()
+			errRes.ServerError()
 			return
 		}
 
@@ -102,7 +82,7 @@ func GetArtists(r render.Render, req *http.Request, params martini.Params) {
 			songs, err := data.DB.SongsForArtist(artist.ID)
 			if err != nil {
 				log.Println(err)
-				res.ServerError()
+				errRes.ServerError()
 				return
 			}
 
@@ -117,7 +97,7 @@ func GetArtists(r render.Render, req *http.Request, params martini.Params) {
 		tempArtists, err := data.DB.AllArtists()
 		if err != nil {
 			log.Println(err)
-			res.ServerError()
+			errRes.ServerError()
 			return
 		}
 

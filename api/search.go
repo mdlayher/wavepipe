@@ -19,43 +19,22 @@ type SearchResponse struct {
 	Albums  []data.Album  `json:"albums"`
 	Songs   []data.Song   `json:"songs"`
 	Folders []data.Folder `json:"folders"`
-	render  render.Render `json:"-"`
-}
-
-// RenderError renders a JSON error message with the specified HTTP status code and message
-func (s *SearchResponse) RenderError(code int, message string) {
-	// Nullify all other fields
-	s.Artists = nil
-	s.Albums = nil
-	s.Songs = nil
-	s.Folders = nil
-
-	// Generate error
-	s.Error = new(Error)
-	s.Error.Code = code
-	s.Error.Message = message
-
-	// Render with specified HTTP status code
-	s.render.JSON(code, s)
-}
-
-// ServerError is a shortcut to render a HTTP 500 with generic "server error" message
-func (s *SearchResponse) ServerError() {
-	s.RenderError(500, "server error")
-	return
 }
 
 // GetSearch searches for artists, albums, songs, and folders matching a specified search query,
 // and returns a HTTP status and JSON
 func GetSearch(req *http.Request, r render.Render, params martini.Params) {
 	// Output struct for songs request
-	res := SearchResponse{render: r}
+	res := SearchResponse{}
+
+	// Output struct for errors
+	errRes := ErrorResponse{render: r}
 
 	// Check API version
 	if version, ok := params["version"]; ok {
 		// Check if this API call is supported in the advertised version
 		if !apiVersionSet.Has(version) {
-			res.RenderError(400, "unsupported API version: "+version)
+			errRes.RenderError(400, "unsupported API version: "+version)
 			return
 		}
 	}
@@ -63,7 +42,7 @@ func GetSearch(req *http.Request, r render.Render, params martini.Params) {
 	// Check for a search query
 	query, ok := params["query"]
 	if !ok {
-		res.RenderError(400, "no search query specified")
+		errRes.RenderError(400, "no search query specified")
 		return
 	}
 
@@ -93,7 +72,7 @@ func GetSearch(req *http.Request, r render.Render, params martini.Params) {
 		artists, err := data.DB.SearchArtists(query)
 		if err != nil {
 			log.Println(err)
-			res.ServerError()
+			errRes.ServerError()
 			return
 		}
 
@@ -107,7 +86,7 @@ func GetSearch(req *http.Request, r render.Render, params martini.Params) {
 		albums, err := data.DB.SearchAlbums(query)
 		if err != nil {
 			log.Println(err)
-			res.ServerError()
+			errRes.ServerError()
 			return
 		}
 
@@ -121,7 +100,7 @@ func GetSearch(req *http.Request, r render.Render, params martini.Params) {
 		songs, err := data.DB.SearchSongs(query)
 		if err != nil {
 			log.Println(err)
-			res.ServerError()
+			errRes.ServerError()
 			return
 		}
 
@@ -135,7 +114,7 @@ func GetSearch(req *http.Request, r render.Render, params martini.Params) {
 		folders, err := data.DB.SearchFolders(query)
 		if err != nil {
 			log.Println(err)
-			res.ServerError()
+			errRes.ServerError()
 			return
 		}
 

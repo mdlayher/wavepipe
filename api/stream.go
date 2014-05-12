@@ -17,8 +17,8 @@ import (
 // GetStream a raw, non-transcoded, media file stream from wavepipe.  On success, this API will
 // return a binary stream. On failure, it will return a JSON error.
 func GetStream(httpReq *http.Request, httpRes http.ResponseWriter, r render.Render, params martini.Params) {
-	// Output struct for stream errors
-	res := ErrorResponse{render: r}
+	// Output struct for errors
+	errRes := ErrorResponse{render: r}
 
 	// Advertise that clients may send Range requests
 	httpRes.Header().Set("Accept-Ranges", "bytes")
@@ -27,7 +27,7 @@ func GetStream(httpReq *http.Request, httpRes http.ResponseWriter, r render.Rend
 	if version, ok := params["version"]; ok {
 		// Check if this API call is supported in the advertised version
 		if !apiVersionSet.Has(version) {
-			res.RenderError(400, "unsupported API version: "+version)
+			errRes.RenderError(400, "unsupported API version: "+version)
 			return
 		}
 	}
@@ -35,14 +35,14 @@ func GetStream(httpReq *http.Request, httpRes http.ResponseWriter, r render.Rend
 	// Check for an ID parameter
 	pID, ok := params["id"]
 	if !ok {
-		res.RenderError(400, "no integer stream ID provided")
+		errRes.RenderError(400, "no integer stream ID provided")
 		return
 	}
 
 	// Verify valid integer ID
 	id, err := strconv.Atoi(pID)
 	if err != nil {
-		res.RenderError(400, "invalid integer stream ID")
+		errRes.RenderError(400, "invalid integer stream ID")
 		return
 	}
 
@@ -52,13 +52,13 @@ func GetStream(httpReq *http.Request, httpRes http.ResponseWriter, r render.Rend
 	if err := song.Load(); err != nil {
 		// Check for invalid ID
 		if err == sql.ErrNoRows {
-			res.RenderError(404, "song ID not found")
+			errRes.RenderError(404, "song ID not found")
 			return
 		}
 
 		// All other errors
 		log.Println(err)
-		res.ServerError()
+		errRes.ServerError()
 		return
 	}
 
@@ -66,7 +66,7 @@ func GetStream(httpReq *http.Request, httpRes http.ResponseWriter, r render.Rend
 	stream, err := song.Stream()
 	if err != nil {
 		log.Println(err)
-		res.ServerError()
+		errRes.ServerError()
 		return
 	}
 
@@ -86,7 +86,7 @@ func GetStream(httpReq *http.Request, httpRes http.ResponseWriter, r render.Rend
 
 		// Check for invalid range, return HTTP 416
 		if err == ErrInvalidRange {
-			res.RenderError(416, "invalid HTTP Range header boundaries")
+			errRes.RenderError(416, "invalid HTTP Range header boundaries")
 			return
 		}
 

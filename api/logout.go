@@ -12,14 +12,14 @@ import (
 
 // GetLogout destroys a new session from the wavepipe API, and returns a HTTP status and JSON
 func GetLogout(r render.Render, req *http.Request, session *data.Session, params martini.Params) {
-	// Output struct for logout request
-	res := ErrorResponse{render: r}
+	// Output struct for errors
+	errRes := ErrorResponse{render: r}
 
 	// Check API version
 	if version, ok := params["version"]; ok {
 		// Check if this API call is supported in the advertised version
 		if !apiVersionSet.Has(version) {
-			res.RenderError(400, "unsupported API version: "+version)
+			errRes.RenderError(400, "unsupported API version: "+version)
 			return
 		}
 	}
@@ -27,14 +27,14 @@ func GetLogout(r render.Render, req *http.Request, session *data.Session, params
 	// Destroy the current API session
 	if err := session.Delete(); err != nil {
 		log.Println(err)
-		res.ServerError()
+		errRes.ServerError()
 		return
 	}
 
-	// Build response
-	res.Error = nil
+	// No errors
+	errRes.Error = nil
 
 	// HTTP 200 OK with JSON
-	r.JSON(200, res)
+	r.JSON(200, errRes)
 	return
 }

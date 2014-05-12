@@ -29,13 +29,11 @@ type ErrorResponse struct {
 
 // RenderError renders a JSON error message with the specified HTTP status code and message
 func (e *ErrorResponse) RenderError(code int, message string) {
-	// Generate error
-	e.Error = new(Error)
-	e.Error.Code = code
-	e.Error.Message = message
-
 	// Render with specified HTTP status code
-	e.render.JSON(code, e)
+	e.render.JSON(code, &Error{
+		Code:    code,
+		Message: message,
+	})
 }
 
 // ServerError is a shortcut to render a HTTP 500 with generic "server error" message
@@ -54,6 +52,9 @@ type Information struct {
 
 // APIInfo returns information about the API
 func APIInfo(r render.Render, params martini.Params) {
+	// Output struct for errors
+	errRes := ErrorResponse{render: r}
+
 	// Enumerate available API versions
 	versions := make([]string, 0)
 	for _, v := range apiVersionSet.Enumerate() {
@@ -72,10 +73,7 @@ func APIInfo(r render.Render, params martini.Params) {
 	if version, ok := params["version"]; ok {
 		// Check if API version is supported
 		if !apiVersionSet.Has(version) {
-			res.Error = new(Error)
-			res.Error.Code = 400
-			res.Error.Message = "unsupported API version: " + version
-			r.JSON(400, res)
+			errRes.RenderError(400, "unsupported API version: "+version)
 			return
 		}
 	}

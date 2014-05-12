@@ -28,14 +28,14 @@ import (
 // GetArt a binary art file from wavepipe.  On success, this API will
 // return binary art. On failure, it will return a JSON error.
 func GetArt(httpReq *http.Request, httpRes http.ResponseWriter, r render.Render, params martini.Params) {
-	// Output struct for art errors
-	res := ErrorResponse{render: r}
+	// Output struct for errors
+	errRes := ErrorResponse{render: r}
 
 	// Check API version
 	if version, ok := params["version"]; ok {
 		// Check if this API call is supported in the advertised version
 		if !apiVersionSet.Has(version) {
-			res.RenderError(400, "unsupported API version: "+version)
+			errRes.RenderError(400, "unsupported API version: "+version)
 			return
 		}
 	}
@@ -43,14 +43,14 @@ func GetArt(httpReq *http.Request, httpRes http.ResponseWriter, r render.Render,
 	// Check for an ID parameter
 	pID, ok := params["id"]
 	if !ok {
-		res.RenderError(400, "no integer art ID provided")
+		errRes.RenderError(400, "no integer art ID provided")
 		return
 	}
 
 	// Verify valid integer ID
 	id, err := strconv.Atoi(pID)
 	if err != nil {
-		res.RenderError(400, "invalid integer art ID")
+		errRes.RenderError(400, "invalid integer art ID")
 		return
 	}
 
@@ -60,13 +60,13 @@ func GetArt(httpReq *http.Request, httpRes http.ResponseWriter, r render.Render,
 	if err := art.Load(); err != nil {
 		// Check for invalid ID
 		if err == sql.ErrNoRows {
-			res.RenderError(404, "art ID not found")
+			errRes.RenderError(404, "art ID not found")
 			return
 		}
 
 		// All other errors
 		log.Println(err)
-		res.ServerError()
+		errRes.ServerError()
 		return
 	}
 
@@ -74,7 +74,7 @@ func GetArt(httpReq *http.Request, httpRes http.ResponseWriter, r render.Render,
 	stream, err := art.Stream()
 	if err != nil {
 		log.Println(err)
-		res.ServerError()
+		errRes.ServerError()
 		return
 	}
 	defer stream.Close()
@@ -93,13 +93,13 @@ func GetArt(httpReq *http.Request, httpRes http.ResponseWriter, r render.Render,
 		sizeInt, err := strconv.Atoi(size)
 		if err != nil {
 			log.Println(err)
-			res.ServerError()
+			errRes.ServerError()
 			return
 		}
 
 		// Verify positive integer
 		if sizeInt < 1 {
-			res.RenderError(400, "negative integer size")
+			errRes.RenderError(400, "negative integer size")
 			return
 		}
 
@@ -107,7 +107,7 @@ func GetArt(httpReq *http.Request, httpRes http.ResponseWriter, r render.Render,
 		img, _, err := image.Decode(stream)
 		if err != nil {
 			log.Println(err)
-			res.ServerError()
+			errRes.ServerError()
 			return
 		}
 
@@ -118,7 +118,7 @@ func GetArt(httpReq *http.Request, httpRes http.ResponseWriter, r render.Render,
 		buffer := bytes.NewBuffer(make([]byte, 0))
 		if err := png.Encode(buffer, thumb); err != nil {
 			log.Println(err)
-			res.ServerError()
+			errRes.ServerError()
 			return
 		}
 
@@ -133,7 +133,7 @@ func GetArt(httpReq *http.Request, httpRes http.ResponseWriter, r render.Render,
 		tempBuf, err := ioutil.ReadAll(stream)
 		if err != nil {
 			log.Println(err)
-			res.ServerError()
+			errRes.ServerError()
 			return
 		}
 
