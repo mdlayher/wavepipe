@@ -7,7 +7,7 @@ import (
 	"github.com/mdlayher/wavepipe/common"
 
 	"github.com/go-martini/martini"
-	"github.com/martini-contrib/render"
+	"github.com/mdlayher/render"
 )
 
 // StatusResponse represents the JSON response for /api/status

@@ -11,7 +11,7 @@ import (
 	"github.com/mdlayher/wavepipe/data"
 
 	"github.com/go-martini/martini"
-	"github.com/martini-contrib/render"
+	"github.com/mdlayher/render"
 )
 
 // GetStream a raw, non-transcoded, media file stream from wavepipe.  On success, this API will

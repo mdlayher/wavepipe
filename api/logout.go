@@ -7,7 +7,7 @@ import (
 	"github.com/mdlayher/wavepipe/data"
 
 	"github.com/go-martini/martini"
-	"github.com/martini-contrib/render"
+	"github.com/mdlayher/render"
 )
 
 // GetLogout destroys a new session from the wavepipe API, and returns a HTTP status and JSON

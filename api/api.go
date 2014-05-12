@@ -2,7 +2,7 @@ package api
 
 import (
 	"github.com/go-martini/martini"
-	"github.com/martini-contrib/render"
+	"github.com/mdlayher/render"
 	"github.com/mdlayher/goset"
 )
 

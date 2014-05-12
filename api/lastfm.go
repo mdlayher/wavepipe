@@ -11,7 +11,7 @@ import (
 	"github.com/mdlayher/wavepipe/data"
 
 	"github.com/go-martini/martini"
-	"github.com/martini-contrib/render"
+	"github.com/mdlayher/render"
 	"github.com/mdlayher/goset"
 	"github.com/shkh/lastfm-go/lastfm"
 )

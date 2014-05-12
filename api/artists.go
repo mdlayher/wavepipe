@@ -9,7 +9,7 @@ import (
 	"github.com/mdlayher/wavepipe/data"
 
 	"github.com/go-martini/martini"
-	"github.com/martini-contrib/render"
+	"github.com/mdlayher/render"
 )
 
 // ArtistsResponse represents the JSON response for /api/artists

@@ -12,7 +12,7 @@ import (
 	"github.com/mdlayher/wavepipe/transcode"
 
 	"github.com/go-martini/martini"
-	"github.com/martini-contrib/render"
+	"github.com/mdlayher/render"
 )
 
 // GetTranscode returns a transcoded media file stream from wavepipe.  On success, this API will
