@@ -15,7 +15,7 @@ import (
 
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/gzip"
-	"github.com/martini-contrib/render"
+	"github.com/mdlayher/render"
 )
 
 // apiRouter sets up the instance of martini
@@ -78,6 +78,12 @@ func apiRouter(apiKillChan chan struct{}) {
 
 		// Check for client error
 		if clientErr != nil {
+			// Check for a Subsonic error, since these are rendered as XML
+			if subErr, ok := clientErr.(*subsonic.Container); ok {
+				r.XML(200, subErr)
+				return
+			}
+
 			// If debug mode, and no username or password, send a WWW-Authenticate header to prompt request
 			// This allows for manual exploration of the API if needed
 			if os.Getenv("WAVEPIPE_DEBUG") == "1" && (clientErr == auth.ErrNoUsername || clientErr == auth.ErrNoPassword) {
@@ -94,6 +100,12 @@ func apiRouter(apiKillChan chan struct{}) {
 		// Check for server error
 		if serverErr != nil {
 			log.Println(serverErr)
+
+			// Check for a Subsonic error, since these are rendered as XML
+			if subErr, ok := serverErr.(*subsonic.Container); ok {
+				r.XML(200, subErr)
+				return
+			}
 
 			r.JSON(500, api.Error{
 				Code:    500,

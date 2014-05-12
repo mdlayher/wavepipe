@@ -23,6 +23,19 @@ const (
 	Version = "1.8.0"
 )
 
+var (
+	// ErrBadCredentials returns a bad credentials response
+	ErrBadCredentials = func() *Container {
+		// Generate new container with failed status
+		c := newContainer()
+		c.Status = "failed"
+
+		// Return error
+		c.SubError = &Error{Code: 40, Message: "Wrong username or password."}
+		return c
+	}()
+)
+
 // Container is the top-level emulated Subsonic response
 type Container struct {
 	// Top-level container name
@@ -31,7 +44,10 @@ type Container struct {
 	// Attributes which are always present
 	XMLNS   string `xml:"xmlns,attr"`
 	Status  string `xml:"status,attr"`
-	Version string `xml:"id,attr"`
+	Version string `xml:"version,attr"`
+
+	// Error, returned on failures
+	SubError *Error
 
 	// Nested data
 
@@ -40,6 +56,20 @@ type Container struct {
 
 	// getAlbumList2.view
 	AlbumList2 *AlbumList2Container
+}
+
+// Error returns the error code and message from Subsonic, and enables Subsonic
+// errors to be returned in authentication
+func (c Container) Error() string {
+	return fmt.Sprintf("%d: %s", c.SubError.Code, c.SubError.Message)
+}
+
+// Error contains a Subsonic error, with status code and message
+type Error struct {
+	XMLName xml.Name `xml:"error,omitempty"`
+
+	Code    int    `xml:"code,attr"`
+	Message string `xml:"message,attr"`
 }
 
 // AlbumList2Container contains a list of emulated Subsonic albums, by tags
