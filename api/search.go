@@ -8,8 +8,8 @@ import (
 	"github.com/mdlayher/wavepipe/data"
 
 	"github.com/go-martini/martini"
-	"github.com/mdlayher/render"
 	"github.com/mdlayher/goset"
+	"github.com/mdlayher/render"
 )
 
 // SearchResponse represents the JSON response for /api/search
