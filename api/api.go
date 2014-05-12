@@ -30,9 +30,11 @@ type ErrorResponse struct {
 // RenderError renders a JSON error message with the specified HTTP status code and message
 func (e *ErrorResponse) RenderError(code int, message string) {
 	// Render with specified HTTP status code
-	e.render.JSON(code, &Error{
-		Code:    code,
-		Message: message,
+	e.render.JSON(code, ErrorResponse{
+		Error: &Error{
+			Code:    code,
+			Message: message,
+		},
 	})
 }
 
