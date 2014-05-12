@@ -50,6 +50,12 @@ type AuthMethod interface {
 
 // Factory generates the appropriate authorization method by using input parameters
 func Factory(path string) AuthMethod {
+	// Check for request to emulated Subsonic API, which is authenticated using
+	// its own, special method which outputs XML
+	if strings.HasPrefix(path, "/subsonic") {
+		return new(SubsonicAuth)
+	}
+
 	// Check if path does not reside under the /api, meaning it is unauthenticated
 	if !strings.HasPrefix(path, "/api") {
 		return nil
@@ -60,12 +66,6 @@ func Factory(path string) AuthMethod {
 
 	// Check for request to API root (/api, /api/vX), which is unauthenticated
 	if path == "/api" || (strings.HasPrefix(path, "/api/v") && len(path) == 7) {
-		return nil
-	}
-
-	// Check for request to emulated Subsonic API, which is authenticated elsewhere
-	// due to many differences from the wavepipe API
-	if strings.HasPrefix(path, "/subsonic") {
 		return nil
 	}
 
