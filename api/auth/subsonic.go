@@ -24,6 +24,12 @@ func (a SubsonicAuth) Authenticate(req *http.Request) (*data.User, *data.Session
 		return nil, nil, subsonic.ErrBadCredentials, nil
 	}
 
+	// Check for Subsonic version
+	version := query.Get("v")
+	if version == "" {
+		return nil, nil, subsonic.ErrMissingParameter, nil
+	}
+
 	// TODO: add authentication logic here
 
 	// No errors, return no user or session

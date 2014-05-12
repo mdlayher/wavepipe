@@ -34,6 +34,16 @@ var (
 		c.SubError = &Error{Code: 40, Message: "Wrong username or password."}
 		return c
 	}()
+	// ErrMissingParameter returns a missing required parameter response
+	ErrMissingParameter = func() *Container {
+		// Generate new container with failed status
+		c := newContainer()
+		c.Status = "failed"
+
+		// Return error
+		c.SubError = &Error{Code: 10, Message: "Required parameter is missing."}
+		return c
+	}()
 )
 
 // Container is the top-level emulated Subsonic response
