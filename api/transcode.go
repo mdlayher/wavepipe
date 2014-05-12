@@ -18,14 +18,14 @@ import (
 // GetTranscode returns a transcoded media file stream from wavepipe.  On success, this API will
 // return a binary transcode. On failure, it will return a JSON error.
 func GetTranscode(httpReq *http.Request, httpRes http.ResponseWriter, r render.Render, params martini.Params) {
-	// Output struct for transcode errors
-	res := ErrorResponse{render: r}
+	// Output struct for errors
+	errRes := ErrorResponse{render: r}
 
 	// Check API version
 	if version, ok := params["version"]; ok {
 		// Check if this API call is supported in the advertised version
 		if !apiVersionSet.Has(version) {
-			res.RenderError(400, "unsupported API version: "+version)
+			errRes.RenderError(400, "unsupported API version: "+version)
 			return
 		}
 	}
@@ -33,14 +33,14 @@ func GetTranscode(httpReq *http.Request, httpRes http.ResponseWriter, r render.R
 	// Check for an ID parameter
 	pID, ok := params["id"]
 	if !ok {
-		res.RenderError(400, "no integer transcode ID provided")
+		errRes.RenderError(400, "no integer transcode ID provided")
 		return
 	}
 
 	// Verify valid integer ID
 	id, err := strconv.Atoi(pID)
 	if err != nil {
-		res.RenderError(400, "invalid integer transcode ID")
+		errRes.RenderError(400, "invalid integer transcode ID")
 		return
 	}
 
@@ -50,13 +50,13 @@ func GetTranscode(httpReq *http.Request, httpRes http.ResponseWriter, r render.R
 	if err := song.Load(); err != nil {
 		// Check for invalid ID
 		if err == sql.ErrNoRows {
-			res.RenderError(404, "song ID not found")
+			errRes.RenderError(404, "song ID not found")
 			return
 		}
 
 		// All other errors
 		log.Println(err)
-		res.ServerError()
+		errRes.ServerError()
 		return
 	}
 
@@ -82,32 +82,32 @@ func GetTranscode(httpReq *http.Request, httpRes http.ResponseWriter, r render.R
 		switch err {
 		// Invalid codec selected
 		case transcode.ErrInvalidCodec:
-			res.RenderError(400, "invalid transcoder codec: "+codec)
+			errRes.RenderError(400, "invalid transcoder codec: "+codec)
 			return
 		// Invalid quality for codec
 		case transcode.ErrInvalidQuality:
-			res.RenderError(400, "invalid quality for codec "+codec+": "+quality)
+			errRes.RenderError(400, "invalid quality for codec "+codec+": "+quality)
 			return
 		// Transcoding subsystem disabled
 		case transcode.ErrTranscodingDisabled:
-			res.RenderError(503, "ffmpeg not found, transcoding disabled")
+			errRes.RenderError(503, "ffmpeg not found, transcoding disabled")
 			return
 		// MP3 transcoding disabled
 		case transcode.ErrMP3Disabled:
-			res.RenderError(503, "ffmpeg codec "+transcode.FFmpegMP3Codec+" not found, MP3 transcoding disabled")
+			errRes.RenderError(503, "ffmpeg codec "+transcode.FFmpegMP3Codec+" not found, MP3 transcoding disabled")
 			return
 		// OGG transcoding disabled
 		case transcode.ErrOGGDisabled:
-			res.RenderError(503, "ffmpeg codec "+transcode.FFmpegOGGCodec+" not found, OGG transcoding disabled")
+			errRes.RenderError(503, "ffmpeg codec "+transcode.FFmpegOGGCodec+" not found, OGG transcoding disabled")
 			return
 		// OPUS transcoding disabled
 		case transcode.ErrOPUSDisabled:
-			res.RenderError(503, "ffmpeg codec "+transcode.FFmpegOPUSCodec+" not found, OPUS transcoding disabled")
+			errRes.RenderError(503, "ffmpeg codec "+transcode.FFmpegOPUSCodec+" not found, OPUS transcoding disabled")
 			return
 		// All other errors
 		default:
 			log.Println(err)
-			res.ServerError()
+			errRes.ServerError()
 			return
 		}
 	}
@@ -116,7 +116,7 @@ func GetTranscode(httpReq *http.Request, httpRes http.ResponseWriter, r render.R
 	transcodeStream, err := transcoder.Start(song)
 	if err != nil {
 		log.Println(err)
-		res.ServerError()
+		errRes.ServerError()
 	}
 
 	// Output the command ffmpeg will use to create the transcode
@@ -142,7 +142,7 @@ func GetTranscode(httpReq *http.Request, httpRes http.ResponseWriter, r render.R
 		// Check for cannot seek error, since transcodes cannot currently take advantage of seeking
 		if err == ErrCannotSeek {
 			// We can send JSON HTTP 416 error, because no data is written on this error
-			res.RenderError(416, "seeking is unavailable on transcoded media")
+			errRes.RenderError(416, "seeking is unavailable on transcoded media")
 			return
 		}
 
