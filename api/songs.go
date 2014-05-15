@@ -8,7 +8,7 @@ import (
 	"github.com/mdlayher/wavepipe/data"
 
 	"github.com/go-martini/martini"
-	"github.com/mdlayher/render"
+	"github.com/martini-contrib/render"
 )
 
 // SongsResponse represents the JSON response for /api/songs

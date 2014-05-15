@@ -3,7 +3,7 @@ package api
 import (
 	"github.com/go-martini/martini"
 	"github.com/mdlayher/goset"
-	"github.com/mdlayher/render"
+	"github.com/martini-contrib/render"
 )
 
 // APIVersion is the current version of the API

@@ -15,7 +15,7 @@ import (
 
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/gzip"
-	"github.com/mdlayher/render"
+	"github.com/martini-contrib/render"
 )
 
 // apiRouter sets up the instance of martini

@@ -12,7 +12,7 @@ import (
 
 	"github.com/go-martini/martini"
 	"github.com/mdlayher/goset"
-	"github.com/mdlayher/render"
+	"github.com/martini-contrib/render"
 	"github.com/shkh/lastfm-go/lastfm"
 )
 

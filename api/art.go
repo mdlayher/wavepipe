@@ -21,7 +21,7 @@ import (
 	"github.com/mdlayher/wavepipe/data"
 
 	"github.com/go-martini/martini"
-	"github.com/mdlayher/render"
+	"github.com/martini-contrib/render"
 	"github.com/nfnt/resize"
 )
 

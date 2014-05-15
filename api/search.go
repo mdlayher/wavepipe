@@ -9,7 +9,7 @@ import (
 
 	"github.com/go-martini/martini"
 	"github.com/mdlayher/goset"
-	"github.com/mdlayher/render"
+	"github.com/martini-contrib/render"
 )
 
 // SearchResponse represents the JSON response for /api/search
