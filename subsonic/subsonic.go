@@ -12,6 +12,8 @@ import (
 
 	"github.com/mdlayher/wavepipe/api"
 	"github.com/mdlayher/wavepipe/data"
+
+	"github.com/martini-contrib/render"
 )
 
 const (
@@ -134,10 +136,7 @@ func GetPing(res http.ResponseWriter) {
 }
 
 // GetAlbumList2 is used in Subsonic to return a list of albums organized with tags
-func GetAlbumList2(req *http.Request, res http.ResponseWriter) {
-	// All Subsonic emulation replies are XML
-	res.Header().Set("Content-Type", "text/xml")
-
+func GetAlbumList2(req *http.Request, res http.ResponseWriter, r render.Render) {
 	// Create a new response container
 	c := newContainer()
 
@@ -164,15 +163,8 @@ func GetAlbumList2(req *http.Request, res http.ResponseWriter) {
 			// Empty albums list
 			c.AlbumList2 = new(AlbumList2Container)
 
-			// Marshal container to XML
-			out, err := xml.Marshal(c)
-			if err != nil {
-				log.Println(err)
-				return
-			}
-
-			// Write response
-			res.Write(out)
+			// Write empty response
+			r.XML(200, c)
 			return
 		}
 	}
@@ -219,22 +211,12 @@ func GetAlbumList2(req *http.Request, res http.ResponseWriter) {
 	// Copy albums list into output
 	c.AlbumList2 = &AlbumList2Container{Albums: outAlbums}
 
-	// Marshal container to XML
-	out, err := xml.Marshal(c)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-
 	// Write response
-	res.Write(out)
+	r.XML(200, c)
 }
 
 // GetAlbum is used in Subsonic to return a single album
-func GetAlbum(req *http.Request, res http.ResponseWriter) {
-	// All Subsonic emulation replies are XML
-	res.Header().Set("Content-Type", "text/xml")
-
+func GetAlbum(req *http.Request, res http.ResponseWriter, r render.Render) {
 	// Fetch ID parameter
 	pID := req.URL.Query().Get("id")
 	if pID == "" {
@@ -325,15 +307,8 @@ func GetAlbum(req *http.Request, res http.ResponseWriter) {
 	outAlbum.Songs = outSongs
 	c.Album = []Album{*outAlbum}
 
-	// Marshal container to XML
-	out, err := xml.Marshal(c)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-
 	// Write response
-	res.Write(out)
+	r.XML(200, c)
 }
 
 // Song represents an emulated Subsonic song
@@ -364,9 +339,6 @@ type Song struct {
 
 // GetStream is used to return the media stream for a single file
 func GetStream(req *http.Request, res http.ResponseWriter) {
-	// All Subsonic emulation replies are XML
-	res.Header().Set("Content-Type", "text/xml")
-
 	// Fetch ID parameter
 	pID := req.URL.Query().Get("id")
 	if pID == "" {
