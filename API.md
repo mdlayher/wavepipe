@@ -34,34 +34,19 @@ Example [Session](http://godoc.org/github.com/mdlayher/wavepipe/data#Session) ou
 		"userId": 1,
 		"client": "testclient",
 		"expire": 1397713157,
-		"publicKey": "abcdef0123456789abcdef0123456789",
-		"secretKey": "0123456789abcdef0123456789abcdef"
+		"key": "abcdef0123456789abcdef0123456789"
 	}
 }
 ```
 
-Upon successful login, a public key and secret key are generated, which are used to perform HMAC-SHA1
-authentication with all other API endpoints.  An API signature must be calculated and included with
-each request, as well as the user's public key.  The pseudocode structure of this signature is as follows:
+Upon successful login, a session key is generated, which is used to authenticate subsequent requests.
+It should be noted that unless the service is secured via HTTPS, this token can be compromised by other
+users on the same network.  For this reason, it is recommended to place wavepipe behind SSL.
+
+This method can be demonstrated with `curl` as follows.
 
 ```
-signature = hmac_sha1("publicKey-nonce-method-resource", secretKey);
-```
-
-Each parameter is described as follows:
-  - signature: the final resulting signature of the HMAC-SHA1 algorithm.
-  - publicKey: the public key retrieved from the Login API request.
-  - nonce: a randomly generated value, used only once. Repeated requests will fail.
-  - method: the HTTP method used to access the resource. Typically `GET`.
-  - resource: the HTTP resource being accessed, such as `/api/v0/albums`.
-  - secretKey: the secret key retrieved from the Login API request. Used to validate the signature server-side.
-
-Once the signature has been generated, it may be sent to the API using either HTTP Basic or via query string.
-Both methods can be demonstrated with `curl` as follows:
-
-```
-$ curl -u publicKey:nonce:signature http://localhost:8080/api/v0/albums
-$ curl http://localhost:8080/api/v0/albums?s=publicKey:nonce:signature
+$ curl http://localhost:8080/api/v0/albums?s=abcdef0123456789abcdef0123456789
 ```
 
 **Table of Contents:**
