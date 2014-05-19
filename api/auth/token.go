@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"net/http"
+	"time"
 
 	"github.com/mdlayher/wavepipe/data"
 )
@@ -39,9 +40,9 @@ func (a TokenAuth) Authenticate(req *http.Request) (*data.User, *data.Session, e
 		return nil, nil, ErrNoToken, nil
 	}
 
-	// Attempt to load session by public key
+	// Attempt to load session by key
 	session := new(data.Session)
-	session.PublicKey = token
+	session.Key = token
 	if err := session.Load(); err != nil {
 		// Check for invalid user
 		if err == sql.ErrNoRows {
@@ -57,6 +58,12 @@ func (a TokenAuth) Authenticate(req *http.Request) (*data.User, *data.Session, e
 	user.ID = session.UserID
 	if err := user.Load(); err != nil {
 		// Server error
+		return nil, nil, nil, err
+	}
+
+	// Update session expiration date by 24 hours
+	session.Expire = time.Now().Add(24 * time.Hour).Unix()
+	if err := session.Update(); err != nil {
 		return nil, nil, nil, err
 	}
 
