@@ -60,7 +60,15 @@ FAQ
 
 __Q: Does wavepipe recognize the `ALBUMARTIST` tag?__
 
-A: Right now, unfortunately, the answer is no.  It does not appear that this tag is supported by
-[TagLib](https://github.com/taglib/taglib), the library and bindings I am currently using to extract
-metadata from media.  I'd like to fix this issue in a later release, but finishing the core functionality
-is my current priority.
+A: Not yet, but it will in the future!  I am currently developing a native Go audio tag parser, inspired by
+[TagLib](https://github.com/taglib/taglib).  The project is called [taggolib](https://github.com/mdlayher/taggolib),
+and I intend to use it with wavepipe to completely remove the need for Cgo and TagLib bindings.  Once taggolib is
+able to parse a wide variety of media formats, the [dev_taggolib](https://github.com/mdlayher/wavepipe/tree/dev_taggolib)
+branch will be merged into master, providing additional functionality and much more tagging flexibility.
+
+__Q: Is wavepipe compatible with existing media servers?__
+
+A: Yes, but it's a work in progress.  In order to help spur wavepipe adoption, I have started building a Subsonic
+emulation layer.  This work can be found in the [dev_subsonic_api](https://github.com/mdlayher/wavepipe/tree/dev_subsonic_api)
+branch, and is currently functional with the [Clementine](https://www.clementine-player.org/) media player's Subsonic
+plugin.  As more of the Subsonic API is emulated, more clients will become compatible with wavepipe.
