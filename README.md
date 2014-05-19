@@ -54,7 +54,6 @@ media folder.  Here is an example of the `~/.config/wavepipe/wavepipe.json` conf
 }
 ```
 
-
 FAQ
 ===
 
