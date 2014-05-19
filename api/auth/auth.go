@@ -1,19 +1,14 @@
 package auth
 
 import (
-	"crypto/hmac"
-	"crypto/sha1"
 	"encoding/base64"
 	"errors"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"strings"
 
 	"github.com/mdlayher/wavepipe/data"
-
-	"github.com/willf/bloom"
 )
 
 var (
@@ -28,20 +23,9 @@ var (
 	ErrNoSignature = errors.New("no signature provided")
 	// ErrNoToken is returned when no API token is provided on all other API calls
 	ErrNoToken = errors.New("no token provided")
-	// ErrInvalidSignature is returned when a mismatched API signature is provided
-	ErrInvalidSignature = errors.New("invalid signature provided")
-	// ErrMalformedSignature is returned when a malformed API signature is provided
-	ErrMalformedSignature = errors.New("malformed signature provided")
-	// ErrRepeatedRequest is returned when an API nonce is re-used
-	ErrRepeatedRequest = errors.New("repeated nonce provided")
 	// ErrSessionExpired is returned when the session is expired
 	ErrSessionExpired = errors.New("session expired")
 )
-
-// NonceFilter is a bloom filter containing all nonce values seen in the past 24 hours.
-// The filter is cleared every 24 hours, because this should be a reasonable enough time to
-// prevent replay attacks.
-var NonceFilter = bloom.New(20000, 5)
 
 // AuthMethod represents a method of authenticating with the API
 type AuthMethod interface {
@@ -82,21 +66,6 @@ func Factory(path string) AuthMethod {
 
 	// All other situations, use the token authenticator
 	return new(TokenAuth)
-}
-
-// apiSignature generates a HMAC-SHA1 signature for use with the API
-func apiSignature(public string, nonce string, method string, resource string, secret string) (string, error) {
-	// Generate API signature string
-	signString := fmt.Sprintf("%s-%s-%s-%s", public, nonce, method, resource)
-
-	// Calculate HMAC-SHA1 signature from string, using API secret
-	mac := hmac.New(sha1.New, []byte(secret))
-	if _, err := mac.Write([]byte(signString)); err != nil {
-		return "", err
-	}
-
-	// Return hex signature
-	return fmt.Sprintf("%x", mac.Sum(nil)), nil
 }
 
 // basicCredentials returns HTTP Basic authentication credentials from a header

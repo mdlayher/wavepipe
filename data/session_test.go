@@ -37,8 +37,7 @@ func TestSessionJSON(t *testing.T) {
 	session := new(Session)
 	session.UserID = 1
 	session.Client = "TestClient"
-	session.PublicKey = "TestPublicKey"
-	session.SecretKey = "TestSecretKey"
+	session.Key = "TestKey"
 
 	// Marshal JSON
 	out, err := session.ToJSON()

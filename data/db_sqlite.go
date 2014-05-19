@@ -694,8 +694,8 @@ func (s *SqliteBackend) DeleteSession(u *Session) error {
 		return tx.Commit()
 	}
 
-	// Else, attempt to remove the session by its public key
-	tx.Exec("DELETE FROM sessions WHERE public_key = ?;", u.PublicKey)
+	// Else, attempt to remove the session by its key
+	tx.Exec("DELETE FROM sessions WHERE key = ?;", u.Key)
 	return tx.Commit()
 }
 
@@ -710,8 +710,8 @@ func (s *SqliteBackend) LoadSession(u *Session) error {
 		return nil
 	}
 
-	// Load via public key
-	if err := s.db.Get(u, "SELECT * FROM sessions WHERE public_key = ?;", u.PublicKey); err != nil {
+	// Load via key
+	if err := s.db.Get(u, "SELECT * FROM sessions WHERE key = ?;", u.Key); err != nil {
 		return err
 	}
 
@@ -721,9 +721,9 @@ func (s *SqliteBackend) LoadSession(u *Session) error {
 // SaveSession attempts to save a Session to the database
 func (s *SqliteBackend) SaveSession(u *Session) error {
 	// Insert new session
-	query := "INSERT INTO sessions (`user_id`, `client`, `expire`, `public_key`, `secret_key`) VALUES (?, ?, ?, ?, ?);"
+	query := "INSERT INTO sessions (`user_id`, `client`, `expire`, `key`) VALUES (?, ?, ?, ?);"
 	tx := s.db.MustBegin()
-	tx.Exec(query, u.UserID, u.Client, u.Expire, u.PublicKey, u.SecretKey)
+	tx.Exec(query, u.UserID, u.Client, u.Expire, u.Key)
 
 	// Commit transaction
 	if err := tx.Commit(); err != nil {
@@ -749,8 +749,8 @@ func (s *SqliteBackend) UpdateSession(u *Session) error {
 		return tx.Commit()
 	}
 
-	// Else, attempt to update the session by its public key
-	tx.Exec("UPDATE sessions SET `expire` = ? WHERE public_key = ?;", u.Expire, u.PublicKey)
+	// Else, attempt to update the session by its key
+	tx.Exec("UPDATE sessions SET `expire` = ? WHERE key = ?;", u.Expire, u.Key)
 	return tx.Commit()
 }
 

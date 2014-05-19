@@ -12,21 +12,21 @@ import (
 
 // Session represents an API session for a specific user on wavepipe
 type Session struct {
-	ID        int    `json:"id"`
-	UserID    int    `db:"user_id" json:"userId"`
-	Client    string `json:"client"`
-	Expire    int64  `json:"expire"`
-	PublicKey string `db:"public_key" json:"publicKey"`
-	SecretKey string `db:"secret_key" json:"secretKey"`
+	ID     int    `json:"id"`
+	UserID int    `db:"user_id" json:"userId"`
+	Client string `json:"client"`
+	Expire int64  `json:"expire"`
+	Key    string `db:"key" json:"key"`
 }
 
 // NewSession generates and saves a new session for the specified user, with the specified
 // client name. This function also randomly generates public and private keys.
 func NewSession(userID int, password string, client string) (*Session, error) {
 	// Generate session
-	session := new(Session)
-	session.UserID = userID
-	session.Client = client
+	session := &Session{
+		UserID: userID,
+		Client: client,
+	}
 
 	// Make session expire in one day, without use
 	session.Expire = time.Now().Add(time.Duration(24 * time.Hour)).Unix()
@@ -38,15 +38,8 @@ func NewSession(userID int, password string, client string) (*Session, error) {
 	}
 	salt1 := saltBuf
 
-	saltBuf = make([]byte, 16)
-	if _, err := rand.Read(saltBuf); err != nil {
-		return nil, err
-	}
-	salt2 := saltBuf
-
-	// Use PBKDF2 to generate a public key and secret key based off the user's password
-	session.PublicKey = fmt.Sprintf("%x", pbkdf2.Key([]byte(password), salt1, 4096, 16, sha1.New))
-	session.SecretKey = fmt.Sprintf("%x", pbkdf2.Key([]byte(password), salt2, 4096, 16, sha1.New))
+	// Use PBKDF2 to generate a session key based off the user's password
+	session.Key = fmt.Sprintf("%x", pbkdf2.Key([]byte(password), salt1, 4096, 16, sha1.New))
 
 	// Save session
 	if err := session.Save(); err != nil {
