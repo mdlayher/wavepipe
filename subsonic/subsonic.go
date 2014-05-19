@@ -36,6 +36,16 @@ var (
 		c.SubError = &Error{Code: 40, Message: "Wrong username or password."}
 		return c
 	}()
+	// ErrGeneric returns a generic error response, such as a server issue
+	ErrGeneric = func() *Container {
+		// Generate new container with failed status
+		c := newContainer()
+		c.Status = "failed"
+
+		// Return error
+		c.SubError = &Error{Code: 0, Message: "An error occurred."}
+		return c
+	}()
 	// ErrMissingParameter returns a missing required parameter response
 	ErrMissingParameter = func() *Container {
 		// Generate new container with failed status
@@ -145,6 +155,7 @@ func GetAlbumList2(req *http.Request, res http.ResponseWriter, r render.Render) 
 	albums, err := data.DB.AllAlbums()
 	if err != nil {
 		log.Println(err)
+		r.XML(200, ErrGeneric)
 		return
 	}
 
@@ -155,6 +166,7 @@ func GetAlbumList2(req *http.Request, res http.ResponseWriter, r render.Render) 
 		offset, err := strconv.Atoi(qOffset)
 		if err != nil {
 			log.Println(err)
+			r.XML(200, ErrGeneric)
 			return
 		}
 
@@ -176,6 +188,7 @@ func GetAlbumList2(req *http.Request, res http.ResponseWriter, r render.Render) 
 		songs, err := data.DB.SongsForAlbum(a.ID)
 		if err != nil {
 			log.Println(err)
+			r.XML(200, ErrGeneric)
 			return
 		}
 
@@ -220,7 +233,7 @@ func GetAlbum(req *http.Request, res http.ResponseWriter, r render.Render) {
 	// Fetch ID parameter
 	pID := req.URL.Query().Get("id")
 	if pID == "" {
-		log.Println("No ID")
+		r.XML(200, ErrMissingParameter)
 		return
 	}
 
@@ -228,6 +241,7 @@ func GetAlbum(req *http.Request, res http.ResponseWriter, r render.Render) {
 	id, err := strconv.Atoi(pID)
 	if err != nil {
 		log.Println(err)
+		r.XML(200, ErrGeneric)
 		return
 	}
 
@@ -235,6 +249,7 @@ func GetAlbum(req *http.Request, res http.ResponseWriter, r render.Render) {
 	album := &data.Album{ID: id}
 	if err := album.Load(); err != nil {
 		log.Println(err)
+		r.XML(200, ErrGeneric)
 		return
 	}
 
@@ -242,6 +257,7 @@ func GetAlbum(req *http.Request, res http.ResponseWriter, r render.Render) {
 	songs, err := data.DB.SongsForAlbum(album.ID)
 	if err != nil {
 		log.Println(err)
+		r.XML(200, ErrGeneric)
 		return
 	}
 
@@ -338,11 +354,11 @@ type Song struct {
 }
 
 // GetStream is used to return the media stream for a single file
-func GetStream(req *http.Request, res http.ResponseWriter) {
+func GetStream(req *http.Request, res http.ResponseWriter, r render.Render) {
 	// Fetch ID parameter
 	pID := req.URL.Query().Get("id")
 	if pID == "" {
-		log.Println("No ID")
+		r.XML(200, ErrMissingParameter)
 		return
 	}
 
@@ -350,6 +366,7 @@ func GetStream(req *http.Request, res http.ResponseWriter) {
 	id, err := strconv.Atoi(pID)
 	if err != nil {
 		log.Println(err)
+		r.XML(200, ErrGeneric)
 		return
 	}
 
@@ -357,6 +374,7 @@ func GetStream(req *http.Request, res http.ResponseWriter) {
 	song := &data.Song{ID: id}
 	if err := song.Load(); err != nil {
 		log.Println(err)
+		r.XML(200, ErrGeneric)
 		return
 	}
 
@@ -364,6 +382,7 @@ func GetStream(req *http.Request, res http.ResponseWriter) {
 	stream, err := song.Stream()
 	if err != nil {
 		log.Println(err)
+		r.XML(200, ErrGeneric)
 		return
 	}
 
