@@ -1,7 +1,5 @@
 <?php
 
-require_once __DIR__ . "/wavepipe.php";
-
 // Check for host argument
 if (empty($argv[1])) {
 	printf("No host provided");
@@ -16,9 +14,8 @@ if (empty($login)) {
 	exit(1);
 }
 
-// Store necessary login information
-$publicKey = $login["session"]["publicKey"];
-$secretKey = $login["session"]["secretKey"];
+// Store necessary session key
+$key = $login["session"]["key"];
 
 // Iterate and test all JSON APIs
 $apiCalls = array(
@@ -31,19 +28,13 @@ $apiCalls = array(
 	"/api/v0/search/song",
 	"/api/v0/songs",
 	"/api/v0/songs/1",
+	"/api/v0/status",
 	"/api/v0/logout",
 );
 
 foreach ($apiCalls as $a) {
-	// Create a nonce
-	$nonce = generateNonce();
-
-	// Create the necessary API signature
-	//$signature = apiSignature($publicKey, $nonce, "GET", $a, $secretKey);
-
 	// Generate URL
-	//$url = sprintf("http://%s%s?s=%s:%s:%s", $host, $a, $publicKey, $nonce, $signature);
-	$url = sprintf("http://%s%s?s=%s", $host, $a, $publicKey);
+	$url = sprintf("http://%s%s?s=%s", $host, $a, $key);
 
 	printf("%s:\n", $a);
 
