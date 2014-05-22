@@ -1,7 +1,9 @@
 package auth
 
 import (
+	"database/sql"
 	"net/http"
+	"time"
 
 	"github.com/mdlayher/wavepipe/data"
 	"github.com/mdlayher/wavepipe/subsonic"
@@ -30,8 +32,37 @@ func (a SubsonicAuth) Authenticate(req *http.Request) (*data.User, *data.Session
 		return nil, nil, subsonic.ErrMissingParameter, nil
 	}
 
-	// TODO: add authentication logic here
+	// TODO: reevaluate this strategy in the future, but for now, we will use a user's wavepipe session
+	// TODO: key as their Subsonic password.  This will mean that the username and session key are passed on
+	// TODO: every request, but also means that no more database schema must be added for Subsonic authentication.
 
-	// No errors, return no user or session
+	// Attempt to load session by key passed via Subsonic password parameter
+	session := new(data.Session)
+	session.Key = password
+	if err := session.Load(); err != nil {
+		// Check for invalid user
+		if err == sql.ErrNoRows {
+			return nil, nil, subsonic.ErrBadCredentials, nil
+		}
+
+		// Server error
+		return nil, nil, nil, err
+	}
+
+	// Attempt to load associated user by username from Subsonic username parameter
+	user := new(data.User)
+	user.Username = username
+	if err := user.Load(); err != nil {
+		// Server error
+		return nil, nil, nil, err
+	}
+
+	// Update session expiration date by 1 week
+	session.Expire = time.Now().Add(7 * 24 * time.Hour).Unix()
+	if err := session.Update(); err != nil {
+		return nil, nil, nil, err
+	}
+
+	// No errors, return no user or session because the emulated Subsonic API is read-only
 	return nil, nil, nil, nil
 }
