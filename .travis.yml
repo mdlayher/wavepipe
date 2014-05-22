@@ -5,7 +5,7 @@ go:
 before_install:
   - sudo apt-get update
 install:
-  - sudo apt-get install libtagc0-dev php5-cli php5-json
+  - sudo apt-get install ffmpeg libtagc0-dev php5-cli php5-json
 before_script:
   - go get ./...
 script:
