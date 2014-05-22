@@ -28,8 +28,8 @@ func NewSession(userID int, password string, client string) (*Session, error) {
 		Client: client,
 	}
 
-	// Make session expire in one day, without use
-	session.Expire = time.Now().Add(time.Duration(24 * time.Hour)).Unix()
+	// Make session expire in one week, without use
+	session.Expire = time.Now().Add(time.Duration(7 * 24 * time.Hour)).Unix()
 
 	// Generate salts for use with PBKDF2
 	saltBuf := make([]byte, 16)
