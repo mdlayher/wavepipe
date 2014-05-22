@@ -61,8 +61,8 @@ func (a TokenAuth) Authenticate(req *http.Request) (*data.User, *data.Session, e
 		return nil, nil, nil, err
 	}
 
-	// Update session expiration date by 24 hours
-	session.Expire = time.Now().Add(24 * time.Hour).Unix()
+	// Update session expiration date by 1 week
+	session.Expire = time.Now().Add(7 * 24 * time.Hour).Unix()
 	if err := session.Update(); err != nil {
 		return nil, nil, nil, err
 	}

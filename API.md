@@ -49,6 +49,9 @@ This method can be demonstrated with `curl` as follows.
 $ curl http://localhost:8080/api/v0/albums?s=abcdef0123456789abcdef0123456789
 ```
 
+Sessions which are not used for one week will expire.  Each subsequent API request with a specified session will
+update the expiration time to one week in the future.
+
 **Table of Contents:**
 
 | Name | Versions | Description |
