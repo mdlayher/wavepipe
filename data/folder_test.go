@@ -36,17 +36,3 @@ func TestFolderDatabase(t *testing.T) {
 		t.Fatalf("Could not delete folder: %s", err.Error())
 	}
 }
-
-// TestFolderJSON verifies that an Folder can be encoded and decoded from JSON
-func TestFolderJSON(t *testing.T) {
-	// Marshal JSON
-	out, err := folder.ToJSON()
-	if err != nil {
-		t.Fatalf("Could not encode JSON: %s", err.Error())
-	}
-
-	// Unmarshal
-	if err := folder.FromJSON(out); err != nil {
-		t.Fatalf("Could not decode JSON: %s", err.Error())
-	}
-}

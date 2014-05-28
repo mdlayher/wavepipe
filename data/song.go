@@ -1,7 +1,6 @@
 package data
 
 import (
-	"encoding/json"
 	"errors"
 	"io"
 	"os"
@@ -140,21 +139,4 @@ func (s *Song) Update() error {
 func (s Song) Stream() (io.ReadSeeker, error) {
 	// Attempt to open the file associated with this song
 	return os.Open(s.FileName)
-}
-
-// ToJSON generates a JSON representation of a Song
-func (s Song) ToJSON() ([]byte, error) {
-	// Marshal into JSON
-	out, err := json.Marshal(s)
-	if err != nil {
-		return nil, err
-	}
-
-	// Return JSON
-	return out, nil
-}
-
-// FromJSON generates a Song from its JSON representation
-func (s *Song) FromJSON(in []byte) error {
-	return json.Unmarshal(in, &s)
 }

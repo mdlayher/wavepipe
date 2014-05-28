@@ -34,17 +34,3 @@ func TestArtistDatabase(t *testing.T) {
 		t.Fatalf("Could not delete artist: %s", err.Error())
 	}
 }
-
-// TestArtistJSON verifies that an Artist can be encoded and decoded from JSON
-func TestArtistJSON(t *testing.T) {
-	// Marshal JSON
-	out, err := artist.ToJSON()
-	if err != nil {
-		t.Fatalf("Could not encode JSON: %s", err.Error())
-	}
-
-	// Unmarshal
-	if err := artist.FromJSON(out); err != nil {
-		t.Fatalf("Could not decode JSON: %s", err.Error())
-	}
-}

@@ -1,8 +1,6 @@
 package data
 
 import (
-	"encoding/json"
-
 	"code.google.com/p/go.crypto/bcrypt"
 )
 
@@ -58,21 +56,4 @@ func (u *User) Save() error {
 // Update updates an existing User in the database
 func (u *User) Update() error {
 	return DB.UpdateUser(u)
-}
-
-// ToJSON generates a JSON representation of a User
-func (u User) ToJSON() ([]byte, error) {
-	// Marshal into JSON
-	out, err := json.Marshal(u)
-	if err != nil {
-		return nil, err
-	}
-
-	// Return JSON
-	return out, nil
-}
-
-// FromJSON generates a User from its JSON representation
-func (u *User) FromJSON(in []byte) error {
-	return json.Unmarshal(in, &u)
 }
