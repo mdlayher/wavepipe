@@ -3,7 +3,6 @@ package data
 import (
 	"crypto/rand"
 	"crypto/sha1"
-	"encoding/json"
 	"fmt"
 	"time"
 
@@ -67,21 +66,4 @@ func (u *Session) Save() error {
 // Update updates an existing Session in the database
 func (u *Session) Update() error {
 	return DB.UpdateSession(u)
-}
-
-// ToJSON generates a JSON representation of a Session
-func (u Session) ToJSON() ([]byte, error) {
-	// Marshal into JSON
-	out, err := json.Marshal(u)
-	if err != nil {
-		return nil, err
-	}
-
-	// Return JSON
-	return out, nil
-}
-
-// FromJSON generates a Session from its JSON representation
-func (u *Session) FromJSON(in []byte) error {
-	return json.Unmarshal(in, &u)
 }

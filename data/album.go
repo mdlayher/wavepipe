@@ -1,9 +1,5 @@
 package data
 
-import (
-	"encoding/json"
-)
-
 // Album represents an album known to wavepipe, and contains information
 // extracted from song tags
 type Album struct {
@@ -37,21 +33,4 @@ func (a *Album) Load() error {
 // Save creates a new Album in the database
 func (a *Album) Save() error {
 	return DB.SaveAlbum(a)
-}
-
-// ToJSON generates a JSON representation of an Album
-func (a Album) ToJSON() ([]byte, error) {
-	// Marshal into JSON
-	out, err := json.Marshal(a)
-	if err != nil {
-		return nil, err
-	}
-
-	// Return JSON
-	return out, nil
-}
-
-// FromJSON generates an Album from its JSON representation
-func (a *Album) FromJSON(in []byte) error {
-	return json.Unmarshal(in, &a)
 }

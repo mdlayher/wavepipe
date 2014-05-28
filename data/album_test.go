@@ -37,17 +37,3 @@ func TestAlbumDatabase(t *testing.T) {
 		t.Fatalf("Could not delete album: %s", err.Error())
 	}
 }
-
-// TestAlbumJSON verifies that an Album can be encoded and decoded from JSON
-func TestAlbumJSON(t *testing.T) {
-	// Marshal JSON
-	out, err := album.ToJSON()
-	if err != nil {
-		t.Fatalf("Could not encode JSON: %s", err.Error())
-	}
-
-	// Unmarshal
-	if err := album.FromJSON(out); err != nil {
-		t.Fatalf("Could not decode JSON: %s", err.Error())
-	}
-}

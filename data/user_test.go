@@ -36,22 +36,3 @@ func TestUserDatabase(t *testing.T) {
 		t.Fatalf("Could not delete user: %s", err.Error())
 	}
 }
-
-// TestUserJSON verifies that an User can be encoded and decoded from JSON
-func TestUserJSON(t *testing.T) {
-	// Mock user
-	user := new(User)
-	user.Username = "TestUser"
-	user.Password = "TestPassword"
-
-	// Marshal JSON
-	out, err := user.ToJSON()
-	if err != nil {
-		t.Fatalf("Could not encode JSON: %s", err.Error())
-	}
-
-	// Unmarshal
-	if err := user.FromJSON(out); err != nil {
-		t.Fatalf("Could not decode JSON: %s", err.Error())
-	}
-}
