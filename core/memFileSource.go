@@ -84,6 +84,18 @@ func (memFileSource) MediaScan(mediaFolder string, verbose bool, walkCancelChan 
 				}
 			}
 
+			// Generate an art model
+			art := new(data.Art)
+			art.FileName = "/mem/test.jpg"
+
+			// Attempt to load art
+			if err := art.Load(); err == sql.ErrNoRows {
+				// Save new art
+				if err := art.Save(); err != nil {
+					log.Println(err)
+				}
+			}
+
 			// Generate an artist model from this song's metadata
 			artist := data.ArtistFromSong(&song)
 
