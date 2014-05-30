@@ -228,6 +228,8 @@ to commit the play to Last.fm.
 | Code | Message | Description |
 | :--: | :-----: | :---------: |
 | 400 | unsupported API version: vX | Attempted access to an invalid version of this API, or to a version before this API existed. |
+| 400 | no string action provided | No action was specified in the URL.  An action **must** be specified to use Last.fm functionality. |
+| 400 | invalid string action provided | An unknown action was specified in the URL.  Valid actions are `login`, `nowplaying`, and `scrobble`. |
 | 400 | login: no username provided | No Last.fm username was passed via `lfmu` in query string. Only returned on `login` action. |
 | 400 | login: no password provided | No Last.fm password was passed via `lfmp` in query string. Only returned on `login` action. |
 | 400 | no integer song ID provided | No integer ID was sent in request. Only returned on `nowplaying` and `scrobble` actions. |
