@@ -2,7 +2,9 @@ package auth
 
 import (
 	"database/sql"
+	"encoding/hex"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/mdlayher/wavepipe/data"
@@ -35,6 +37,17 @@ func (a SubsonicAuth) Authenticate(req *http.Request) (*data.User, *data.Session
 	// TODO: reevaluate this strategy in the future, but for now, we will use a user's wavepipe session
 	// TODO: key as their Subsonic password.  This will mean that the username and session key are passed on
 	// TODO: every request, but also means that no more database schema must be added for Subsonic authentication.
+
+	// Check for "enc:" prefix, specifying a hex-encoded password
+	if strings.HasPrefix(password, "enc:") {
+		// Decode hex string
+		out, err := hex.DecodeString(password[4:])
+		if err != nil {
+			return nil, nil, nil, err
+		}
+
+		password = string(out)
+	}
 
 	// Attempt to load session by key passed via Subsonic password parameter
 	session := new(data.Session)
