@@ -5,13 +5,10 @@ go:
 before_install:
   - sudo apt-get update
 install:
-  - sudo apt-get install ffmpeg libtagc0-dev php5-cli php5-json
+  - sudo apt-get install ffmpeg libtagc0-dev
 before_script:
   - go get ./...
 script:
   - make
   - ./bin/wavepipe -test &
-  - sleep 5
-  - php ./res/wavepipe_test.php localhost:8080
-  - sleep 30
   - make test
