@@ -1,7 +1,6 @@
 package subsonic
 
 import (
-	"bytes"
 	"encoding/xml"
 	"fmt"
 	"log"
@@ -131,18 +130,8 @@ func newContainer() *Container {
 }
 
 // GetPing is used in Subsonic to check server connectivity
-func GetPing(res http.ResponseWriter) {
-	// All Subsonic emulation replies are XML
-	res.Header().Set("Content-Type", "text/xml")
-
-	// Marshal empty container to XML
-	out, err := xml.Marshal(newContainer())
-	if err != nil {
-		return
-	}
-
-	// Remove closing tag, replace with self-closing tag (needed by Android client)
-	res.Write(bytes.Replace(out, []byte("></"+XMLName+">"), []byte("/>"), -1))
+func GetPing(res http.ResponseWriter, r render.Render) {
+	r.XML(200, newContainer())
 }
 
 // GetAlbumList2 is used in Subsonic to return a list of albums organized with tags
