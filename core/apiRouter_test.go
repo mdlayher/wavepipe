@@ -163,7 +163,7 @@ func TestAPIRouter(t *testing.T) {
 	// Iterate all tests
 	for _, test := range tests {
 		// Generate a new HTTP request
-		r, err := http.NewRequest("GET", "http://localhost:8080" + test.url, nil)
+		r, err := http.NewRequest("GET", "http://localhost:8080"+test.url, nil)
 		if err != nil {
 			t.Fatalf("Failed to create HTTP request")
 		}
