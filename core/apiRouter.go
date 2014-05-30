@@ -130,56 +130,7 @@ func apiRouter(apiKillChan chan struct{}) {
 	r.Get("/api", api.APIInfo)
 
 	// Set up API group routes, with API version parameter
-	r.Group("/api/:version", func(r martini.Router) {
-		// Root API, containing information and help
-		r.Get("", api.APIInfo)
-
-		// Albums API
-		r.Get("/albums", api.GetAlbums)
-		r.Get("/albums/:id", api.GetAlbums)
-
-		// Art API
-		r.Get("/art", api.GetArt)
-		r.Get("/art/:id", api.GetArt)
-
-		// Artists API
-		r.Get("/artists", api.GetArtists)
-		r.Get("/artists/:id", api.GetArtists)
-
-		// Folders API
-		r.Get("/folders", api.GetFolders)
-		r.Get("/folders/:id", api.GetFolders)
-
-		// LastFM API
-		r.Get("/lastfm", api.GetLastFM)
-		r.Get("/lastfm/:action", api.GetLastFM)
-		r.Get("/lastfm/:action/:id", api.GetLastFM)
-
-		// Login API
-		r.Get("/login", api.GetLogin)
-
-		// Logout API
-		r.Get("/logout", api.GetLogout)
-
-		// Search API
-		r.Get("/search", api.GetSearch)
-		r.Get("/search/:query", api.GetSearch)
-
-		// Songs API
-		r.Get("/songs", api.GetSongs)
-		r.Get("/songs/:id", api.GetSongs)
-
-		// Status API
-		r.Get("/status", api.GetStatus)
-
-		// Stream API
-		r.Get("/stream", api.GetStream)
-		r.Get("/stream/:id", api.GetStream)
-
-		// Transcode API
-		r.Get("/transcode", api.GetTranscode)
-		r.Get("/transcode/:id", api.GetTranscode)
-	})
+	r.Group("/api/:version", apiRoutes)
 
 	// Set up emulated Subsonic API routes
 	r.Group("/subsonic/rest", func(r martini.Router) {
@@ -242,4 +193,56 @@ func apiRouter(apiKillChan chan struct{}) {
 			return
 		}
 	}
+}
+
+// apiRoutes sets up the API routes required by wavepipe
+func apiRoutes(r martini.Router) {
+	// Root API, containing information and help
+	r.Get("", api.APIInfo)
+
+	// Albums API
+	r.Get("/albums", api.GetAlbums)
+	r.Get("/albums/:id", api.GetAlbums)
+
+	// Art API
+	r.Get("/art", api.GetArt)
+	r.Get("/art/:id", api.GetArt)
+
+	// Artists API
+	r.Get("/artists", api.GetArtists)
+	r.Get("/artists/:id", api.GetArtists)
+
+	// Folders API
+	r.Get("/folders", api.GetFolders)
+	r.Get("/folders/:id", api.GetFolders)
+
+	// LastFM API
+	r.Get("/lastfm", api.GetLastFM)
+	r.Get("/lastfm/:action", api.GetLastFM)
+	r.Get("/lastfm/:action/:id", api.GetLastFM)
+
+	// Login API
+	r.Get("/login", api.GetLogin)
+
+	// Logout API
+	r.Get("/logout", api.GetLogout)
+
+	// Search API
+	r.Get("/search", api.GetSearch)
+	r.Get("/search/:query", api.GetSearch)
+
+	// Songs API
+	r.Get("/songs", api.GetSongs)
+	r.Get("/songs/:id", api.GetSongs)
+
+	// Status API
+	r.Get("/status", api.GetStatus)
+
+	// Stream API
+	r.Get("/stream", api.GetStream)
+	r.Get("/stream/:id", api.GetStream)
+
+	// Transcode API
+	r.Get("/transcode", api.GetTranscode)
+	r.Get("/transcode/:id", api.GetTranscode)
 }
