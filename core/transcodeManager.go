@@ -1,7 +1,6 @@
 package core
 
 import (
-	"io/ioutil"
 	"log"
 	"os/exec"
 	"strings"
@@ -48,17 +47,8 @@ func ffmpegSetup() {
 	transcode.FFmpegPath = path
 
 	// Check for codecs which wavepipe uses that ffmpeg is able to use
-	ffmpeg := exec.Command(path, "-loglevel", "quiet", "-codecs")
-	stdout, err := ffmpeg.StdoutPipe()
-
-	// Start ffmpeg to retrieve its codecs, wait for it to finish
-	err2 := ffmpeg.Start()
-	codecs, err3 := ioutil.ReadAll(stdout)
-	defer stdout.Close()
-	err4 := ffmpeg.Wait()
-
-	// Check errors
-	if err != nil || err2 != nil || err3 != nil || err4 != nil {
+	codecs, err := exec.Command(path, "-loglevel", "quiet", "-codecs").Output()
+	if err != nil {
 		log.Println("transcode: could not detect ffmpeg codecs, transcoding will be disabled")
 		return
 	}
