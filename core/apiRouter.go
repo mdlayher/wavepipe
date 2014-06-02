@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/http/pprof"
 	"os"
 	"runtime"
 	"strconv"
@@ -194,6 +195,21 @@ func apiRouter(apiKillChan chan struct{}) {
 		// Stream - used to return a binary file stream
 		r.Get("/stream.view", subsonic.GetStream)
 	})
+
+	// On debug mode, enable pprof debug endpoints
+	// Thanks: https://github.com/go-martini/martini/issues/228
+	if os.Getenv("WAVEPIPE_DEBUG") == "1" {
+		r.Group("/debug/pprof", func(r martini.Router) {
+			r.Any("/", pprof.Index)
+			r.Any("/cmdline", pprof.Cmdline)
+			r.Any("/profile", pprof.Profile)
+			r.Any("/symbol", pprof.Symbol)
+			r.Any("/block", pprof.Handler("block").ServeHTTP)
+			r.Any("/heap", pprof.Handler("heap").ServeHTTP)
+			r.Any("/goroutine", pprof.Handler("goroutine").ServeHTTP)
+			r.Any("/threadcreate", pprof.Handler("threadcreate").ServeHTTP)
+		})
+	}
 
 	// Add router action, start server
 	m.Action(r.Handle)
