@@ -47,12 +47,6 @@ func Factory(path string) AuthMethod {
 		return nil
 	}
 
-	// Check for request to emulated Subsonic API, which is authenticated elsewhere
-	// due to many differences from the wavepipe API
-	if strings.HasPrefix(path, "/subsonic") {
-		return nil
-	}
-
 	// Check for a login request: /api/vX/login, use bcrypt authenticator
 	if strings.HasPrefix(path, "/api/v") && strings.HasSuffix(path, "/login") {
 		return new(BcryptAuth)
