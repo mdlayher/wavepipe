@@ -135,9 +135,7 @@ func HTTPStream(song *data.Song, mimeType string, contentLength int64, inputStre
 	}()
 
 	// Stop progress on return
-	defer func() {
-		close(stopProgressChan)
-	}()
+	defer close(stopProgressChan)
 
 	// Buffer to store and transfer file bytes
 	buf := make([]byte, 8192)
