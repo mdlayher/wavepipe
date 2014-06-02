@@ -181,7 +181,6 @@ func (fsFileSource) MediaScan(mediaFolder string, verbose bool, walkCancelChan c
 			log.Println(err)
 			return fmt.Errorf("%s: %s", currPath, err.Error())
 		}
-		defer file.Close()
 
 		// Generate a song model from the TagLib file
 		song, err := data.SongFromFile(file)
@@ -189,6 +188,9 @@ func (fsFileSource) MediaScan(mediaFolder string, verbose bool, walkCancelChan c
 			log.Println(err)
 			return err
 		}
+
+		// Close file handle; no longer needed
+		file.Close()
 
 		// Populate filesystem-related struct fields using OS info
 		song.FileName = currPath
