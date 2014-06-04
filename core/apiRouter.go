@@ -8,6 +8,7 @@ import (
 	"os"
 	"runtime"
 	"strconv"
+	"strings"
 
 	"github.com/mdlayher/wavepipe/api"
 	"github.com/mdlayher/wavepipe/api/auth"
@@ -147,6 +148,11 @@ func apiRouter(apiKillChan chan struct{}) {
 		// Start server
 		log.Println("api: listening on port", conf.Port)
 		if err := http.ListenAndServe(":"+strconv.Itoa(conf.Port), m); err != nil {
+			// Check if address in use
+			if strings.Contains(err.Error(), "address already in use") {
+				log.Fatalf("api: cannot bind to :%d, is wavepipe already running?", conf.Port)
+			}
+
 			log.Println(err)
 		}
 	}()
