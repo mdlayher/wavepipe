@@ -1,12 +1,9 @@
 # Name of the output binary
 WP=wavepipe
-# Full go import path of the project
-WPPATH=github.com/mdlayher/${WP}
 
-# Build the binary for the current platform, and add the web UI
+# Build the binary for the current platform
 make:
 	go build -o bin/${WP}
-	cp -Ra web bin/
 
 # Remove the bin folder
 clean:

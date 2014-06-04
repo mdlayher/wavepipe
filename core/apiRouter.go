@@ -8,6 +8,7 @@ import (
 	"os"
 	"runtime"
 	"strconv"
+	"strings"
 
 	"github.com/mdlayher/wavepipe/api"
 	"github.com/mdlayher/wavepipe/api/auth"
@@ -56,14 +57,6 @@ func apiRouter(apiKillChan chan struct{}) {
 			return
 		}
 	})
-
-	// Serve static content from web directory
-	m.Use(martini.Static("web", martini.StaticOptions{
-		// Use the index in the web directory
-		IndexFile: "index.html",
-		// Skip logging output
-		SkipLogging: true,
-	}))
 
 	// Authenticate all API calls
 	m.Use(func(req *http.Request, res http.ResponseWriter, c martini.Context, r render.Render) {
@@ -175,6 +168,11 @@ func apiRouter(apiKillChan chan struct{}) {
 		// Start server
 		log.Println("api: listening on port", conf.Port)
 		if err := http.ListenAndServe(":"+strconv.Itoa(conf.Port), m); err != nil {
+			// Check if address in use
+			if strings.Contains(err.Error(), "address already in use") {
+				log.Fatalf("api: cannot bind to :%d, is wavepipe already running?", conf.Port)
+			}
+
 			log.Println(err)
 		}
 	}()
