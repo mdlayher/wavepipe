@@ -57,14 +57,6 @@ func apiRouter(apiKillChan chan struct{}) {
 		}
 	})
 
-	// Serve static content from web directory
-	m.Use(martini.Static("web", martini.StaticOptions{
-		// Use the index in the web directory
-		IndexFile: "index.html",
-		// Skip logging output
-		SkipLogging: true,
-	}))
-
 	// Authenticate all API calls
 	m.Use(func(req *http.Request, res http.ResponseWriter, c martini.Context, r render.Render) {
 		// Use factory to determine the proper authentication method for this path
