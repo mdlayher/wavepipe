@@ -200,6 +200,12 @@ func (s *SqliteBackend) AllArtists() ([]Artist, error) {
 	return s.artistQuery("SELECT * FROM artists;")
 }
 
+// LimitArtists loads a slice of Artist structs from the database using SQL limit, where the first parameter
+// specifies an offset and the second specifies an item count
+func (s *SqliteBackend) LimitArtists(offset int, count int) ([]Artist, error) {
+	return s.artistQuery("SELECT * FROM artists LIMIT ?, ?;", offset, count)
+}
+
 // SearchArtists loads a slice of all Artist structs from the database which contain
 // titles that match the specified search query
 func (s *SqliteBackend) SearchArtists(query string) ([]Artist, error) {

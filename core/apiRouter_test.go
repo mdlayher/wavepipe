@@ -81,6 +81,10 @@ func TestAPIRouter(t *testing.T) {
 		{400, "/api/v999/artists"},
 		//   - invalid integer artist ID
 		{400, "/api/v0/artists/foo"},
+		//   - missing second integer for limit
+		{400, "/api/v0/artists?limit=0"},
+		//   - invalid integer pair for limit
+		{400, "/api/v0/artists?limit=foo,bar"},
 		//   - artist ID not found
 		{404, "/api/v0/artists/99999999"},
 

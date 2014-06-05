@@ -17,6 +17,7 @@ type dbBackend interface {
 	SaveArt(*Art) error
 
 	AllArtists() ([]Artist, error)
+	LimitArtists(int, int) ([]Artist, error)
 	SearchArtists(string) ([]Artist, error)
 	PurgeOrphanArtists() (int, error)
 	DeleteArtist(*Artist) error
