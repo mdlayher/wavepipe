@@ -139,35 +139,42 @@ func GetAlbumList2(req *http.Request, res http.ResponseWriter, r render.Render) 
 	// Create a new response container
 	c := newContainer()
 
-	// Fetch all albums
-	// TODO: add a LimitAlbums method to fetch subsets
-	albums, err := data.DB.AllAlbums()
-	if err != nil {
-		log.Println(err)
-		r.XML(200, ErrGeneric)
-		return
-	}
-
-	// If offset is past albums count, stop sending albums
-	qOffset := req.URL.Query().Get("offset")
-	if qOffset != "" {
-		// Parse offset
-		offset, err := strconv.Atoi(qOffset)
+	// Attempt to parse offset if applicable
+	var offset int
+	if qOffset := req.URL.Query().Get("offset"); qOffset != "" {
+		// Parse integer
+		tempOffset, err := strconv.Atoi(qOffset)
 		if err != nil {
 			log.Println(err)
 			r.XML(200, ErrGeneric)
 			return
 		}
 
-		// Check if offset is greater than count
-		if offset > len(albums) {
-			// Empty albums list
-			c.AlbumList2 = new(AlbumList2Container)
+		// Store for use
+		offset = tempOffset
+	}
 
-			// Write empty response
-			r.XML(200, c)
+	// Attempt to parse size if applicable
+	var size int = 10
+	if qSize := req.URL.Query().Get("size"); qSize != "" {
+		// Parse integer
+		tempSize, err := strconv.Atoi(qSize)
+		if err != nil {
+			log.Println(err)
+			r.XML(200, ErrGeneric)
 			return
 		}
+
+		// Store for use
+		size = tempSize
+	}
+
+	// Fetch slice of albums to convert to Subsonic form
+	albums, err := data.DB.LimitAlbums(offset, size)
+	if err != nil {
+		log.Println(err)
+		r.XML(200, ErrGeneric)
+		return
 	}
 
 	// Iterate all albums
