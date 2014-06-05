@@ -155,7 +155,7 @@ func GetAlbumList2(req *http.Request, res http.ResponseWriter, r render.Render) 
 	}
 
 	// Attempt to parse size if applicable
-	var size int = 10
+	var size = 10
 	if qSize := req.URL.Query().Get("size"); qSize != "" {
 		// Parse integer
 		tempSize, err := strconv.Atoi(qSize)
