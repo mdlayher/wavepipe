@@ -77,7 +77,13 @@ retrieved about a single album.
 
 **URL:** `/api/v0/albums/:id`
 
-**Examples:** `http://localhost:8080/api/v0/albums/`, `http://localhost:8080/api/v0/albums/1`
+**Examples:** `http://localhost:8080/api/v0/albums/`, `http://localhost:8080/api/v0/albums/1`, `http://localhost:8080/api/v0/albums?limit=0,100`
+
+**Parameters:**
+
+| Name | Versions | Type | Required | Description |
+| :--: | :------: | :--: | :------: | :---------: |
+| limit | v0 | string "integer,integer" | | Comma-separated integer pair which limits the number of returned results.  First integer is the offset, second integer is the item count. |
 
 **Return JSON:**
 
@@ -92,6 +98,7 @@ retrieved about a single album.
 | Code | Message | Description |
 | :--: | :-----: | :---------: |
 | 400 | unsupported API version: vX | Attempted access to an invalid version of this API, or to a version before this API existed. |
+| 400 | invalid comma-separated integer pair for limit | A valid integer pair could not be parsed from the limit parameter. Input must be in the form "x,y". |
 | 400 | invalid integer album ID | A valid integer could not be parsed from the ID. |
 | 404 | album ID not found | An album with the specified ID does not exist. |
 | 500 | server error | An internal error occurred. wavepipe will log these errors to its console log. |

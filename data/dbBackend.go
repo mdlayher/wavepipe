@@ -24,6 +24,7 @@ type dbBackend interface {
 	SaveArtist(*Artist) error
 
 	AllAlbums() ([]Album, error)
+	LimitAlbums(int, int) ([]Album, error)
 	AlbumsForArtist(int) ([]Album, error)
 	SearchAlbums(string) ([]Album, error)
 	PurgeOrphanAlbums() (int, error)
