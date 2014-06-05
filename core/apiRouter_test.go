@@ -49,10 +49,16 @@ func TestAPIRouter(t *testing.T) {
 		{200, "/api/v0/albums"},
 		//   - valid request for 1 item
 		{200, "/api/v0/albums/1"},
+		//   - valid limit items request
+		{200, "/api/v0/albums?limit=0,10"},
 		//   - invalid API version
 		{400, "/api/v999/albums"},
 		//   - invalid integer album ID
 		{400, "/api/v0/albums/foo"},
+		//   - missing second integer for limit
+		{400, "/api/v0/albums?limit=0"},
+		//   - invalid integer pair for limit
+		{400, "/api/v0/albums?limit=foo,bar"},
 		//   - album ID not found
 		{404, "/api/v0/albums/99999999"},
 

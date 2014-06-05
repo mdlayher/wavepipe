@@ -303,6 +303,13 @@ func (s *SqliteBackend) AllAlbums() ([]Album, error) {
 		"JOIN artists ON albums.artist_id = artists.id;")
 }
 
+// LimitAlbums loads a slice of Album structs from the database using SQL limit, where the first parameter
+// specifies an offset and the second specifies an item count
+func (s *SqliteBackend) LimitAlbums(offset int, count int) ([]Album, error) {
+	return s.albumQuery("SELECT albums.*,artists.title AS artist FROM albums "+
+		"JOIN artists ON albums.artist_id = artists.id LIMIT ?, ?;", offset, count)
+}
+
 // AlbumsForArtist loads a slice of all Album structs with matching artist ID
 func (s *SqliteBackend) AlbumsForArtist(ID int) ([]Album, error) {
 	return s.albumQuery("SELECT albums.*,artists.title AS artist FROM albums "+
