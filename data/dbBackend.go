@@ -17,6 +17,7 @@ type dbBackend interface {
 	SaveArt(*Art) error
 
 	AllArtists() ([]Artist, error)
+	LimitArtists(int, int) ([]Artist, error)
 	SearchArtists(string) ([]Artist, error)
 	PurgeOrphanArtists() (int, error)
 	DeleteArtist(*Artist) error
@@ -33,6 +34,7 @@ type dbBackend interface {
 	SaveAlbum(*Album) error
 
 	AllFolders() ([]Folder, error)
+	LimitFolders(int, int) ([]Folder, error)
 	Subfolders(int) ([]Folder, error)
 	FoldersInPath(string) ([]Folder, error)
 	FoldersNotInPath(string) ([]Folder, error)
@@ -42,6 +44,7 @@ type dbBackend interface {
 	SaveFolder(*Folder) error
 
 	AllSongs() ([]Song, error)
+	LimitSongs(int, int) ([]Song, error)
 	SearchSongs(string) ([]Song, error)
 	SongsForAlbum(int) ([]Song, error)
 	SongsForArtist(int) ([]Song, error)

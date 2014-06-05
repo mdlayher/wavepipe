@@ -2,7 +2,9 @@ package api
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
+	"net/http"
 	"strconv"
 
 	"github.com/mdlayher/wavepipe/data"
@@ -18,7 +20,7 @@ type SongsResponse struct {
 }
 
 // GetSongs retrieves one or more songs from wavepipe, and returns a HTTP status and JSON
-func GetSongs(r render.Render, params martini.Params) {
+func GetSongs(r render.Render, req *http.Request, params martini.Params) {
 	// Output struct for songs request
 	res := SongsResponse{}
 
@@ -65,16 +67,38 @@ func GetSongs(r render.Render, params martini.Params) {
 		// Add song to slice
 		songs = append(songs, *song)
 	} else {
-		// Retrieve all songs
-		tempSongs, err := data.DB.AllSongs()
-		if err != nil {
-			log.Println(err)
-			errRes.ServerError()
-			return
-		}
+		// Check for a limit parameter
+		if pLimit := req.URL.Query().Get("limit"); pLimit != "" {
+			// Split limit into two integers
+			var offset int
+			var count int
+			if n, err := fmt.Sscanf(pLimit, "%d,%d", &offset, &count); n < 2 || err != nil {
+				errRes.RenderError(400, "invalid comma-separated integer pair for limit")
+				return
+			}
 
-		// Copy songs into the output slice
-		songs = tempSongs
+			// Retrieve limited subset of songs
+			tempSongs, err := data.DB.LimitSongs(offset, count)
+			if err != nil {
+				log.Println(err)
+				errRes.ServerError()
+				return
+			}
+
+			// Copy songs into the output slice
+			songs = tempSongs
+		} else {
+			// Retrieve all songs
+			tempSongs, err := data.DB.AllSongs()
+			if err != nil {
+				log.Println(err)
+				errRes.ServerError()
+				return
+			}
+
+			// Copy songs into the output slice
+			songs = tempSongs
+		}
 	}
 
 	// Build response

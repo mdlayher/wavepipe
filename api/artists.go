@@ -2,6 +2,7 @@ package api
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -93,16 +94,38 @@ func GetArtists(r render.Render, req *http.Request, params martini.Params) {
 		// Add artist to slice
 		artists = append(artists, *artist)
 	} else {
-		// Retrieve all artists
-		tempArtists, err := data.DB.AllArtists()
-		if err != nil {
-			log.Println(err)
-			errRes.ServerError()
-			return
-		}
+		// Check for a limit parameter
+		if pLimit := req.URL.Query().Get("limit"); pLimit != "" {
+			// Split limit into two integers
+			var offset int
+			var count int
+			if n, err := fmt.Sscanf(pLimit, "%d,%d", &offset, &count); n < 2 || err != nil {
+				errRes.RenderError(400, "invalid comma-separated integer pair for limit")
+				return
+			}
 
-		// Copy artists into the output slice
-		artists = tempArtists
+			// Retrieve limited subset of artists
+			tempArtists, err := data.DB.LimitArtists(offset, count)
+			if err != nil {
+				log.Println(err)
+				errRes.ServerError()
+				return
+			}
+
+			// Copy artists into the output slice
+			artists = tempArtists
+		} else {
+			// Retrieve all artists
+			tempArtists, err := data.DB.AllArtists()
+			if err != nil {
+				log.Println(err)
+				errRes.ServerError()
+				return
+			}
+
+			// Copy artists into the output slice
+			artists = tempArtists
+		}
 	}
 
 	// Build response

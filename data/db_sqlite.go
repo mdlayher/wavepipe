@@ -200,6 +200,12 @@ func (s *SqliteBackend) AllArtists() ([]Artist, error) {
 	return s.artistQuery("SELECT * FROM artists;")
 }
 
+// LimitArtists loads a slice of Artist structs from the database using SQL limit, where the first parameter
+// specifies an offset and the second specifies an item count
+func (s *SqliteBackend) LimitArtists(offset int, count int) ([]Artist, error) {
+	return s.artistQuery("SELECT * FROM artists LIMIT ?, ?;", offset, count)
+}
+
 // SearchArtists loads a slice of all Artist structs from the database which contain
 // titles that match the specified search query
 func (s *SqliteBackend) SearchArtists(query string) ([]Artist, error) {
@@ -420,6 +426,12 @@ func (s *SqliteBackend) AllFolders() ([]Folder, error) {
 	return s.folderQuery("SELECT * FROM folders;")
 }
 
+// LimitFolders loads a slice of Folder structs from the database using SQL limit, where the first parameter
+// specifies an offset and the second specifies an item count
+func (s *SqliteBackend) LimitFolders(offset int, count int) ([]Folder, error) {
+	return s.folderQuery("SELECT * FROM folders LIMIT ?, ?;", offset, count)
+}
+
 // Subfolders loads a slice of all Folder structs residing directly beneath this one from the database
 func (s *SqliteBackend) Subfolders(parentID int) ([]Folder, error) {
 	return s.folderQuery("SELECT * FROM folders WHERE parent_id = ?;", parentID)
@@ -500,6 +512,14 @@ func (s *SqliteBackend) SaveFolder(f *Folder) error {
 func (s *SqliteBackend) AllSongs() ([]Song, error) {
 	return s.songQuery("SELECT songs.*,artists.title AS artist,albums.title AS album FROM songs " +
 		"JOIN artists ON songs.artist_id = artists.id JOIN albums ON songs.album_id = albums.id;")
+}
+
+// LimitSongs loads a slice of Song structs from the database using SQL limit, where the first parameter
+// specifies an offset and the second specifies an item count
+func (s *SqliteBackend) LimitSongs(offset int, count int) ([]Song, error) {
+	return s.songQuery("SELECT songs.*,artists.title AS artist,albums.title AS album FROM songs "+
+		"JOIN artists ON songs.artist_id = artists.id JOIN albums ON songs.album_id = albums.id "+
+		"LIMIT ?, ?;", offset, count)
 }
 
 // SearchSongs loads a slice of all Song structs from the database which contain
