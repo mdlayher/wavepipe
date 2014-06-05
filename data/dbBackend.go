@@ -43,6 +43,7 @@ type dbBackend interface {
 	SaveFolder(*Folder) error
 
 	AllSongs() ([]Song, error)
+	LimitSongs(int, int) ([]Song, error)
 	SearchSongs(string) ([]Song, error)
 	SongsForAlbum(int) ([]Song, error)
 	SongsForArtist(int) ([]Song, error)

@@ -508,6 +508,14 @@ func (s *SqliteBackend) AllSongs() ([]Song, error) {
 		"JOIN artists ON songs.artist_id = artists.id JOIN albums ON songs.album_id = albums.id;")
 }
 
+// LimitSongs loads a slice of Song structs from the database using SQL limit, where the first parameter
+// specifies an offset and the second specifies an item count
+func (s *SqliteBackend) LimitSongs(offset int, count int) ([]Song, error) {
+	return s.songQuery("SELECT songs.*,artists.title AS artist,albums.title AS album FROM songs "+
+		"JOIN artists ON songs.artist_id = artists.id JOIN albums ON songs.album_id = albums.id "+
+		"LIMIT ?, ?;", offset, count)
+}
+
 // SearchSongs loads a slice of all Song structs from the database which contain
 // titles that match the specified search query
 func (s *SqliteBackend) SearchSongs(query string) ([]Song, error) {
