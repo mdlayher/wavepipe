@@ -2,7 +2,9 @@ package api
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
+	"net/http"
 	"strconv"
 
 	"github.com/mdlayher/wavepipe/data"
@@ -20,7 +22,7 @@ type FoldersResponse struct {
 }
 
 // GetFolders retrieves one or more folders from wavepipe, and returns a HTTP status and JSON
-func GetFolders(r render.Render, params martini.Params) {
+func GetFolders(r render.Render, req *http.Request, params martini.Params) {
 	// Output struct for folders request
 	res := FoldersResponse{}
 
@@ -89,16 +91,38 @@ func GetFolders(r render.Render, params martini.Params) {
 		// Add songs to response
 		res.Songs = songs
 	} else {
-		// Retrieve all folders
-		tempFolders, err := data.DB.AllFolders()
-		if err != nil {
-			log.Println(err)
-			errRes.ServerError()
-			return
-		}
+		// Check for a limit parameter
+		if pLimit := req.URL.Query().Get("limit"); pLimit != "" {
+			// Split limit into two integers
+			var offset int
+			var count int
+			if n, err := fmt.Sscanf(pLimit, "%d,%d", &offset, &count); n < 2 || err != nil {
+				errRes.RenderError(400, "invalid comma-separated integer pair for limit")
+				return
+			}
 
-		// Copy folders into the output slice
-		folders = tempFolders
+			// Retrieve limited subset of folders
+			tempFolders, err := data.DB.LimitFolders(offset, count)
+			if err != nil {
+				log.Println(err)
+				errRes.ServerError()
+				return
+			}
+
+			// Copy folders into the output slice
+			folders = tempFolders
+		} else {
+			// Retrieve all folders
+			tempFolders, err := data.DB.AllFolders()
+			if err != nil {
+				log.Println(err)
+				errRes.ServerError()
+				return
+			}
+
+			// Copy folders into the output slice
+			folders = tempFolders
+		}
 	}
 
 	// Build response

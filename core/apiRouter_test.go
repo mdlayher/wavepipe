@@ -97,6 +97,10 @@ func TestAPIRouter(t *testing.T) {
 		{400, "/api/v999/folders"},
 		//   - invalid integer folder ID
 		{400, "/api/v0/folders/foo"},
+		//   - missing second integer for limit
+		{400, "/api/v0/folders?limit=0"},
+		//   - invalid integer pair for limit
+		{400, "/api/v0/folders?limit=foo,bar"},
 		//   - folder ID not found
 		{404, "/api/v0/folders/99999999"},
 

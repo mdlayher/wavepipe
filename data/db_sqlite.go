@@ -426,6 +426,12 @@ func (s *SqliteBackend) AllFolders() ([]Folder, error) {
 	return s.folderQuery("SELECT * FROM folders;")
 }
 
+// LimitFolders loads a slice of Folder structs from the database using SQL limit, where the first parameter
+// specifies an offset and the second specifies an item count
+func (s *SqliteBackend) LimitFolders(offset int, count int) ([]Folder, error) {
+	return s.folderQuery("SELECT * FROM folders LIMIT ?, ?;", offset, count)
+}
+
 // Subfolders loads a slice of all Folder structs residing directly beneath this one from the database
 func (s *SqliteBackend) Subfolders(parentID int) ([]Folder, error) {
 	return s.folderQuery("SELECT * FROM folders WHERE parent_id = ?;", parentID)

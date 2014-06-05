@@ -34,6 +34,7 @@ type dbBackend interface {
 	SaveAlbum(*Album) error
 
 	AllFolders() ([]Folder, error)
+	LimitFolders(int, int) ([]Folder, error)
 	Subfolders(int) ([]Folder, error)
 	FoldersInPath(string) ([]Folder, error)
 	FoldersNotInPath(string) ([]Folder, error)

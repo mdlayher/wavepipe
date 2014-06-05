@@ -182,7 +182,13 @@ retrieved about a single folder.
 
 **URL:** `/api/v0/folders/:id`
 
-**Examples:** `http://localhost:8080/api/v0/folders/`, `http://localhost:8080/api/v0/folders/1`
+**Examples:** `http://localhost:8080/api/v0/folders/`, `http://localhost:8080/api/v0/folders/1`, `http://localhost:8080/api/v0/folders?limit=0,100`
+
+**Parameters:**
+
+| Name | Versions | Type | Required | Description |
+| :--: | :------: | :--: | :------: | :---------: |
+| limit | v0 | string "integer,integer" | | Comma-separated integer pair which limits the number of returned results.  First integer is the offset, second integer is the item count. |
 
 **Return JSON:**
 
@@ -198,6 +204,7 @@ retrieved about a single folder.
 | Code | Message | Description |
 | :--: | :-----: | :---------: |
 | 400 | unsupported API version: vX | Attempted access to an invalid version of this API, or to a version before this API existed. |
+| 400 | invalid comma-separated integer pair for limit | A valid integer pair could not be parsed from the limit parameter. Input must be in the form "x,y". |
 | 400 | invalid integer folder ID | A valid integer could not be parsed from the ID. |
 | 404 | folder ID not found | An folder with the specified ID does not exist. |
 | 500 | server error | An internal error occurred. wavepipe will log these errors to its console log. |
