@@ -194,20 +194,8 @@ func GetAlbumList2(req *http.Request, res http.ResponseWriter, r render.Render) 
 			continue
 		}
 
-		// Use a SongSlice to calculate total length
-		var songSlice = data.SongSlice(songs)
-
-		// Append Subsonic-style album to list, using first song's properties for art and create time
-		outAlbums = append(outAlbums, Album{
-			ID:        a.ID,
-			Name:      a.Title,
-			Artist:    a.Artist,
-			ArtistID:  a.ArtistID,
-			CoverArt:  strconv.Itoa(songs[0].ArtID),
-			SongCount: len(songs),
-			Duration:  songSlice.Length(),
-			Created:   time.Unix(songs[0].LastModified, 0).Format("2006-01-02T15:04:05"),
-		})
+		// Append Subsonic album
+		outAlbums = append(outAlbums, subAlbum(a, songs))
 	}
 
 	// Copy albums list into output
@@ -215,6 +203,50 @@ func GetAlbumList2(req *http.Request, res http.ResponseWriter, r render.Render) 
 
 	// Write response
 	r.XML(200, c)
+}
+
+// subAlbum turns a wavepipe album and songs into a Subsonic format album
+func subAlbum(album data.Album, songs data.SongSlice) Album {
+	return Album{
+		ID:        album.ID,
+		Name:      album.Title,
+		Artist:    album.Artist,
+		ArtistID:  album.ArtistID,
+		CoverArt:  strconv.Itoa(songs[0].ArtID),
+		SongCount: len(songs),
+		Duration:  songs.Length(),
+		Created:   time.Unix(songs[0].LastModified, 0).Format("2006-01-02T15:04:05"),
+	}
+}
+
+// subSong turns a wavepipe song into a Subsonic format song
+func subSong(song data.Song) Song {
+	return Song{
+		ID: song.ID,
+		// BUG(mdlayher): subsonic: wavepipe has no concept of a parent item, so leave blank?
+		Parent:   0,
+		Title:    song.Title,
+		Album:    song.Album,
+		Artist:   song.Artist,
+		IsDir:    false,
+		CoverArt: strconv.Itoa(song.ArtID),
+		Created:  time.Unix(song.LastModified, 0).Format("2006-01-02T15:04:05"),
+		Duration: song.Length,
+		BitRate:  song.Bitrate,
+		Track:    song.Track,
+		// BUG(mdlayher): subsonic: wavepipe cannot scan disc number without taggolib
+		DiscNumber:  1,
+		Year:        song.Year,
+		Genre:       song.Genre,
+		Size:        song.FileSize,
+		Suffix:      path.Ext(song.FileName)[1:],
+		ContentType: data.MIMEMap[song.FileTypeID],
+		IsVideo:     false,
+		Path:        song.FileName,
+		AlbumID:     song.AlbumID,
+		ArtistID:    song.ArtistID,
+		Type:        "music",
+	}
 }
 
 // GetAlbum is used in Subsonic to return a single album
@@ -250,68 +282,19 @@ func GetAlbum(req *http.Request, res http.ResponseWriter, r render.Render) {
 		return
 	}
 
-	// Get cover art and creation time from songs
-	coverArt := 0
-	created := int64(0)
-
+	// Create slice of Subsonic songs
 	outSongs := make([]Song, 0)
-	for i, s := range songs {
-		// Set cover art and created time from first song
-		if i == 0 {
-			coverArt = s.ArtID
-			created = s.LastModified
-		}
-
-		// Build a Subsonic song
-		outSongs = append(outSongs, Song{
-			ID: s.ID,
-			// BUG(mdlayher): subsonic: wavepipe has no concept of a parent item, so leave blank?
-			Parent:   0,
-			Title:    s.Title,
-			Album:    s.Album,
-			Artist:   s.Artist,
-			IsDir:    false,
-			CoverArt: strconv.Itoa(coverArt),
-			Created:  time.Unix(s.LastModified, 0).Format("2006-01-02T15:04:05"),
-			Duration: s.Length,
-			BitRate:  s.Bitrate,
-			Track:    s.Track,
-			// BUG(mdlayher): subsonic: wavepipe cannot scan disc number without taggolib
-			DiscNumber:  1,
-			Year:        s.Year,
-			Genre:       s.Genre,
-			Size:        s.FileSize,
-			Suffix:      path.Ext(s.FileName),
-			ContentType: data.MIMEMap[s.FileTypeID],
-			IsVideo:     false,
-			Path:        s.FileName,
-			AlbumID:     s.AlbumID,
-			ArtistID:    s.ArtistID,
-			Type:        "music",
-		})
-	}
-
-	// Get duration from slice
-	var songSlice = data.SongSlice(songs)
-
-	// Build output album
-	outAlbum := &Album{
-		ID:        album.ID,
-		Name:      album.Title,
-		Artist:    album.Artist,
-		ArtistID:  album.ArtistID,
-		CoverArt:  strconv.Itoa(coverArt),
-		SongCount: len(songs),
-		Duration:  songSlice.Length(),
-		Created:   time.Unix(created, 0).Format("2006-01-02T15:04:05"),
+	for _, s := range songs {
+		outSongs = append(outSongs, subSong(s))
 	}
 
 	// Create a new response container
 	c := newContainer()
 
-	// Copy album container into output
+	// Build and copy album container into output
+	outAlbum := subAlbum(*album, songs)
 	outAlbum.Songs = outSongs
-	c.Album = []Album{*outAlbum}
+	c.Album = []Album{outAlbum}
 
 	// Write response
 	r.XML(200, c)
