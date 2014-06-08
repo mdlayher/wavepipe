@@ -84,6 +84,9 @@ type Container struct {
 
 	// getAlbumList2.view
 	AlbumList2 *AlbumList2Container
+
+	// getRandomSongs.view
+	RandomSongs *RandomSongsContainer
 }
 
 // Error returns the error code and message from Subsonic, and enables Subsonic
