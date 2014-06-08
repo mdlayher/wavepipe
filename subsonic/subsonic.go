@@ -3,14 +3,11 @@ package subsonic
 import (
 	"encoding/xml"
 	"fmt"
-	"log"
 	"net/http"
 	"path"
 	"strconv"
-	"strings"
 	"time"
 
-	"github.com/mdlayher/wavepipe/api"
 	"github.com/mdlayher/wavepipe/data"
 
 	"github.com/martini-contrib/render"
@@ -58,6 +55,15 @@ var (
 	}()
 )
 
+// newContainer creates a new, empty Container with the proper attributes
+func newContainer() *Container {
+	return &Container{
+		XMLNS:   XMLNS,
+		Status:  "ok",
+		Version: Version,
+	}
+}
+
 // Container is the top-level emulated Subsonic response
 type Container struct {
 	// Top-level container name
@@ -94,15 +100,6 @@ type Error struct {
 	Message string `xml:"message,attr"`
 }
 
-// AlbumList2Container contains a list of emulated Subsonic albums, by tags
-type AlbumList2Container struct {
-	// Container name
-	XMLName xml.Name `xml:"albumList2,omitempty"`
-
-	// Albums
-	Albums []Album `xml:"album"`
-}
-
 // Album represents an emulated Subsonic album
 type Album struct {
 	// Subsonic fields
@@ -121,90 +118,6 @@ type Album struct {
 	Songs []Song `xml:"song"`
 }
 
-// newContainer creates a new, empty Container with the proper attributes
-func newContainer() *Container {
-	return &Container{
-		XMLNS:   XMLNS,
-		Status:  "ok",
-		Version: Version,
-	}
-}
-
-// GetPing is used in Subsonic to check server connectivity
-func GetPing(res http.ResponseWriter, r render.Render) {
-	r.XML(200, newContainer())
-}
-
-// GetAlbumList2 is used in Subsonic to return a list of albums organized with tags
-func GetAlbumList2(req *http.Request, res http.ResponseWriter, r render.Render) {
-	// Create a new response container
-	c := newContainer()
-
-	// Attempt to parse offset if applicable
-	var offset int
-	if qOffset := req.URL.Query().Get("offset"); qOffset != "" {
-		// Parse integer
-		tempOffset, err := strconv.Atoi(qOffset)
-		if err != nil {
-			log.Println(err)
-			r.XML(200, ErrGeneric)
-			return
-		}
-
-		// Store for use
-		offset = tempOffset
-	}
-
-	// Attempt to parse size if applicable
-	var size = 10
-	if qSize := req.URL.Query().Get("size"); qSize != "" {
-		// Parse integer
-		tempSize, err := strconv.Atoi(qSize)
-		if err != nil {
-			log.Println(err)
-			r.XML(200, ErrGeneric)
-			return
-		}
-
-		// Store for use
-		size = tempSize
-	}
-
-	// Fetch slice of albums to convert to Subsonic form
-	albums, err := data.DB.LimitAlbums(offset, size)
-	if err != nil {
-		log.Println(err)
-		r.XML(200, ErrGeneric)
-		return
-	}
-
-	// Iterate all albums
-	outAlbums := make([]Album, 0)
-	for _, a := range albums {
-		// Load songs for album
-		songs, err := data.DB.SongsForAlbum(a.ID)
-		if err != nil {
-			log.Println(err)
-			r.XML(200, ErrGeneric)
-			return
-		}
-
-		// If no songs, skip output
-		if len(songs) == 0 {
-			continue
-		}
-
-		// Append Subsonic album
-		outAlbums = append(outAlbums, subAlbum(a, songs))
-	}
-
-	// Copy albums list into output
-	c.AlbumList2 = &AlbumList2Container{Albums: outAlbums}
-
-	// Write response
-	r.XML(200, c)
-}
-
 // subAlbum turns a wavepipe album and songs into a Subsonic format album
 func subAlbum(album data.Album, songs data.SongSlice) Album {
 	return Album{
@@ -217,6 +130,32 @@ func subAlbum(album data.Album, songs data.SongSlice) Album {
 		Duration:  songs.Length(),
 		Created:   time.Unix(songs[0].LastModified, 0).Format("2006-01-02T15:04:05"),
 	}
+}
+
+// Song represents an emulated Subsonic song
+type Song struct {
+	ID          int    `xml:"id,attr"`
+	Parent      int    `xml:"parent,attr"`
+	Title       string `xml:"title,attr"`
+	Album       string `xml:"album,attr"`
+	Artist      string `xml:"artist,attr"`
+	IsDir       bool   `xml:"isDir,attr"`
+	CoverArt    string `xml:"coverArt,attr"`
+	Created     string `xml:"created,attr"`
+	Duration    int    `xml:"duration,attr"`
+	BitRate     int    `xml:"bitRate,attr"`
+	Track       int    `xml:"track,attr"`
+	DiscNumber  int    `xml:"discNumber,attr"`
+	Year        int    `xml:"year,attr"`
+	Genre       string `xml:"genre,attr"`
+	Size        int64  `xml:"size,attr"`
+	Suffix      string `xml:"suffix,attr"`
+	ContentType string `xml:"contentType,attr"`
+	IsVideo     bool   `xml:"isVideo,attr"`
+	Path        string `xml:"path,attr"`
+	AlbumID     int    `xml:"albumId,attr"`
+	ArtistID    int    `xml:"artistId,attr"`
+	Type        string `xml:"type,attr"`
 }
 
 // subSong turns a wavepipe song into a Subsonic format song
@@ -249,134 +188,7 @@ func subSong(song data.Song) Song {
 	}
 }
 
-// GetAlbum is used in Subsonic to return a single album
-func GetAlbum(req *http.Request, res http.ResponseWriter, r render.Render) {
-	// Fetch ID parameter
-	pID := req.URL.Query().Get("id")
-	if pID == "" {
-		r.XML(200, ErrMissingParameter)
-		return
-	}
-
-	// Parse ID
-	id, err := strconv.Atoi(pID)
-	if err != nil {
-		log.Println(err)
-		r.XML(200, ErrGeneric)
-		return
-	}
-
-	// Load album by ID
-	album := &data.Album{ID: id}
-	if err := album.Load(); err != nil {
-		log.Println(err)
-		r.XML(200, ErrGeneric)
-		return
-	}
-
-	// Load songs for album
-	songs, err := data.DB.SongsForAlbum(album.ID)
-	if err != nil {
-		log.Println(err)
-		r.XML(200, ErrGeneric)
-		return
-	}
-
-	// Create slice of Subsonic songs
-	outSongs := make([]Song, 0)
-	for _, s := range songs {
-		outSongs = append(outSongs, subSong(s))
-	}
-
-	// Create a new response container
-	c := newContainer()
-
-	// Build and copy album container into output
-	outAlbum := subAlbum(*album, songs)
-	outAlbum.Songs = outSongs
-	c.Album = []Album{outAlbum}
-
-	// Write response
-	r.XML(200, c)
-}
-
-// Song represents an emulated Subsonic song
-type Song struct {
-	ID          int    `xml:"id,attr"`
-	Parent      int    `xml:"parent,attr"`
-	Title       string `xml:"title,attr"`
-	Album       string `xml:"album,attr"`
-	Artist      string `xml:"artist,attr"`
-	IsDir       bool   `xml:"isDir,attr"`
-	CoverArt    string `xml:"coverArt,attr"`
-	Created     string `xml:"created,attr"`
-	Duration    int    `xml:"duration,attr"`
-	BitRate     int    `xml:"bitRate,attr"`
-	Track       int    `xml:"track,attr"`
-	DiscNumber  int    `xml:"discNumber,attr"`
-	Year        int    `xml:"year,attr"`
-	Genre       string `xml:"genre,attr"`
-	Size        int64  `xml:"size,attr"`
-	Suffix      string `xml:"suffix,attr"`
-	ContentType string `xml:"contentType,attr"`
-	IsVideo     bool   `xml:"isVideo,attr"`
-	Path        string `xml:"path,attr"`
-	AlbumID     int    `xml:"albumId,attr"`
-	ArtistID    int    `xml:"artistId,attr"`
-	Type        string `xml:"type,attr"`
-}
-
-// GetStream is used to return the media stream for a single file
-func GetStream(req *http.Request, res http.ResponseWriter, r render.Render) {
-	// Fetch ID parameter
-	pID := req.URL.Query().Get("id")
-	if pID == "" {
-		r.XML(200, ErrMissingParameter)
-		return
-	}
-
-	// Parse ID
-	id, err := strconv.Atoi(pID)
-	if err != nil {
-		log.Println(err)
-		r.XML(200, ErrGeneric)
-		return
-	}
-
-	// Load song by ID
-	song := &data.Song{ID: id}
-	if err := song.Load(); err != nil {
-		log.Println(err)
-		r.XML(200, ErrGeneric)
-		return
-	}
-
-	// Open file stream
-	stream, err := song.Stream()
-	if err != nil {
-		log.Println(err)
-		r.XML(200, ErrGeneric)
-		return
-	}
-
-	// Generate a string used for logging this operation
-	opStr := fmt.Sprintf("[#%05d] %s - %s [%s %dkbps]", song.ID, song.Artist, song.Title,
-		data.CodecMap[song.FileTypeID], song.Bitrate)
-
-	// Attempt to send file stream over HTTP
-	log.Println("stream: starting:", opStr)
-
-	// Pass stream using song's file size, auto-detect MIME type
-	if err := api.HTTPStream(song, "", song.FileSize, stream, req, res); err != nil {
-		// Check for client reset
-		if strings.Contains(err.Error(), "connection reset by peer") || strings.Contains(err.Error(), "broken pipe") {
-			return
-		}
-
-		log.Println("stream: error:", err)
-		return
-	}
-
-	log.Println("stream: completed:", opStr)
-	return
+// GetPing is used in Subsonic to check server connectivity
+func GetPing(res http.ResponseWriter, r render.Render) {
+	r.XML(200, newContainer())
 }
