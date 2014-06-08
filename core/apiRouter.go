@@ -31,9 +31,10 @@ func apiRouter(apiKillChan chan struct{}) {
 	// GZIP all requests to drastically reduce size
 	m.Use(gzip.All())
 	m.Use(render.Renderer(render.Options{
-		// Output human-readable JSON. GZIP will essentially negate the size increase, and this
+		// Output human-readable JSON/XML. GZIP will essentially negate the size increase, and this
 		// makes the API much more developer-friendly
 		IndentJSON: true,
+		IndentXML:  true,
 	}))
 
 	// Enable graceful shutdown when triggered by manager
