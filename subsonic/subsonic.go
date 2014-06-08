@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"path"
 	"strconv"
 	"strings"
 	"time"
@@ -194,7 +195,7 @@ func GetAlbumList2(req *http.Request, res http.ResponseWriter, r render.Render) 
 		}
 
 		// Use a SongSlice to calculate total length
-		var songSlice = songs
+		var songSlice = data.SongSlice(songs)
 
 		// Append Subsonic-style album to list, using first song's properties for art and create time
 		outAlbums = append(outAlbums, Album{
@@ -249,16 +250,12 @@ func GetAlbum(req *http.Request, res http.ResponseWriter, r render.Render) {
 		return
 	}
 
-	// Get cover art, duration, and creation time from songs
+	// Get cover art and creation time from songs
 	coverArt := 0
-	duration := 0
 	created := int64(0)
 
 	outSongs := make([]Song, 0)
 	for i, s := range songs {
-		// Sum up duration
-		duration += s.Length
-
 		// Set cover art and created time from first song
 		if i == 0 {
 			coverArt = s.ArtID
@@ -267,23 +264,25 @@ func GetAlbum(req *http.Request, res http.ResponseWriter, r render.Render) {
 
 		// Build a Subsonic song
 		outSongs = append(outSongs, Song{
-			ID:          s.ID,
-			Parent:      0,
-			Title:       s.Title,
-			Album:       s.Album,
-			Artist:      s.Artist,
-			IsDir:       false,
-			CoverArt:    strconv.Itoa(coverArt),
-			Created:     time.Unix(s.LastModified, 0).Format("2006-01-02T15:04:05"),
-			Duration:    s.Length,
-			BitRate:     s.Bitrate,
-			Track:       s.Track,
+			ID: s.ID,
+			// BUG(mdlayher): subsonic: wavepipe has no concept of a parent item, so leave blank?
+			Parent:   0,
+			Title:    s.Title,
+			Album:    s.Album,
+			Artist:   s.Artist,
+			IsDir:    false,
+			CoverArt: strconv.Itoa(coverArt),
+			Created:  time.Unix(s.LastModified, 0).Format("2006-01-02T15:04:05"),
+			Duration: s.Length,
+			BitRate:  s.Bitrate,
+			Track:    s.Track,
+			// BUG(mdlayher): subsonic: wavepipe cannot scan disc number without taggolib
 			DiscNumber:  1,
 			Year:        s.Year,
 			Genre:       s.Genre,
 			Size:        s.FileSize,
-			Suffix:      "mp3",
-			ContentType: "audio/mpeg",
+			Suffix:      path.Ext(s.FileName),
+			ContentType: data.MIMEMap[s.FileTypeID],
 			IsVideo:     false,
 			Path:        s.FileName,
 			AlbumID:     s.AlbumID,
@@ -291,6 +290,9 @@ func GetAlbum(req *http.Request, res http.ResponseWriter, r render.Render) {
 			Type:        "music",
 		})
 	}
+
+	// Get duration from slice
+	var songSlice = data.SongSlice(songs)
 
 	// Build output album
 	outAlbum := &Album{
@@ -300,7 +302,7 @@ func GetAlbum(req *http.Request, res http.ResponseWriter, r render.Render) {
 		ArtistID:  album.ArtistID,
 		CoverArt:  strconv.Itoa(coverArt),
 		SongCount: len(songs),
-		Duration:  duration,
+		Duration:  songSlice.Length(),
 		Created:   time.Unix(created, 0).Format("2006-01-02T15:04:05"),
 	}
 

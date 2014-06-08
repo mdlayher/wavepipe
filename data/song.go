@@ -51,6 +51,19 @@ var CodecMap = map[int]string{
 	WV:   "WV",
 }
 
+// MIMEMap maps a wavepipe file type ID its MIME type
+// BUG(mdlayher): MIMEMap: verify correctness of MIME types
+var MIMEMap = map[int]string{
+	APE:  "audio/ape",
+	FLAC: "audio/flac",
+	M4A:  "audio/aac",
+	MP3:  "audio/mpeg",
+	MPC:  "audio/mpc",
+	OGG:  "audio/ogg",
+	WMA:  "audio/wma",
+	WV:   "audio/wv",
+}
+
 // Song represents a song known to wavepipe, and contains metadata regarding
 // the song, and where it resides in the filsystem
 type Song struct {
