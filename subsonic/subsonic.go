@@ -85,6 +85,9 @@ type Container struct {
 	// getAlbumList2.view
 	AlbumList2 *AlbumList2Container
 
+	// getMusicFolders.view
+	MusicFolders *MusicFoldersContainer
+
 	// getRandomSongs.view
 	RandomSongs *RandomSongsContainer
 }
@@ -194,4 +197,10 @@ func subSong(song data.Song) Song {
 // GetPing is used in Subsonic to check server connectivity
 func GetPing(res http.ResponseWriter, r render.Render) {
 	r.XML(200, newContainer())
+}
+
+// MusicFolder represents an emulated Subsonic music folder
+type MusicFolder struct {
+	ID   int    `xml:"id,attr"`
+	Name string `xml:"name,attr"`
 }

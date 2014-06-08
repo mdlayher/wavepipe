@@ -136,6 +136,9 @@ func apiRouter(apiKillChan chan struct{}) {
 		// GetAlbum - used to retrieve information about one album
 		r.Get("/getAlbum.view", subsonic.GetAlbum)
 
+		// GetMusicFolders - used to retrieve list of known music folders
+		r.Get("/getMusicFolders.view", subsonic.GetMusicFolders)
+
 		// GetRandomSongs - used to retrieve a number of random songs
 		r.Get("/getRandomSongs.view", subsonic.GetRandomSongs)
 
