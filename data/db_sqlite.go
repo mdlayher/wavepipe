@@ -522,6 +522,13 @@ func (s *SqliteBackend) LimitSongs(offset int, count int) ([]Song, error) {
 		"LIMIT ?, ?;", offset, count)
 }
 
+// RandomSongs loads a slice of 'n' random song structs from the database
+func (s *SqliteBackend) RandomSongs(n int) ([]Song, error) {
+	return s.songQuery("SELECT songs.*,artists.title AS artist,albums.title AS album FROM songs "+
+		"JOIN artists ON songs.artist_id = artists.id JOIN albums ON songs.album_id = albums.id "+
+		"ORDER BY RANDOM() LIMIT ?;", n)
+}
+
 // SearchSongs loads a slice of all Song structs from the database which contain
 // titles that match the specified search query
 func (s *SqliteBackend) SearchSongs(query string) ([]Song, error) {

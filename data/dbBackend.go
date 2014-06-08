@@ -45,6 +45,7 @@ type dbBackend interface {
 
 	AllSongs() ([]Song, error)
 	LimitSongs(int, int) ([]Song, error)
+	RandomSongs(int) ([]Song, error)
 	SearchSongs(string) ([]Song, error)
 	SongsForAlbum(int) ([]Song, error)
 	SongsForArtist(int) ([]Song, error)

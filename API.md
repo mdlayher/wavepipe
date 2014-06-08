@@ -83,7 +83,7 @@ retrieved about a single album.
 
 | Name | Versions | Type | Required | Description |
 | :--: | :------: | :--: | :------: | :---------: |
-| limit | v0 | string "integer,integer" | | Comma-separated integer pair which limits the number of returned results.  First integer is the offset, second integer is the item count. |
+| limit | v0 | integer,integer | | Comma-separated integer pair which limits the number of returned results.  First integer is the offset, second integer is the item count. |
 
 **Return JSON:**
 
@@ -153,7 +153,7 @@ retrieved about a single artist.
 | Name | Versions | Type | Required | Description |
 | :--: | :------: | :--: | :------: | :---------: |
 | limit | v0 | string "integer,integer" | | Comma-separated integer pair which limits the number of returned results.  First integer is the offset, second integer is the item count. |
-| songs | v0 | bool | | If true, returns all songs attached to this artist. |
+| songs | v0 | boolean | | If true, returns all songs attached to this artist. |
 
 **Return JSON:**
 
@@ -188,7 +188,7 @@ retrieved about a single folder.
 
 | Name | Versions | Type | Required | Description |
 | :--: | :------: | :--: | :------: | :---------: |
-| limit | v0 | string "integer,integer" | | Comma-separated integer pair which limits the number of returned results.  First integer is the offset, second integer is the item count. |
+| limit | v0 | integer,integer | | Comma-separated integer pair which limits the number of returned results.  First integer is the offset, second integer is the item count. |
 
 **Return JSON:**
 
@@ -230,7 +230,7 @@ to commit the play to Last.fm.
 | :--: | :------: | :--: | :------: | :---------: |
 | lfmu | v0 | string | | Username used to authenticate to Last.fm via wavepipe. Only used for the `login` action. |
 | lfmp | v0 | string | | Associated password used to authenticate to Last.fm via wavepipe. Only used for the `login` action. |
-| timestamp | v0 | int | | Optional integer UNIX timestamp, which can be used to specify a past timestamp. The current timestamp is used if not specified. |
+| timestamp | v0 | integer | | Optional integer UNIX timestamp, which can be used to specify a past timestamp. The current timestamp is used if not specified. |
 
 **Return JSON:**
 
@@ -359,7 +359,7 @@ retrieved about a single song.
 
 | Name | Versions | Type | Required | Description |
 | :--: | :------: | :--: | :------: | :---------: |
-| limit | v0 | string "integer,integer" | | Comma-separated integer pair which limits the number of returned results.  First integer is the offset, second integer is the item count. |
+| limit | v0 | integer,integer | | Comma-separated integer pair which limits the number of returned results.  First integer is the offset, second integer is the item count. |
 
 **Return JSON:**
 
@@ -442,7 +442,7 @@ Used to retrieve a transcoded binary data stream of a media file from wavepipe. 
 | Name | Versions | Type | Required | Description |
 | :--: | :------: | :--: | :------: | :---------: |
 | codec | v0 | string | | The codec selected for use by the transcoder.  If not specified, defaults to **MP3**.  Options are: **MP3**, OGG, OPUS (lowercase variants will be automatically capitalized). |
-| quality | v0 | string/int | | The quality selected for use by the transcoder.  String options specify VBR encodings, while integer options specify CBR encodings.  If not specified, defaults to **192**. |
+| quality | v0 | string/integer | | The quality selected for use by the transcoder.  String options specify VBR encodings, while integer options specify CBR encodings.  If not specified, defaults to **192**. |
 
 **Available Codecs:**
 
