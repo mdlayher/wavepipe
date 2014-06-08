@@ -194,7 +194,7 @@ func GetAlbumList2(req *http.Request, res http.ResponseWriter, r render.Render) 
 		}
 
 		// Use a SongSlice to calculate total length
-		var songSlice data.SongSlice = songs
+		var songSlice = songs
 
 		// Append Subsonic-style album to list, using first song's properties for art and create time
 		outAlbums = append(outAlbums, Album{
