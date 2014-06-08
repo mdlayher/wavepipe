@@ -188,32 +188,24 @@ func GetAlbumList2(req *http.Request, res http.ResponseWriter, r render.Render) 
 			return
 		}
 
-		// Get cover art, duration, and creation time from songs
-		coverArt := 0
-		duration := 0
-		created := int64(0)
-
-		// Sum up duration
-		for i, s := range songs {
-			duration += s.Length
-
-			// Set cover art and created time from first song
-			if i == 0 {
-				coverArt = s.ArtID
-				created = s.LastModified
-			}
+		// If no songs, skip output
+		if len(songs) == 0 {
+			continue
 		}
 
-		// Append Subsonic-style album to list
+		// Use a SongSlice to calculate total length
+		var songSlice data.SongSlice = songs
+
+		// Append Subsonic-style album to list, using first song's properties for art and create time
 		outAlbums = append(outAlbums, Album{
 			ID:        a.ID,
 			Name:      a.Title,
 			Artist:    a.Artist,
 			ArtistID:  a.ArtistID,
-			CoverArt:  strconv.Itoa(coverArt),
+			CoverArt:  strconv.Itoa(songs[0].ArtID),
 			SongCount: len(songs),
-			Duration:  duration,
-			Created:   time.Unix(created, 0).Format("2006-01-02T15:04:05"),
+			Duration:  songSlice.Length(),
+			Created:   time.Unix(songs[0].LastModified, 0).Format("2006-01-02T15:04:05"),
 		})
 	}
 

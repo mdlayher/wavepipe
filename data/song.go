@@ -140,3 +140,18 @@ func (s Song) Stream() (io.ReadSeeker, error) {
 	// Attempt to open the file associated with this song
 	return os.Open(s.FileName)
 }
+
+// SongSlice represents a slice of songs, and provides convenience methods to access their
+// aggregate properties
+type SongSlice []Song
+
+// Length returns the total duration of a slice of songs
+func (s SongSlice) Length() int {
+	// Iterate and sum duration
+	length := 0
+	for _, song := range s {
+		length += song.Length
+	}
+
+	return length
+}
