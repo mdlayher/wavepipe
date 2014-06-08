@@ -34,6 +34,12 @@ type AuthMethod interface {
 
 // Factory generates the appropriate authorization method by using input parameters
 func Factory(path string) AuthMethod {
+	// Check for debug mode, and if it's set, automatically use the Simple method
+	if os.Getenv("WAVEPIPE_DEBUG") == "1" {
+		log.Println("api: warning: authenticating user in debug mode")
+		return new(SimpleAuth)
+	}
+
 	// Check for request to emulated Subsonic API, which is authenticated using
 	// its own, special method which outputs XML
 	if strings.HasPrefix(path, "/subsonic") {
@@ -56,12 +62,6 @@ func Factory(path string) AuthMethod {
 	// Check for a login request: /api/vX/login, use bcrypt authenticator
 	if strings.HasPrefix(path, "/api/v") && strings.HasSuffix(path, "/login") {
 		return new(BcryptAuth)
-	}
-
-	// Check for debug mode, and if it's set, automatically use the Simple method
-	if os.Getenv("WAVEPIPE_DEBUG") == "1" {
-		log.Println("api: warning: authenticating user in debug mode")
-		return new(SimpleAuth)
 	}
 
 	// All other situations, use the token authenticator
