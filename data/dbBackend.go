@@ -19,6 +19,7 @@ type dbBackend interface {
 	AllArtists() ([]Artist, error)
 	LimitArtists(int, int) ([]Artist, error)
 	SearchArtists(string) ([]Artist, error)
+	CountArtists() (int64, error)
 	PurgeOrphanArtists() (int, error)
 	DeleteArtist(*Artist) error
 	LoadArtist(*Artist) error
@@ -28,6 +29,7 @@ type dbBackend interface {
 	LimitAlbums(int, int) ([]Album, error)
 	AlbumsForArtist(int) ([]Album, error)
 	SearchAlbums(string) ([]Album, error)
+	CountAlbums() (int64, error)
 	PurgeOrphanAlbums() (int, error)
 	DeleteAlbum(*Album) error
 	LoadAlbum(*Album) error
@@ -39,6 +41,7 @@ type dbBackend interface {
 	FoldersInPath(string) ([]Folder, error)
 	FoldersNotInPath(string) ([]Folder, error)
 	SearchFolders(string) ([]Folder, error)
+	CountFolders() (int64, error)
 	DeleteFolder(*Folder) error
 	LoadFolder(*Folder) error
 	SaveFolder(*Folder) error
@@ -52,6 +55,7 @@ type dbBackend interface {
 	SongsForFolder(int) ([]Song, error)
 	SongsInPath(string) ([]Song, error)
 	SongsNotInPath(string) ([]Song, error)
+	CountSongs() (int64, error)
 	DeleteSong(*Song) error
 	LoadSong(*Song) error
 	SaveSong(*Song) error

@@ -212,6 +212,11 @@ func (s *SqliteBackend) SearchArtists(query string) ([]Artist, error) {
 	return s.artistQuery("SELECT * FROM artists WHERE title LIKE ?;", "%"+query+"%")
 }
 
+// CountArtists fetches the total number of Artist structs from the database
+func (s *SqliteBackend) CountArtists() (int64, error) {
+	return s.integerQuery("SELECT COUNT(*) AS int FROM artists;")
+}
+
 // PurgeOrphanArtists deletes all artists who are "orphaned", meaning that they no
 // longer have any songs which reference their ID
 func (s *SqliteBackend) PurgeOrphanArtists() (int, error) {
@@ -326,6 +331,11 @@ func (s *SqliteBackend) AlbumsForArtist(ID int) ([]Album, error) {
 // titles that match the specified search query
 func (s *SqliteBackend) SearchAlbums(query string) ([]Album, error) {
 	return s.albumQuery("SELECT * FROM albums WHERE title LIKE ?;", "%"+query+"%")
+}
+
+// CountAlbums fetches the total number of Album structs from the database
+func (s *SqliteBackend) CountAlbums() (int64, error) {
+	return s.integerQuery("SELECT COUNT(*) AS int FROM albums;")
 }
 
 // PurgeOrphanAlbums deletes all albums who are "orphaned", meaning that they no
@@ -453,6 +463,11 @@ func (s *SqliteBackend) SearchFolders(query string) ([]Folder, error) {
 	return s.folderQuery("SELECT * FROM folders WHERE title LIKE ?;", "%"+query+"%")
 }
 
+// CountFolders fetches the total number of Folder structs from the database
+func (s *SqliteBackend) CountFolders() (int64, error) {
+	return s.integerQuery("SELECT COUNT(*) AS int FROM folders;")
+}
+
 // DeleteFolder removes a Folder from the database
 func (s *SqliteBackend) DeleteFolder(f *Folder) error {
 	// Attempt to delete this folder by its ID, if available
@@ -570,6 +585,11 @@ func (s *SqliteBackend) SongsNotInPath(path string) ([]Song, error) {
 	return s.songQuery("SELECT songs.*,artists.title AS artist,albums.title AS album FROM songs "+
 		"JOIN artists ON songs.artist_id = artists.id JOIN albums ON songs.album_id = albums.id "+
 		"WHERE songs.file_name NOT LIKE ?;", path+"%")
+}
+
+// CountSongs fetches the total number of Artist structs from the database
+func (s *SqliteBackend) CountSongs() (int64, error) {
+	return s.integerQuery("SELECT COUNT(*) AS int FROM songs;")
 }
 
 // DeleteSong removes a Song from the database
@@ -936,4 +956,17 @@ func (s *SqliteBackend) songQuery(query string, args ...interface{}) ([]Song, er
 	}
 
 	return songs, nil
+}
+
+// integerQuery returns a single integer value from the input query
+func (s *SqliteBackend) integerQuery(query string, args ...interface{}) (int64, error) {
+	// Perform query and fetch result
+	result := struct {
+		Int int64 `db:"int"`
+	}{0}
+	if err := s.db.Get(&result, query, args...); err != nil && err != sql.ErrNoRows {
+		return 0, err
+	}
+
+	return result.Int, nil
 }
