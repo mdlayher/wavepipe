@@ -77,6 +77,8 @@ func TestAPIRouter(t *testing.T) {
 		{200, "/api/v0/artists"},
 		//   - valid request for 1 item
 		{200, "/api/v0/artists/1"},
+		//   - valid limit items request
+		{200, "/api/v0/artists?limit=0,10"},
 		//   - invalid API version
 		{400, "/api/v999/artists"},
 		//   - invalid integer artist ID
@@ -95,6 +97,8 @@ func TestAPIRouter(t *testing.T) {
 		{200, "/api/v0/folders/1"},
 		//   - invalid API version
 		{400, "/api/v999/folders"},
+		//   - valid limit items request
+		{200, "/api/v0/folders?limit=0,10"},
 		//   - invalid integer folder ID
 		{400, "/api/v0/folders/foo"},
 		//   - missing second integer for limit
@@ -136,6 +140,10 @@ func TestAPIRouter(t *testing.T) {
 		{200, "/api/v0/songs"},
 		//   - valid request for 1 item
 		{200, "/api/v0/songs/1"},
+		//   - valid limit items request
+		{200, "/api/v0/songs?limit=0,10"},
+		//   - valid random items request
+		{200, "/api/v0/songs?random=10"},
 		//   - invalid API version
 		{400, "/api/v999/songs"},
 		//   - invalid integer song ID
