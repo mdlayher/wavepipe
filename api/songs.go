@@ -87,6 +87,25 @@ func GetSongs(r render.Render, req *http.Request, params martini.Params) {
 
 			// Copy songs into the output slice
 			songs = tempSongs
+		} else if pRandom := req.URL.Query().Get("random"); pRandom != "" {
+			// Check for a random songs request
+			random, err := strconv.Atoi(pRandom)
+			if err != nil {
+				log.Println(err)
+				errRes.ServerError()
+				return
+			}
+
+			// Retrieve the specified number of random songs
+			tempSongs, err := data.DB.RandomSongs(random)
+			if err != nil {
+				log.Println(err)
+				errRes.ServerError()
+				return
+			}
+
+			// Copy songs into the output slice
+			songs = tempSongs
 		} else {
 			// Retrieve all songs
 			tempSongs, err := data.DB.AllSongs()

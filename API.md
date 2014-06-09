@@ -360,6 +360,7 @@ retrieved about a single song.
 | Name | Versions | Type | Required | Description |
 | :--: | :------: | :--: | :------: | :---------: |
 | limit | v0 | integer,integer | | Comma-separated integer pair which limits the number of returned results.  First integer is the offset, second integer is the item count. |
+| random | v0 | integer | | If specified, wavepipe will return N random songs instead of the entire list, where N is the integer specified in this parameter. |
 
 **Return JSON:**
 
