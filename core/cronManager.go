@@ -74,4 +74,14 @@ func cronPrintCurrentStatus() {
 
 	// Regular status banner
 	log.Printf("cron: status - [uptime: %d] [goroutines: %d] [memory: %02.3f MB]", stat.Uptime, stat.NumGoroutine, stat.MemoryMB)
+
+	// Get server metrics
+	metrics, err := common.ServerMetrics()
+	if err != nil {
+		log.Printf("cron: could not get current metrics: %s", err.Error())
+		return
+	}
+
+	// Regular metrics banner
+	log.Printf("cron: metrics - [artists: %d] [albums: %d] [songs: %d] [folders: %d]", metrics.Artists, metrics.Albums, metrics.Songs, metrics.Folders)
 }
