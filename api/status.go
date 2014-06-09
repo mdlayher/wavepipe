@@ -12,8 +12,9 @@ import (
 
 // StatusResponse represents the JSON response for /api/status
 type StatusResponse struct {
-	Error  *Error         `json:"error"`
-	Status *common.Status `json:"status"`
+	Error   *Error          `json:"error"`
+	Status  *common.Status  `json:"status"`
+	Metrics *common.Metrics `json:"metrics"`
 }
 
 // GetStatus returns the current server status, with an HTTP status and JSON
@@ -43,6 +44,19 @@ func GetStatus(req *http.Request, r render.Render, params martini.Params) {
 
 	// Copy into response
 	res.Status = status
+
+	// If requested, fetch additional metrics (not added by default due to full table scans in database)
+	if pMetrics := req.URL.Query().Get("metrics"); pMetrics == "true" {
+		metrics, err := common.ServerMetrics()
+		if err != nil {
+			log.Println(err)
+			errRes.ServerError()
+			return
+		}
+
+		// Return metrics
+		res.Metrics = metrics
+	}
 
 	// HTTP 200 OK with JSON
 	res.Error = nil

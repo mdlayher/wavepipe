@@ -412,6 +412,13 @@ Used to retrieve current server status from wavepipe.
 
 **Examples:**
   - `http://localhost:8080/api/v0/status`
+  - `http://localhost:8080/api/v0/status?metrics=true`
+
+**Parameters:**
+
+| Name | Versions | Type | Required | Description |
+| :--: | :------: | :--: | :------: | :---------: |
+| metrics | v0 | boolean | | If true, wavepipe will generate and return additional metrics about its database. |
 
 **Return JSON:**
 
@@ -419,6 +426,7 @@ Used to retrieve current server status from wavepipe.
 | :--: | :--: | :---------: |
 | error | [Error](http://godoc.org/github.com/mdlayher/wavepipe/api#Error)/null | Information about any errors that occurred.  Value is null if no error occurred. |
 | status | [Status](http://godoc.org/github.com/mdlayher/wavepipe/common#Status) | Status object containing current server information, returned by the API. |
+| metrics | [Metrics](http://godoc.org/github.com/mdlayher/wavepipe/common#Metrics)/null | Metrics object containing current server and database metrics, returned by the API. Value is null unless parameter `metrics` is true. |
 
 **Possible errors:**
 

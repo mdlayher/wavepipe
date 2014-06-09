@@ -160,6 +160,8 @@ func TestAPIRouter(t *testing.T) {
 		// Status API
 		//   - valid request
 		{200, "/api/v0/status"},
+		//   - valid request with metrics
+		{200, "/api/v0/status?metrics=true"},
 		//   - invalid API version
 		{400, "/api/v999/status"},
 

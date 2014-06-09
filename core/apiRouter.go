@@ -114,7 +114,7 @@ func apiRouter(apiKillChan chan struct{}) {
 		c.Map(session)
 
 		// Print information about this API call
-		log.Printf("api: [%s] %s", req.RemoteAddr, req.URL.Path)
+		log.Printf("api: [%s] %s?%s", req.RemoteAddr, req.URL.Path, req.URL.Query().Encode())
 	})
 
 	// Set up API routes
