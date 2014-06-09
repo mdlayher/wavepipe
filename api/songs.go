@@ -91,8 +91,7 @@ func GetSongs(r render.Render, req *http.Request, params martini.Params) {
 			// Check for a random songs request
 			random, err := strconv.Atoi(pRandom)
 			if err != nil {
-				log.Println(err)
-				errRes.ServerError()
+				errRes.RenderError(400, "invalid integer for random")
 				return
 			}
 

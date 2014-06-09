@@ -279,7 +279,7 @@ or using a HTTP Basic username and password combination.
 
 **URL:** `/api/v0/login`
 
-**Examples:** 
+**Examples:**
   - `http://localhost:8080/api/v0/login`
 
 **Parameters:**
@@ -398,6 +398,7 @@ retrieved about a single song.
 | :--: | :-----: | :---------: |
 | 400 | unsupported API version: vX | Attempted access to an invalid version of this API, or to a version before this API existed. |
 | 400 | invalid comma-separated integer pair for limit | A valid integer pair could not be parsed from the limit parameter. Input must be in the form "x,y". |
+| 400 | invalid integer for random | A valid integer could not be parsed from the random parameter. |
 | 400 | invalid integer song ID | A valid integer could not be parsed from the ID. |
 | 404 | song ID not found | A song with the specified ID does not exist. |
 | 500 | server error | An internal error occurred. wavepipe will log these errors to its console log. |
