@@ -330,7 +330,8 @@ func (s *SqliteBackend) AlbumsForArtist(ID int) ([]Album, error) {
 // SearchAlbums loads a slice of all Album structs from the database which contain
 // titles that match the specified search query
 func (s *SqliteBackend) SearchAlbums(query string) ([]Album, error) {
-	return s.albumQuery("SELECT * FROM albums WHERE title LIKE ?;", "%"+query+"%")
+	return s.albumQuery("SELECT albums.*,artists.title AS artist FROM albums "+
+		"JOIN artists ON albums.artist_id = artists.id WHERE albums.title LIKE ?;", "%"+query+"%")
 }
 
 // CountAlbums fetches the total number of Album structs from the database
@@ -547,7 +548,9 @@ func (s *SqliteBackend) RandomSongs(n int) ([]Song, error) {
 // SearchSongs loads a slice of all Song structs from the database which contain
 // titles that match the specified search query
 func (s *SqliteBackend) SearchSongs(query string) ([]Song, error) {
-	return s.songQuery("SELECT * FROM songs WHERE title LIKE ?;", "%"+query+"%")
+	return s.songQuery("SELECT songs.*,artists.title AS artist,albums.title AS album FROM songs "+
+		"JOIN artists ON songs.artist_id = artists.id JOIN albums ON songs.album_id = albums.id "+
+		"WHERE songs.title LIKE ?;", "%"+query+"%")
 }
 
 // SongsForAlbum loads a slice of all Song structs which have the matching album ID
