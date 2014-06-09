@@ -426,6 +426,7 @@ Used to retrieve current server status from wavepipe.
 | :--: | :--: | :---------: |
 | error | [Error](http://godoc.org/github.com/mdlayher/wavepipe/api#Error)/null | Information about any errors that occurred.  Value is null if no error occurred. |
 | status | [Status](http://godoc.org/github.com/mdlayher/wavepipe/common#Status) | Status object containing current server information, returned by the API. |
+| metrics | [Metrics](http://godoc.org/github.com/mdlayher/wavepipe/api#Metrics)/null | Metrics object containing current server and database metrics, returned by the API. Value is null unless parameter `metrics` is true. |
 
 **Possible errors:**
 
