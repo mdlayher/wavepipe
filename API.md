@@ -77,7 +77,10 @@ retrieved about a single album.
 
 **URL:** `/api/v0/albums/:id`
 
-**Examples:** `http://localhost:8080/api/v0/albums/`, `http://localhost:8080/api/v0/albums/1`, `http://localhost:8080/api/v0/albums?limit=0,100`
+**Examples:**
+  - `http://localhost:8080/api/v0/albums/`
+  - `http://localhost:8080/api/v0/albums/1`
+  - `http://localhost:8080/api/v0/albums?limit=0,100`
 
 **Parameters:**
 
@@ -111,7 +114,9 @@ Successful calls with return a binary stream, and unsuccessful ones will return 
 
 **URL:** `/api/v0/art/:id`
 
-**Examples:** `http://localhost:8080/api/v0/art/1`, `http://localhost:8080/api/v0/art/1?size=500`
+**Examples:**
+  - `http://localhost:8080/api/v0/art/1`
+  - `http://localhost:8080/api/v0/art/1?size=500`
 
 **Parameters:**
 
@@ -146,7 +151,11 @@ retrieved about a single artist.
 
 **URL:** `/api/v0/artists/:id`
 
-**Examples:** `http://localhost:8080/api/v0/artists/`, `http://localhost:8080/api/v0/artists/1`, `http://localhost:8080/api/v0/artists?limit=0,100`, `http://localhost:8080/api/v0/artists/1?songs=true`
+**Examples:**
+  - `http://localhost:8080/api/v0/artists/`
+  - `http://localhost:8080/api/v0/artists/1`
+  - `http://localhost:8080/api/v0/artists?limit=0,100`
+  - `http://localhost:8080/api/v0/artists/1?songs=true`
 
 **Parameters:**
 
@@ -182,7 +191,10 @@ retrieved about a single folder.
 
 **URL:** `/api/v0/folders/:id`
 
-**Examples:** `http://localhost:8080/api/v0/folders/`, `http://localhost:8080/api/v0/folders/1`, `http://localhost:8080/api/v0/folders?limit=0,100`
+**Examples:**
+  - `http://localhost:8080/api/v0/folders/`
+  - `http://localhost:8080/api/v0/folders/1`
+  - `http://localhost:8080/api/v0/folders?limit=0,100`
 
 **Parameters:**
 
@@ -222,7 +234,10 @@ to commit the play to Last.fm.
 
 **URL:** `/api/v0/lastfm/:action/:id`
 
-**Examples:** `http://localhost:8080/api/v0/lastfm/login?lfmu=test&lfmp=test`, `http://localhost:8080/api/v0/lastfm/nowplaying/1`, `http://localhost:8080/api/v0/lastfm/scrobble/1`
+**Examples:**
+  - `http://localhost:8080/api/v0/lastfm/login?lfmu=test&lfmp=test`
+  - `http://localhost:8080/api/v0/lastfm/nowplaying/1`
+  - `http://localhost:8080/api/v0/lastfm/scrobble/1`
 
 **Parameters:**
 
@@ -264,7 +279,8 @@ or using a HTTP Basic username and password combination.
 
 **URL:** `/api/v0/login`
 
-**Examples:** `http://localhost:8080/api/v0/login`
+**Examples:** 
+  - `http://localhost:8080/api/v0/login`
 
 **Parameters:**
 
@@ -296,7 +312,8 @@ Used to destroy the current API session from wavepipe.
 
 **URL:** `/api/v0/logout`
 
-**Examples:** `http://localhost:8080/api/v0/logout`
+**Examples:**
+  - `http://localhost:8080/api/v0/logout`
 
 **Return JSON:**
 
@@ -319,7 +336,9 @@ specified to retrieve results.
 
 **URL:** `/api/v0/search/:query`
 
-**Examples:** `http://localhost:8080/api/v0/search/boston`, `http://localhost:8080/api/v0/search/boston?type=artists,songs`
+**Examples:**
+  - `http://localhost:8080/api/v0/search/boston`
+  - `http://localhost:8080/api/v0/search/boston?type=artists,songs`
 
 **Parameters:**
 
@@ -353,7 +372,11 @@ retrieved about a single song.
 
 **URL:** `/api/v0/songs/:id`
 
-**Examples:** `http://localhost:8080/api/v0/songs/`, `http://localhost:8080/api/v0/songs/1`, `http://localhost:8080/api/v0/songs?limit=0,100`
+**Examples:**
+  - `http://localhost:8080/api/v0/songs/`
+  - `http://localhost:8080/api/v0/songs/1`
+  - `http://localhost:8080/api/v0/songs?limit=0,100`
+  - `http://localhost:8080/api/v0/songs?random=10`
 
 **Parameters:**
 
@@ -386,7 +409,8 @@ Used to retrieve current server status from wavepipe.
 
 **URL:** `/api/v0/status`
 
-**Examples:** `http://localhost:8080/api/v0/status`
+**Examples:**
+  - `http://localhost:8080/api/v0/status`
 
 **Return JSON:**
 
@@ -409,7 +433,8 @@ Used to retrieve a raw, non-transcoded, binary data stream of a media file from 
 
 **URL:** `/api/v0/stream/:id`
 
-**Examples:** `http://localhost:8080/api/v0/stream/1`
+**Examples:**
+  - `http://localhost:8080/api/v0/stream/1`
 
 **Return Binary:** Binary data stream containing the media file stream.
 
@@ -436,7 +461,9 @@ Used to retrieve a transcoded binary data stream of a media file from wavepipe. 
 
 **URL:** `/api/v0/transcode/:id`
 
-**Examples:** `http://localhost:8080/api/v0/transcode/1`, `http://localhost:8080/api/v0/transcode/1?codec=MP3&quality=320`
+**Examples:**
+  - `http://localhost:8080/api/v0/transcode/1`
+  - `http://localhost:8080/api/v0/transcode/1?codec=MP3&quality=320`
 
 **Parameters:**
 
