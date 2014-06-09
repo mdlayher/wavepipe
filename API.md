@@ -412,6 +412,13 @@ Used to retrieve current server status from wavepipe.
 
 **Examples:**
   - `http://localhost:8080/api/v0/status`
+  - `http://localhost:8080/api/v0/status?metrics=true`
+
+**Parameters:**
+
+| Name | Versions | Type | Required | Description |
+| :--: | :------: | :--: | :------: | :---------: |
+| metrics | v0 | boolean | | If true, wavepipe will generate and return additional metrics about its database. |
 
 **Return JSON:**
 
