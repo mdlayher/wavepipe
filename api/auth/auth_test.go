@@ -20,6 +20,8 @@ func TestFactory(t *testing.T) {
 		{"/api/v0/login", new(BcryptAuth)},
 		// Other API calls - token
 		{"/api/v0/status", new(TokenAuth)},
+		// Subsonic API - subsonic
+		{"/subsonic", new(SubsonicAuth)},
 	}
 
 	// Iterate and verify tests
