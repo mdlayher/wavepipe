@@ -117,6 +117,7 @@ func GetTranscode(httpReq *http.Request, httpRes http.ResponseWriter, r render.R
 	if err != nil {
 		log.Println(err)
 		errRes.ServerError()
+		return
 	}
 
 	// Output the command ffmpeg will use to create the transcode
