@@ -17,14 +17,15 @@ var (
 	// ErrNoPassword is returned when no password is provided on login
 	ErrNoPassword = errors.New("no password provided")
 
-	// ErrInvalidPublicKey is returned when an invalid public keyis used to access the API
-	ErrInvalidPublicKey = errors.New("no such public key")
-	// ErrNoSignature is returned when no API signature is provided on all other API calls
-	ErrNoSignature = errors.New("no signature provided")
 	// ErrNoToken is returned when no API token is provided on all other API calls
 	ErrNoToken = errors.New("no token provided")
 	// ErrSessionExpired is returned when the session is expired
 	ErrSessionExpired = errors.New("session expired")
+
+	// ErrEmptyBasic is returned when a blank HTTP Basic authentication header is passed
+	ErrEmptyBasic = errors.New("empty HTTP Basic header")
+	// ErrInvalidBasic is returned when an invalid HTTP Basic authentication header is passed
+	ErrInvalidBasic = errors.New("invalid HTTP Basic header")
 )
 
 // AuthMethod represents a method of authenticating with the API
@@ -66,25 +67,30 @@ func Factory(path string) AuthMethod {
 func basicCredentials(header string) (string, string, error) {
 	// No headed provided
 	if header == "" {
-		return "", "", errors.New("empty HTTP Basic header")
+		return "", "", ErrEmptyBasic
+	}
+
+	// Ensure 2 elements
+	basic := strings.Split(header, " ")
+	if len(basic) != 2 {
+		return "", "", ErrInvalidBasic
 	}
 
 	// Ensure valid format
-	basic := strings.Split(header, " ")
 	if basic[0] != "Basic" {
-		return "", "", errors.New("invalid HTTP Basic header")
+		return "", "", ErrInvalidBasic
 	}
 
 	// Decode base64'd username:password pair
 	buf, err := base64.URLEncoding.DecodeString(basic[1])
 	if err != nil {
-		return "", "", errors.New("invalid HTTP Basic header")
+		return "", "", ErrInvalidBasic
 	}
 
 	// Split into username/password
 	pair := strings.SplitN(string(buf), ":", 2)
 	if len(pair) < 2 {
-		return "", "", errors.New("invalid HTTP Basic username/password combination")
+		return "", "", ErrInvalidBasic
 	}
 
 	return pair[0], pair[1], nil
