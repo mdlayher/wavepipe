@@ -11,7 +11,7 @@ var C ConfigSource
 
 // Config represents the program configuration options
 type Config struct {
-	Port        int           `json:"port"`
+	Host        string        `json:"host"`
 	MediaFolder string        `json:"mediaFolder"`
 	Sqlite      *SqliteConfig `json:"sqlite"`
 }
@@ -32,7 +32,7 @@ func (c Config) Media() string {
 
 // DefaultConfig is the default JSON configuration for wavepipe
 var DefaultConfig = []byte(`{
-	"port": 8080,
+	"host": ":8080",
 	"mediaFolder": "",
 	"sqlite": {
 		"file": "~/.config/wavepipe/wavepipe.db"
@@ -41,7 +41,7 @@ var DefaultConfig = []byte(`{
 
 // TravisConfig is the JSON configuration used for Travis builds
 var TravisConfig = []byte(`{
-	"port": 8080,
+	"port": ":8080",
 	"mediaFolder": "/mem/",
 	"sqlite": {
 		"file": "~/.config/wavepipe/wavepipe.db"

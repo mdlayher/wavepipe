@@ -7,7 +7,6 @@ import (
 	"net/http/pprof"
 	"os"
 	"runtime"
-	"strconv"
 	"strings"
 
 	"github.com/mdlayher/wavepipe/api"
@@ -145,12 +144,17 @@ func apiRouter(apiKillChan chan struct{}) {
 			return
 		}
 
+		// Check for empty host
+		if conf.Host == "" {
+			log.Fatalf("api: no host specified in configuration")
+		}
+
 		// Start server
-		log.Println("api: listening on port", conf.Port)
-		if err := http.ListenAndServe(":"+strconv.Itoa(conf.Port), m); err != nil {
+		log.Println("api: binding to host", conf.Host)
+		if err := http.ListenAndServe(conf.Host, m); err != nil {
 			// Check if address in use
 			if strings.Contains(err.Error(), "address already in use") {
-				log.Fatalf("api: cannot bind to :%d, is wavepipe already running?", conf.Port)
+				log.Fatalf("api: cannot bind to %s, is wavepipe already running?", conf.Host)
 			}
 
 			log.Println(err)
