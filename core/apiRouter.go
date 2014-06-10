@@ -106,6 +106,14 @@ func apiRouter(apiKillChan chan struct{}) {
 	// Set up API routes
 	r := martini.NewRouter()
 
+	// Set up robots.txt to disallow crawling, since this is a dynamic service which users self-host
+	r.Get("/robots.txt", func(res http.ResponseWriter) {
+		res.Write([]byte("# wavepipe media server\n" +
+			"# https://github.com/mdlayher/wavepipe\n" +
+			"User-agent: *\n" +
+			"Disallow: /"))
+	})
+
 	// Set up API information route
 	r.Get("/api", api.APIInfo)
 
