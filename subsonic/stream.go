@@ -10,15 +10,19 @@ import (
 	"github.com/mdlayher/wavepipe/api"
 	"github.com/mdlayher/wavepipe/data"
 
-	"github.com/martini-contrib/render"
+	"github.com/gorilla/context"
+	"github.com/unrolled/render"
 )
 
 // GetStream is used to return the media stream for a single file
-func GetStream(req *http.Request, res http.ResponseWriter, r render.Render) {
+func GetStream(res http.ResponseWriter, req *http.Request) {
+	// Retrieve render
+	r := context.Get(req, api.CtxRender).(*render.Render)
+
 	// Fetch ID parameter
 	pID := req.URL.Query().Get("id")
 	if pID == "" {
-		r.XML(200, ErrMissingParameter)
+		r.XML(res, 200, ErrMissingParameter)
 		return
 	}
 
@@ -26,7 +30,7 @@ func GetStream(req *http.Request, res http.ResponseWriter, r render.Render) {
 	id, err := strconv.Atoi(pID)
 	if err != nil {
 		log.Println(err)
-		r.XML(200, ErrGeneric)
+		r.XML(res, 200, ErrGeneric)
 		return
 	}
 
@@ -34,7 +38,7 @@ func GetStream(req *http.Request, res http.ResponseWriter, r render.Render) {
 	song := &data.Song{ID: id}
 	if err := song.Load(); err != nil {
 		log.Println(err)
-		r.XML(200, ErrGeneric)
+		r.XML(res, 200, ErrGeneric)
 		return
 	}
 
@@ -42,7 +46,7 @@ func GetStream(req *http.Request, res http.ResponseWriter, r render.Render) {
 	stream, err := song.Stream()
 	if err != nil {
 		log.Println(err)
-		r.XML(200, ErrGeneric)
+		r.XML(res, 200, ErrGeneric)
 		return
 	}
 

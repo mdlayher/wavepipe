@@ -6,9 +6,11 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/mdlayher/wavepipe/api"
 	"github.com/mdlayher/wavepipe/data"
 
-	"github.com/martini-contrib/render"
+	"github.com/gorilla/context"
+	"github.com/unrolled/render"
 )
 
 // AlbumList2Container contains a list of emulated Subsonic albums, by tags
@@ -21,7 +23,10 @@ type AlbumList2Container struct {
 }
 
 // GetAlbumList2 is used in Subsonic to return a list of albums organized with tags
-func GetAlbumList2(req *http.Request, res http.ResponseWriter, r render.Render) {
+func GetAlbumList2(res http.ResponseWriter, req *http.Request) {
+	// Retrieve render
+	r := context.Get(req, api.CtxRender).(*render.Render)
+
 	// Create a new response container
 	c := newContainer()
 
@@ -32,7 +37,7 @@ func GetAlbumList2(req *http.Request, res http.ResponseWriter, r render.Render) 
 		tempOffset, err := strconv.Atoi(qOffset)
 		if err != nil {
 			log.Println(err)
-			r.XML(200, ErrGeneric)
+			r.XML(res, 200, ErrGeneric)
 			return
 		}
 
@@ -47,7 +52,7 @@ func GetAlbumList2(req *http.Request, res http.ResponseWriter, r render.Render) 
 		tempSize, err := strconv.Atoi(qSize)
 		if err != nil {
 			log.Println(err)
-			r.XML(200, ErrGeneric)
+			r.XML(res, 200, ErrGeneric)
 			return
 		}
 
@@ -59,7 +64,7 @@ func GetAlbumList2(req *http.Request, res http.ResponseWriter, r render.Render) 
 	albums, err := data.DB.LimitAlbums(offset, size)
 	if err != nil {
 		log.Println(err)
-		r.XML(200, ErrGeneric)
+		r.XML(res, 200, ErrGeneric)
 		return
 	}
 
@@ -70,7 +75,7 @@ func GetAlbumList2(req *http.Request, res http.ResponseWriter, r render.Render) 
 		songs, err := data.DB.SongsForAlbum(a.ID)
 		if err != nil {
 			log.Println(err)
-			r.XML(200, ErrGeneric)
+			r.XML(res, 200, ErrGeneric)
 			return
 		}
 
@@ -87,5 +92,5 @@ func GetAlbumList2(req *http.Request, res http.ResponseWriter, r render.Render) 
 	c.AlbumList2 = &AlbumList2Container{Albums: outAlbums}
 
 	// Write response
-	r.XML(200, c)
+	r.XML(res, 200, c)
 }

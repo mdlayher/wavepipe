@@ -5,17 +5,22 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/mdlayher/wavepipe/api"
 	"github.com/mdlayher/wavepipe/data"
 
-	"github.com/martini-contrib/render"
+	"github.com/gorilla/context"
+	"github.com/unrolled/render"
 )
 
 // GetAlbum is used in Subsonic to return a single album
-func GetAlbum(req *http.Request, res http.ResponseWriter, r render.Render) {
+func GetAlbum(res http.ResponseWriter, req *http.Request) {
+	// Retrieve render
+	r := context.Get(req, api.CtxRender).(*render.Render)
+
 	// Fetch ID parameter
 	pID := req.URL.Query().Get("id")
 	if pID == "" {
-		r.XML(200, ErrMissingParameter)
+		r.XML(res, 200, ErrMissingParameter)
 		return
 	}
 
@@ -23,7 +28,7 @@ func GetAlbum(req *http.Request, res http.ResponseWriter, r render.Render) {
 	id, err := strconv.Atoi(pID)
 	if err != nil {
 		log.Println(err)
-		r.XML(200, ErrGeneric)
+		r.XML(res, 200, ErrGeneric)
 		return
 	}
 
@@ -31,7 +36,7 @@ func GetAlbum(req *http.Request, res http.ResponseWriter, r render.Render) {
 	album := &data.Album{ID: id}
 	if err := album.Load(); err != nil {
 		log.Println(err)
-		r.XML(200, ErrGeneric)
+		r.XML(res, 200, ErrGeneric)
 		return
 	}
 
@@ -39,7 +44,7 @@ func GetAlbum(req *http.Request, res http.ResponseWriter, r render.Render) {
 	songs, err := data.DB.SongsForAlbum(album.ID)
 	if err != nil {
 		log.Println(err)
-		r.XML(200, ErrGeneric)
+		r.XML(res, 200, ErrGeneric)
 		return
 	}
 
@@ -58,5 +63,5 @@ func GetAlbum(req *http.Request, res http.ResponseWriter, r render.Render) {
 	c.Album = []Album{outAlbum}
 
 	// Write response
-	r.XML(200, c)
+	r.XML(res, 200, c)
 }

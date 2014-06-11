@@ -6,9 +6,11 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/mdlayher/wavepipe/api"
 	"github.com/mdlayher/wavepipe/data"
 
-	"github.com/martini-contrib/render"
+	"github.com/gorilla/context"
+	"github.com/unrolled/render"
 )
 
 // RandomSongsContainer contains a random list of emulated Subsonic songs
@@ -21,7 +23,10 @@ type RandomSongsContainer struct {
 }
 
 // GetRandomSongs is used in Subsonic to return a list of random songs
-func GetRandomSongs(req *http.Request, res http.ResponseWriter, r render.Render) {
+func GetRandomSongs(res http.ResponseWriter, req *http.Request) {
+	// Retrieve render
+	r := context.Get(req, api.CtxRender).(*render.Render)
+
 	// Fetch size parameter if passed
 	size := 10
 	if pSize := req.URL.Query().Get("size"); pSize != "" {
@@ -29,7 +34,7 @@ func GetRandomSongs(req *http.Request, res http.ResponseWriter, r render.Render)
 		tempSize, err := strconv.Atoi(pSize)
 		if err != nil {
 			log.Println(err)
-			r.XML(200, ErrGeneric)
+			r.XML(res, 200, ErrGeneric)
 			return
 		}
 
@@ -40,7 +45,7 @@ func GetRandomSongs(req *http.Request, res http.ResponseWriter, r render.Render)
 	songs, err := data.DB.RandomSongs(size)
 	if err != nil {
 		log.Println(err)
-		r.XML(200, ErrGeneric)
+		r.XML(res, 200, ErrGeneric)
 		return
 	}
 
@@ -55,5 +60,5 @@ func GetRandomSongs(req *http.Request, res http.ResponseWriter, r render.Render)
 	c.RandomSongs = &RandomSongsContainer{Songs: outSongs}
 
 	// Write response
-	r.XML(200, c)
+	r.XML(res, 200, c)
 }

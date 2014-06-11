@@ -6,9 +6,11 @@ import (
 	"net/http"
 	"path"
 
+	"github.com/mdlayher/wavepipe/api"
 	"github.com/mdlayher/wavepipe/config"
 
-	"github.com/martini-contrib/render"
+	"github.com/gorilla/context"
+	"github.com/unrolled/render"
 )
 
 // MusicFoldersContainer contains a list of emulated Subsonic music folders
@@ -21,12 +23,15 @@ type MusicFoldersContainer struct {
 }
 
 // GetMusicFolders is used in Subsonic to return a list of random songs
-func GetMusicFolders(req *http.Request, res http.ResponseWriter, r render.Render) {
+func GetMusicFolders(res http.ResponseWriter, req *http.Request) {
+	// Retrieve render
+	r := context.Get(req, api.CtxRender).(*render.Render)
+
 	// Load name of media folder from config
 	conf, err := config.C.Load()
 	if err != nil {
 		log.Println(err)
-		r.XML(200, ErrGeneric)
+		r.XML(res, 200, ErrGeneric)
 		return
 	}
 
@@ -37,5 +42,5 @@ func GetMusicFolders(req *http.Request, res http.ResponseWriter, r render.Render
 	}
 
 	// Write response
-	r.XML(200, c)
+	r.XML(res, 200, c)
 }

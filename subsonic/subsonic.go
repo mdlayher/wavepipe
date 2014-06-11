@@ -8,9 +8,11 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/mdlayher/wavepipe/api"
 	"github.com/mdlayher/wavepipe/data"
 
-	"github.com/martini-contrib/render"
+	"github.com/gorilla/context"
+	"github.com/unrolled/render"
 )
 
 const (
@@ -195,8 +197,12 @@ func subSong(song data.Song) Song {
 }
 
 // GetPing is used in Subsonic to check server connectivity
-func GetPing(res http.ResponseWriter, r render.Render) {
-	r.XML(200, newContainer())
+func GetPing(res http.ResponseWriter, req *http.Request) {
+	// Retrieve render
+	r := context.Get(req, api.CtxRender).(*render.Render)
+
+	// Output blank container
+	r.XML(res, 200, newContainer())
 }
 
 // MusicFolder represents an emulated Subsonic music folder
