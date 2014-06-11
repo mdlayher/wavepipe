@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/http/pprof"
 	"os"
 	"runtime"
 	"strings"
@@ -134,21 +135,18 @@ func apiRouter(apiKillChan chan struct{}) {
 	apiRoutes(subrouter)
 
 	// On debug mode, enable pprof debug endpoints
-	/*
-		// Thanks: https://github.com/go-negroni/negroni/issues/228
-		if os.Getenv("WAVEPIPE_DEBUG") == "1" {
-			r.Group("/debug/pprof", func(r negroni.Router) {
-				r.Any("/", pprof.Index)
-				r.Any("/cmdline", pprof.Cmdline)
-				r.Any("/profile", pprof.Profile)
-				r.Any("/symbol", pprof.Symbol)
-				r.Any("/block", pprof.Handler("block").ServeHTTP)
-				r.Any("/heap", pprof.Handler("heap").ServeHTTP)
-				r.Any("/goroutine", pprof.Handler("goroutine").ServeHTTP)
-				r.Any("/threadcreate", pprof.Handler("threadcreate").ServeHTTP)
-			})
-		}
-	*/
+	// Thanks: https://github.com/go-martini/martini/issues/228
+	if os.Getenv("WAVEPIPE_DEBUG") == "1" {
+		dr := router.PathPrefix("/debug/pprof").Subrouter()
+		dr.HandleFunc("/", pprof.Index)
+		dr.HandleFunc("/cmdline", pprof.Cmdline)
+		dr.HandleFunc("/profile", pprof.Profile)
+		dr.HandleFunc("/symbol", pprof.Symbol)
+		dr.HandleFunc("/block", pprof.Handler("block").ServeHTTP)
+		dr.HandleFunc("/heap", pprof.Handler("heap").ServeHTTP)
+		dr.HandleFunc("/goroutine", pprof.Handler("goroutine").ServeHTTP)
+		dr.HandleFunc("/threadcreate", pprof.Handler("threadcreate").ServeHTTP)
+	}
 
 	// Use gorilla mux with negroni, start server
 	n.UseHandler(router)
