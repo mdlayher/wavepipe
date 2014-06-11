@@ -210,10 +210,10 @@ func apiRoutes(r *mux.Router) {
 	r.HandleFunc("/lastfm/{action}", api.GetLastFM).Methods("GET")
 	r.HandleFunc("/lastfm/{action}/{id}", api.GetLastFM).Methods("GET")
 
-	/*
+	// Login API
+	r.HandleFunc("/login", api.GetLogin).Methods("GET")
 
-		// Login API
-		r.Get("/login", api.GetLogin)
+	/*
 
 		// Logout API
 		r.Get("/logout", api.GetLogout)
