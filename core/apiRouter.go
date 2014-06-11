@@ -127,7 +127,7 @@ func apiRouter(apiKillChan chan struct{}) {
 	}).Methods("GET")
 
 	// Set up API information route
-	router.HandleFunc("/api/", api.APIInfo).Methods("GET")
+	router.HandleFunc("/api", api.APIInfo).Methods("GET")
 
 	// Set up API group routes, with API version parameter
 	subrouter := router.PathPrefix("/api/{version}/").Subrouter()
