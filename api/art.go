@@ -61,7 +61,7 @@ func GetArt(res http.ResponseWriter, req *http.Request) {
 	if err := art.Load(); err != nil {
 		// Check for invalid ID
 		if err == sql.ErrNoRows {
-			r.JSON(res, 400, errRes(400, "art ID not found"))
+			r.JSON(res, 404, errRes(404, "art ID not found"))
 			return
 		}
 
