@@ -49,7 +49,8 @@ func Factory(path string) AuthMethod {
 	}
 
 	// Check for a login request: /api/vX/login, use bcrypt authenticator
-	if strings.HasPrefix(path, "/api/v") && strings.HasSuffix(path, "/login") {
+	// Note: length check added to prevent this from happening on /api/VX/lastfm/login
+	if len(path) == 13 && strings.HasPrefix(path, "/api/v") && strings.HasSuffix(path, "/login") {
 		return new(BcryptAuth)
 	}
 
