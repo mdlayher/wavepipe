@@ -220,11 +220,11 @@ func apiRoutes(r *mux.Router) {
 	r.HandleFunc("/search", api.GetSearch).Methods("GET")
 	r.HandleFunc("/search/{query}", api.GetSearch).Methods("GET")
 
-	/*
+	// Songs API
+	r.HandleFunc("/songs", api.GetSongs).Methods("GET")
+	r.HandleFunc("/songs/{id}", api.GetSongs).Methods("GET")
 
-		// Songs API
-		r.Get("/songs", api.GetSongs)
-		r.Get("/songs/:id", api.GetSongs)
+	/*
 
 		// Status API
 		r.Get("/status", api.GetStatus)

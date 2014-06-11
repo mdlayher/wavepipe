@@ -9,8 +9,9 @@ import (
 
 	"github.com/mdlayher/wavepipe/data"
 
-	"github.com/go-martini/martini"
-	"github.com/martini-contrib/render"
+	"github.com/gorilla/context"
+	"github.com/gorilla/mux"
+	"github.com/unrolled/render"
 )
 
 // SongsResponse represents the JSON response for /api/songs
@@ -20,31 +21,31 @@ type SongsResponse struct {
 }
 
 // GetSongs retrieves one or more songs from wavepipe, and returns a HTTP status and JSON
-func GetSongs(r render.Render, req *http.Request, params martini.Params) {
-	// Output struct for songs request
-	res := SongsResponse{}
+func GetSongs(res http.ResponseWriter, req *http.Request) {
+	// Retrieve render
+	r := context.Get(req, CtxRender).(*render.Render)
 
-	// Output struct for errors
-	errRes := ErrorResponse{render: r}
+	// Output struct for songs request
+	out := SongsResponse{}
 
 	// List of songs to return
 	songs := make([]data.Song, 0)
 
 	// Check API version
-	if version, ok := params["version"]; ok {
+	if version, ok := mux.Vars(req)["version"]; ok {
 		// Check if this API call is supported in the advertised version
 		if !apiVersionSet.Has(version) {
-			errRes.RenderError(400, "unsupported API version: "+version)
+			r.JSON(res, 400, errRes(400, "unsupported API version: "+version))
 			return
 		}
 	}
 
 	// Check for an ID parameter
-	if pID, ok := params["id"]; ok {
+	if pID, ok := mux.Vars(req)["id"]; ok {
 		// Verify valid integer ID
 		id, err := strconv.Atoi(pID)
 		if err != nil {
-			errRes.RenderError(400, "invalid integer song ID")
+			r.JSON(res, 400, errRes(400, "invalid integer song ID"))
 			return
 		}
 
@@ -54,13 +55,13 @@ func GetSongs(r render.Render, req *http.Request, params martini.Params) {
 		if err := song.Load(); err != nil {
 			// Check for invalid ID
 			if err == sql.ErrNoRows {
-				errRes.RenderError(404, "song ID not found")
+				r.JSON(res, 404, errRes(404, "song ID not found"))
 				return
 			}
 
 			// All other errors
 			log.Println(err)
-			errRes.ServerError()
+			r.JSON(res, 500, serverErr)
 			return
 		}
 
@@ -73,7 +74,7 @@ func GetSongs(r render.Render, req *http.Request, params martini.Params) {
 			var offset int
 			var count int
 			if n, err := fmt.Sscanf(pLimit, "%d,%d", &offset, &count); n < 2 || err != nil {
-				errRes.RenderError(400, "invalid comma-separated integer pair for limit")
+				r.JSON(res, 400, errRes(400, "invalid comma-separated integer pair for limit"))
 				return
 			}
 
@@ -81,7 +82,7 @@ func GetSongs(r render.Render, req *http.Request, params martini.Params) {
 			tempSongs, err := data.DB.LimitSongs(offset, count)
 			if err != nil {
 				log.Println(err)
-				errRes.ServerError()
+				r.JSON(res, 500, serverErr)
 				return
 			}
 
@@ -91,7 +92,7 @@ func GetSongs(r render.Render, req *http.Request, params martini.Params) {
 			// Check for a random songs request
 			random, err := strconv.Atoi(pRandom)
 			if err != nil {
-				errRes.RenderError(400, "invalid integer for random")
+				r.JSON(res, 400, errRes(400, "invalid integer for random"))
 				return
 			}
 
@@ -99,7 +100,7 @@ func GetSongs(r render.Render, req *http.Request, params martini.Params) {
 			tempSongs, err := data.DB.RandomSongs(random)
 			if err != nil {
 				log.Println(err)
-				errRes.ServerError()
+				r.JSON(res, 500, serverErr)
 				return
 			}
 
@@ -110,7 +111,7 @@ func GetSongs(r render.Render, req *http.Request, params martini.Params) {
 			tempSongs, err := data.DB.AllSongs()
 			if err != nil {
 				log.Println(err)
-				errRes.ServerError()
+				r.JSON(res, 500, serverErr)
 				return
 			}
 
@@ -120,10 +121,10 @@ func GetSongs(r render.Render, req *http.Request, params martini.Params) {
 	}
 
 	// Build response
-	res.Error = nil
-	res.Songs = songs
+	out.Error = nil
+	out.Songs = songs
 
 	// HTTP 200 OK with JSON
-	r.JSON(200, res)
+	r.JSON(res, 200, out)
 	return
 }
