@@ -229,12 +229,13 @@ func apiRoutes(r *mux.Router) {
 		// Status API
 		r.Get("/status", api.GetStatus)
 
-		// Stream API
-		r.Get("/stream", api.GetStream)
-		r.Get("/stream/:id", api.GetStream)
-
-		// Transcode API
-		r.Get("/transcode", api.GetTranscode)
-		r.Get("/transcode/:id", api.GetTranscode)
 	*/
+
+	// Stream API
+	r.HandleFunc("/stream", api.GetStream).Methods("GET")
+	r.HandleFunc("/stream/{id}", api.GetStream).Methods("GET")
+
+	// Transcode API
+	r.HandleFunc("/transcode", api.GetTranscode).Methods("GET")
+	r.HandleFunc("/transcode/{id}", api.GetTranscode).Methods("GET")
 }
