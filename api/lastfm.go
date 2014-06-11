@@ -76,6 +76,7 @@ func GetLastFM(res http.ResponseWriter, req *http.Request) {
 	// Check for valid action
 	if !set.New(lfmLogin, lfmNowPlaying, lfmScrobble).Has(action) {
 		r.JSON(res, 400, errRes(400, "invalid string action provided"))
+		return
 	}
 
 	// Instantiate Last.fm package
