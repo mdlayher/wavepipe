@@ -11,6 +11,7 @@ import (
 	"github.com/mdlayher/wavepipe/api"
 	"github.com/mdlayher/wavepipe/api/auth"
 	"github.com/mdlayher/wavepipe/config"
+	"github.com/mdlayher/wavepipe/data"
 
 	"github.com/codegangsta/negroni"
 	"github.com/gorilla/context"
@@ -66,6 +67,10 @@ func apiRouter(apiKillChan chan struct{}) {
 		method := auth.Factory(req.URL.Path)
 		if method == nil {
 			// If no method returned, path is not authenticated
+			// Map a blank user and session for sanity
+			context.Set(req, api.CtxUser, new(data.User))
+			context.Set(req, api.CtxSession, new(data.Session))
+
 			next(res, req)
 			return
 		}
