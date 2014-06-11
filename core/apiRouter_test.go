@@ -1,20 +1,28 @@
 package core
 
 import (
+	"encoding/json"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"testing"
 
+	"github.com/mdlayher/wavepipe/api"
 	"github.com/mdlayher/wavepipe/data"
 
-	"github.com/go-martini/martini"
-	"github.com/martini-contrib/render"
+	"github.com/codegangsta/negroni"
+	"github.com/gorilla/context"
+	"github.com/gorilla/mux"
+	"github.com/unrolled/render"
 )
 
-// Martini instance to test against
-var m = martini.New()
+// Negroni instance to test against
+var n = negroni.New()
+
+// Render instance to test against
+var r = render.New(render.Options{})
 
 func init() {
 	// Set up database connection
@@ -24,17 +32,11 @@ func init() {
 		os.Exit(1)
 	}
 
-	// Map a dummy user for some API calls
-	m.Use(render.Renderer(render.Options{}))
-	m.Use(func(c martini.Context) {
-		c.Map(new(data.User))
-	})
-
-	// Set up Martini with API routes
-	r := martini.NewRouter()
-	r.Group("/api/:version", apiRoutes)
-	m.Action(r.Handle)
-
+	// Set up Negroni with API routes
+	router := mux.NewRouter().StrictSlash(false)
+	subrouter := router.PathPrefix("/api/{version}/").Subrouter()
+	apiRoutes(subrouter)
+	n.UseHandler(router)
 }
 
 // TestAPIRouter verifies that all API request processing functionality is working properly
@@ -191,20 +193,43 @@ func TestAPIRouter(t *testing.T) {
 	// Iterate all tests
 	for _, test := range tests {
 		// Generate a new HTTP request
-		r, err := http.NewRequest("GET", "http://localhost:8080"+test.url, nil)
+		req, err := http.NewRequest("GET", "http://localhost:8080"+test.url, nil)
 		if err != nil {
 			t.Fatalf("Failed to create HTTP request")
 		}
+
+		// Map context for request
+		context.Set(req, api.CtxRender, r)
+		context.Set(req, api.CtxUser, new(data.User))
+		context.Set(req, api.CtxSession, new(data.Session))
 
 		// Capture HTTP response via recorder
 		w := httptest.NewRecorder()
 
 		// Perform request
-		m.ServeHTTP(w, r)
+		n.ServeHTTP(w, req)
 
 		// Validate results
 		if w.Code != test.code {
-			t.Fatalf("[%v != %v] %s", w.Code, test.code, test.url)
+			t.Fatalf("HTTP [%v != %v] %s", w.Code, test.code, test.url)
+		}
+
+		// Check result body as well
+		body, err := ioutil.ReadAll(w.Body)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		// Unmarshal error response
+		var errRes api.ErrorResponse
+		if err := json.Unmarshal(body, &errRes); err != nil {
+			log.Println(string(body))
+			t.Fatal(err)
+		}
+
+		// If not HTTP 200, check to ensure error code matches
+		if errRes.Error != nil && errRes.Error.Code != test.code {
+			t.Fatalf("Body [%v != %v] %s", w.Code, test.code, test.url)
 		}
 
 		log.Printf("OK: [%d] %s", test.code, test.url)
