@@ -205,12 +205,12 @@ func apiRoutes(r *mux.Router) {
 	r.HandleFunc("/folders", api.GetFolders).Methods("GET")
 	r.HandleFunc("/folders/{id}", api.GetFolders).Methods("GET")
 
-	/*
+	// LastFM API
+	r.HandleFunc("/lastfm", api.GetLastFM).Methods("GET")
+	r.HandleFunc("/lastfm/{action}", api.GetLastFM).Methods("GET")
+	r.HandleFunc("/lastfm/{action}/{id}", api.GetLastFM).Methods("GET")
 
-		// LastFM API
-		r.Get("/lastfm", api.GetLastFM)
-		r.Get("/lastfm/:action", api.GetLastFM)
-		r.Get("/lastfm/:action/:id", api.GetLastFM)
+	/*
 
 		// Login API
 		r.Get("/login", api.GetLogin)
