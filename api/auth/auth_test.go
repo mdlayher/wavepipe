@@ -20,6 +20,8 @@ func TestFactory(t *testing.T) {
 		{"/api/v0/login", new(BcryptAuth)},
 		// Other API calls - token
 		{"/api/v0/status", new(TokenAuth)},
+		// Bugfix: Last.fm login - token
+		{"/api/v0/lastfm/login", new(TokenAuth)},
 	}
 
 	// Iterate and verify tests
