@@ -9,8 +9,9 @@ import (
 
 	"github.com/mdlayher/wavepipe/data"
 
-	"github.com/go-martini/martini"
-	"github.com/martini-contrib/render"
+	"github.com/gorilla/context"
+	"github.com/gorilla/mux"
+	"github.com/unrolled/render"
 )
 
 // ArtistsResponse represents the JSON response for /api/artists
@@ -22,31 +23,31 @@ type ArtistsResponse struct {
 }
 
 // GetArtists retrieves one or more artists from wavepipe, and returns a HTTP status and JSON
-func GetArtists(r render.Render, req *http.Request, params martini.Params) {
-	// Output struct for artists request
-	res := ArtistsResponse{}
+func GetArtists(res http.ResponseWriter, req *http.Request) {
+	// Retrieve render
+	r := context.Get(req, CtxRender).(*render.Render)
 
-	// Output struct for errors
-	errRes := ErrorResponse{render: r}
+	// Output struct for artists request
+	out := ArtistsResponse{}
 
 	// List of artists to return
 	artists := make([]data.Artist, 0)
 
 	// Check API version
-	if version, ok := params["version"]; ok {
+	if version, ok := mux.Vars(req)["version"]; ok {
 		// Check if this API call is supported in the advertised version
 		if !apiVersionSet.Has(version) {
-			errRes.RenderError(400, "unsupported API version: "+version)
+			r.JSON(res, 400, errRes(400, "unsupported API version: "+version))
 			return
 		}
 	}
 
 	// Check for an ID parameter
-	if pID, ok := params["id"]; ok {
+	if pID, ok := mux.Vars(req)["id"]; ok {
 		// Verify valid integer ID
 		id, err := strconv.Atoi(pID)
 		if err != nil {
-			errRes.RenderError(400, "invalid integer artist ID")
+			r.JSON(res, 400, errRes(400, "invalid integer artist ID"))
 			return
 		}
 
@@ -56,13 +57,13 @@ func GetArtists(r render.Render, req *http.Request, params martini.Params) {
 		if err := artist.Load(); err != nil {
 			// Check for invalid ID
 			if err == sql.ErrNoRows {
-				errRes.RenderError(404, "artist ID not found")
+				r.JSON(res, 400, errRes(400, "artist ID not found"))
 				return
 			}
 
 			// All other errors
 			log.Println(err)
-			errRes.ServerError()
+			r.JSON(res, 500, serverErr)
 			return
 		}
 
@@ -70,12 +71,12 @@ func GetArtists(r render.Render, req *http.Request, params martini.Params) {
 		albums, err := data.DB.AlbumsForArtist(artist.ID)
 		if err != nil {
 			log.Println(err)
-			errRes.ServerError()
+			r.JSON(res, 500, serverErr)
 			return
 		}
 
 		// Add albums to output
-		res.Albums = albums
+		out.Albums = albums
 
 		// Get songs for this artist if parameter is true
 		if req.URL.Query().Get("songs") == "true" {
@@ -83,12 +84,12 @@ func GetArtists(r render.Render, req *http.Request, params martini.Params) {
 			songs, err := data.DB.SongsForArtist(artist.ID)
 			if err != nil {
 				log.Println(err)
-				errRes.ServerError()
+				r.JSON(res, 500, serverErr)
 				return
 			}
 
 			// Add songs to output
-			res.Songs = songs
+			out.Songs = songs
 		}
 
 		// Add artist to slice
@@ -100,7 +101,7 @@ func GetArtists(r render.Render, req *http.Request, params martini.Params) {
 			var offset int
 			var count int
 			if n, err := fmt.Sscanf(pLimit, "%d,%d", &offset, &count); n < 2 || err != nil {
-				errRes.RenderError(400, "invalid comma-separated integer pair for limit")
+				r.JSON(res, 400, errRes(400, "invalid comma-separated integer pair for limit"))
 				return
 			}
 
@@ -108,7 +109,7 @@ func GetArtists(r render.Render, req *http.Request, params martini.Params) {
 			tempArtists, err := data.DB.LimitArtists(offset, count)
 			if err != nil {
 				log.Println(err)
-				errRes.ServerError()
+				r.JSON(res, 500, serverErr)
 				return
 			}
 
@@ -119,7 +120,7 @@ func GetArtists(r render.Render, req *http.Request, params martini.Params) {
 			tempArtists, err := data.DB.AllArtists()
 			if err != nil {
 				log.Println(err)
-				errRes.ServerError()
+				r.JSON(res, 500, serverErr)
 				return
 			}
 
@@ -129,10 +130,10 @@ func GetArtists(r render.Render, req *http.Request, params martini.Params) {
 	}
 
 	// Build response
-	res.Error = nil
-	res.Artists = artists
+	out.Error = nil
+	out.Artists = artists
 
 	// HTTP 200 OK with JSON
-	r.JSON(200, res)
+	r.JSON(res, 200, out)
 	return
 }
