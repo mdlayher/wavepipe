@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"net/http/pprof"
 	"os"
 	"runtime"
 	"strings"
@@ -13,30 +12,29 @@ import (
 	"github.com/mdlayher/wavepipe/api/auth"
 	"github.com/mdlayher/wavepipe/config"
 
-	"github.com/go-martini/martini"
-	"github.com/martini-contrib/gzip"
-	"github.com/martini-contrib/render"
+	"github.com/codegangsta/negroni"
+	"github.com/gorilla/context"
+	"github.com/gorilla/mux"
+	"github.com/unrolled/render"
 )
 
-// apiRouter sets up the instance of martini
+// apiRouter sets up the instance of negroni
 func apiRouter(apiKillChan chan struct{}) {
 	log.Println("api: starting...")
 
-	// Initialize martini
-	m := martini.New()
+	// Initialize negroni
+	n := negroni.New()
 
-	// Set up middleware
-	// GZIP all requests to drastically reduce size
-	m.Use(gzip.All())
-	m.Use(render.Renderer(render.Options{
+	// Set up render
+	r := render.New(render.Options{
 		// Output human-readable JSON. GZIP will essentially negate the size increase, and this
 		// makes the API much more developer-friendly
 		IndentJSON: true,
-	}))
+	})
 
 	// Enable graceful shutdown when triggered by manager
 	stopAPI := false
-	m.Use(func(req *http.Request, res http.ResponseWriter, r render.Render) {
+	n.Use(negroni.HandlerFunc(func(res http.ResponseWriter, req *http.Request, next http.HandlerFunc) {
 		// On debug, log everything
 		if os.Getenv("WAVEPIPE_DEBUG") == "1" {
 			log.Println(req.Header)
@@ -48,20 +46,27 @@ func apiRouter(apiKillChan chan struct{}) {
 
 		// If API is stopping, render a HTTP 503
 		if stopAPI {
-			r.JSON(503, api.Error{
+			r.JSON(res, 503, api.Error{
 				Code:    503,
 				Message: "service is shutting down",
 			})
 			return
 		}
-	})
+
+		// Store render in context for all API calls
+		context.Set(req, api.CtxRender, r)
+
+		// Delegate to next middleware
+		next(res, req)
+	}))
 
 	// Authenticate all API calls
-	m.Use(func(req *http.Request, res http.ResponseWriter, c martini.Context, r render.Render) {
+	n.Use(negroni.HandlerFunc(func(res http.ResponseWriter, req *http.Request, next http.HandlerFunc) {
 		// Use factory to determine the proper authentication method for this path
 		method := auth.Factory(req.URL.Path)
 		if method == nil {
 			// If no method returned, path is not authenticated
+			next(res, req)
 			return
 		}
 
@@ -76,7 +81,7 @@ func apiRouter(apiKillChan chan struct{}) {
 				res.Header().Set("WWW-Authenticate", "Basic")
 			}
 
-			r.JSON(401, api.Error{
+			r.JSON(res, 401, api.Error{
 				Code:    401,
 				Message: "authentication failed: " + clientErr.Error(),
 			})
@@ -87,55 +92,61 @@ func apiRouter(apiKillChan chan struct{}) {
 		if serverErr != nil {
 			log.Println(serverErr)
 
-			r.JSON(500, api.Error{
+			r.JSON(res, 500, api.Error{
 				Code:    500,
 				Message: "server error",
 			})
 			return
 		}
 
-		// Successful login, map session user and session to martini context
-		c.Map(user)
-		c.Map(session)
+		// Successful login, map session user and session to gorilla context for this request
+		context.Set(req, api.CtxUser, user)
+		context.Set(req, api.CtxSession, session)
 
 		// Print information about this API call
 		log.Printf("api: [%s] %s?%s", req.RemoteAddr, req.URL.Path, req.URL.Query().Encode())
-	})
+
+		// Perform API call
+		next(res, req)
+	}))
 
 	// Set up API routes
-	r := martini.NewRouter()
+	router := mux.NewRouter().StrictSlash(false)
 
 	// Set up robots.txt to disallow crawling, since this is a dynamic service which users self-host
-	r.Get("/robots.txt", func(res http.ResponseWriter) {
+	router.HandleFunc("/robots.txt", func(res http.ResponseWriter, req *http.Request) {
 		res.Write([]byte("# wavepipe media server\n" +
 			"# https://github.com/mdlayher/wavepipe\n" +
 			"User-agent: *\n" +
 			"Disallow: /"))
-	})
+	}).Methods("GET")
 
 	// Set up API information route
-	r.Get("/api", api.APIInfo)
+	router.HandleFunc("/api/", api.APIInfo).Methods("GET")
 
 	// Set up API group routes, with API version parameter
-	r.Group("/api/:version", apiRoutes)
+	subrouter := router.PathPrefix("/api/{version}/").Subrouter()
+	apiRoutes(subrouter)
 
 	// On debug mode, enable pprof debug endpoints
-	// Thanks: https://github.com/go-martini/martini/issues/228
-	if os.Getenv("WAVEPIPE_DEBUG") == "1" {
-		r.Group("/debug/pprof", func(r martini.Router) {
-			r.Any("/", pprof.Index)
-			r.Any("/cmdline", pprof.Cmdline)
-			r.Any("/profile", pprof.Profile)
-			r.Any("/symbol", pprof.Symbol)
-			r.Any("/block", pprof.Handler("block").ServeHTTP)
-			r.Any("/heap", pprof.Handler("heap").ServeHTTP)
-			r.Any("/goroutine", pprof.Handler("goroutine").ServeHTTP)
-			r.Any("/threadcreate", pprof.Handler("threadcreate").ServeHTTP)
-		})
-	}
+	/*
+		// Thanks: https://github.com/go-negroni/negroni/issues/228
+		if os.Getenv("WAVEPIPE_DEBUG") == "1" {
+			r.Group("/debug/pprof", func(r negroni.Router) {
+				r.Any("/", pprof.Index)
+				r.Any("/cmdline", pprof.Cmdline)
+				r.Any("/profile", pprof.Profile)
+				r.Any("/symbol", pprof.Symbol)
+				r.Any("/block", pprof.Handler("block").ServeHTTP)
+				r.Any("/heap", pprof.Handler("heap").ServeHTTP)
+				r.Any("/goroutine", pprof.Handler("goroutine").ServeHTTP)
+				r.Any("/threadcreate", pprof.Handler("threadcreate").ServeHTTP)
+			})
+		}
+	*/
 
-	// Add router action, start server
-	m.Action(r.Handle)
+	// Use gorilla mux with negroni, start server
+	n.UseHandler(router)
 	go func() {
 		// Load config
 		conf, err := config.C.Load()
@@ -151,7 +162,7 @@ func apiRouter(apiKillChan chan struct{}) {
 
 		// Start server
 		log.Println("api: binding to host", conf.Host)
-		if err := http.ListenAndServe(conf.Host, m); err != nil {
+		if err := http.ListenAndServe(conf.Host, n); err != nil {
 			// Check if address in use
 			if strings.Contains(err.Error(), "address already in use") {
 				log.Fatalf("api: cannot bind to %s, is wavepipe already running?", conf.Host)
@@ -178,53 +189,50 @@ func apiRouter(apiKillChan chan struct{}) {
 }
 
 // apiRoutes sets up the API routes required by wavepipe
-func apiRoutes(r martini.Router) {
-	// Root API, containing information and help
-	r.Get("", api.APIInfo)
-
+func apiRoutes(r *mux.Router) {
 	// Albums API
-	r.Get("/albums", api.GetAlbums)
-	r.Get("/albums/:id", api.GetAlbums)
+	r.HandleFunc("/albums", api.GetAlbums).Methods("GET")
+	r.HandleFunc("/albums/{id}", api.GetAlbums).Methods("GET")
 
 	// Art API
-	r.Get("/art", api.GetArt)
-	r.Get("/art/:id", api.GetArt)
+	r.HandleFunc("/art", api.GetArt).Methods("GET")
+	r.HandleFunc("/art/{id}", api.GetArt).Methods("GET")
 
 	// Artists API
-	r.Get("/artists", api.GetArtists)
-	r.Get("/artists/:id", api.GetArtists)
+	r.HandleFunc("/artists", api.GetArtists).Methods("GET")
+	r.HandleFunc("/artists/{id}", api.GetArtists).Methods("GET")
 
 	// Folders API
-	r.Get("/folders", api.GetFolders)
-	r.Get("/folders/:id", api.GetFolders)
+	r.HandleFunc("/folders", api.GetFolders).Methods("GET")
+	r.HandleFunc("/folders/{id}", api.GetFolders).Methods("GET")
 
 	// LastFM API
-	r.Get("/lastfm", api.GetLastFM)
-	r.Get("/lastfm/:action", api.GetLastFM)
-	r.Get("/lastfm/:action/:id", api.GetLastFM)
+	r.HandleFunc("/lastfm", api.GetLastFM).Methods("GET")
+	r.HandleFunc("/lastfm/{action}", api.GetLastFM).Methods("GET")
+	r.HandleFunc("/lastfm/{action}/{id}", api.GetLastFM).Methods("GET")
 
 	// Login API
-	r.Get("/login", api.GetLogin)
+	r.HandleFunc("/login", api.GetLogin).Methods("GET")
 
 	// Logout API
-	r.Get("/logout", api.GetLogout)
+	r.HandleFunc("/logout", api.GetLogout).Methods("GET")
 
 	// Search API
-	r.Get("/search", api.GetSearch)
-	r.Get("/search/:query", api.GetSearch)
+	r.HandleFunc("/search", api.GetSearch).Methods("GET")
+	r.HandleFunc("/search/{query}", api.GetSearch).Methods("GET")
 
 	// Songs API
-	r.Get("/songs", api.GetSongs)
-	r.Get("/songs/:id", api.GetSongs)
+	r.HandleFunc("/songs", api.GetSongs).Methods("GET")
+	r.HandleFunc("/songs/{id}", api.GetSongs).Methods("GET")
 
 	// Status API
-	r.Get("/status", api.GetStatus)
+	r.HandleFunc("/status", api.GetStatus).Methods("GET")
 
 	// Stream API
-	r.Get("/stream", api.GetStream)
-	r.Get("/stream/:id", api.GetStream)
+	r.HandleFunc("/stream", api.GetStream).Methods("GET")
+	r.HandleFunc("/stream/{id}", api.GetStream).Methods("GET")
 
 	// Transcode API
-	r.Get("/transcode", api.GetTranscode)
-	r.Get("/transcode/:id", api.GetTranscode)
+	r.HandleFunc("/transcode", api.GetTranscode).Methods("GET")
+	r.HandleFunc("/transcode/{id}", api.GetTranscode).Methods("GET")
 }

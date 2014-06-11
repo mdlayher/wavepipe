@@ -1,19 +1,30 @@
 package api
 
 import (
-	"github.com/go-martini/martini"
-	"github.com/martini-contrib/render"
+	"net/http"
+
+	"github.com/gorilla/context"
+	"github.com/gorilla/mux"
 	"github.com/mdlayher/goset"
+	"github.com/unrolled/render"
 )
 
-// APIVersion is the current version of the API
-const APIVersion = "v0"
+const (
+	// Version is the current version of the API
+	Version = "v0"
+	// Documentation provides a link to the current API documentation
+	Documentation = "https://github.com/mdlayher/wavepipe/blob/master/API.md"
 
-// APIDocumentation provides a link to the current API documentation
-const APIDocumentation = "https://github.com/mdlayher/wavepipe/blob/master/API.md"
+	// CtxRender is the key used to store a render instance in gorilla context
+	CtxRender = "middleware_render"
+	// CtxUser is the key used to store a User instance in gorilla context
+	CtxUser = "data_user"
+	// CtxSession is the key used to store a Session instance on gorilla context
+	CtxSession = "data_session"
+)
 
 // apiVersionSet is the set of all currently supported API versions
-var apiVersionSet = set.New(APIVersion)
+var apiVersionSet = set.New(Version)
 
 // Error represents an error produced by the API
 type Error struct {
@@ -23,26 +34,21 @@ type Error struct {
 
 // ErrorResponse represents the JSON response for endpoints which only return an error
 type ErrorResponse struct {
-	Error  *Error        `json:"error"`
-	render render.Render `json:"-"`
+	Error *Error `json:"error"`
 }
 
-// RenderError renders a JSON error message with the specified HTTP status code and message
-func (e *ErrorResponse) RenderError(code int, message string) {
-	// Render with specified HTTP status code
-	e.render.JSON(code, ErrorResponse{
+// errRes generates an ErrorResponse struct containing the specified code and message
+func errRes(code int, message string) ErrorResponse {
+	return ErrorResponse{
 		Error: &Error{
 			Code:    code,
 			Message: message,
 		},
-	})
+	}
 }
 
-// ServerError is a shortcut to render a HTTP 500 with generic "server error" message
-func (e *ErrorResponse) ServerError() {
-	e.RenderError(500, "server error")
-	return
-}
+// serverErr is the ErrorResponse returned to clients on an internal server error
+var serverErr = errRes(500, "server error")
 
 // Information represents information about the API
 type Information struct {
@@ -53,9 +59,9 @@ type Information struct {
 }
 
 // APIInfo returns information about the API
-func APIInfo(r render.Render, params martini.Params) {
-	// Output struct for errors
-	errRes := ErrorResponse{render: r}
+func APIInfo(res http.ResponseWriter, req *http.Request) {
+	// Retrieve render
+	r := context.Get(req, CtxRender).(*render.Render)
 
 	// Enumerate available API versions
 	versions := make([]string, 0)
@@ -64,22 +70,22 @@ func APIInfo(r render.Render, params martini.Params) {
 	}
 
 	// Output response
-	res := Information{
+	info := Information{
 		Error:         nil,
-		Version:       APIVersion,
+		Version:       Version,
 		Supported:     versions,
-		Documentation: APIDocumentation,
+		Documentation: Documentation,
 	}
 
 	// Check if a "version" was set
-	if version, ok := params["version"]; ok {
+	if version, ok := mux.Vars(req)["version"]; ok {
 		// Check if API version is supported
 		if !apiVersionSet.Has(version) {
-			errRes.RenderError(400, "unsupported API version: "+version)
+			r.JSON(res, 400, errRes(400, "unsupported API version: "+version))
 			return
 		}
 	}
 
 	// HTTP 200 OK
-	r.JSON(200, res)
+	r.JSON(res, 200, info)
 }

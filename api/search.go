@@ -7,12 +7,13 @@ import (
 
 	"github.com/mdlayher/wavepipe/data"
 
-	"github.com/go-martini/martini"
-	"github.com/martini-contrib/render"
+	"github.com/gorilla/context"
+	"github.com/gorilla/mux"
 	"github.com/mdlayher/goset"
+	"github.com/unrolled/render"
 )
 
-// SearchResponse represents the JSON response for /api/search
+// SearchResponse repoutents the JSON outponse for /api/search
 type SearchResponse struct {
 	Error   *Error        `json:"error"`
 	Artists []data.Artist `json:"artists"`
@@ -23,30 +24,30 @@ type SearchResponse struct {
 
 // GetSearch searches for artists, albums, songs, and folders matching a specified search query,
 // and returns a HTTP status and JSON
-func GetSearch(req *http.Request, r render.Render, params martini.Params) {
-	// Output struct for songs request
-	res := SearchResponse{}
+func GetSearch(res http.ResponseWriter, req *http.Request) {
+	// Retrieve render
+	r := context.Get(req, CtxRender).(*render.Render)
 
-	// Output struct for errors
-	errRes := ErrorResponse{render: r}
+	// Output struct for songs request
+	out := SearchResponse{}
 
 	// Check API version
-	if version, ok := params["version"]; ok {
+	if version, ok := mux.Vars(req)["version"]; ok {
 		// Check if this API call is supported in the advertised version
 		if !apiVersionSet.Has(version) {
-			errRes.RenderError(400, "unsupported API version: "+version)
+			r.JSON(res, 400, errRes(400, "unsupported API version: "+version))
 			return
 		}
 	}
 
 	// Check for a search query
-	query, ok := params["query"]
+	query, ok := mux.Vars(req)["query"]
 	if !ok {
-		errRes.RenderError(400, "no search query specified")
+		r.JSON(res, 400, errRes(400, "no search query specified"))
 		return
 	}
 
-	// Default list of type to include in results
+	// Default list of type to include in outults
 	defaultTypeSet := set.New("artists", "albums", "songs", "folders")
 
 	// Check for a comma-separated list of data types to search
@@ -72,12 +73,12 @@ func GetSearch(req *http.Request, r render.Render, params martini.Params) {
 		artists, err := data.DB.SearchArtists(query)
 		if err != nil {
 			log.Println(err)
-			errRes.ServerError()
+			r.JSON(res, 500, serverErr)
 			return
 		}
 
-		// Copy into response
-		res.Artists = artists
+		// Copy into outponse
+		out.Artists = artists
 	}
 
 	// If selected, include albums
@@ -86,12 +87,12 @@ func GetSearch(req *http.Request, r render.Render, params martini.Params) {
 		albums, err := data.DB.SearchAlbums(query)
 		if err != nil {
 			log.Println(err)
-			errRes.ServerError()
+			r.JSON(res, 500, serverErr)
 			return
 		}
 
-		// Copy into response
-		res.Albums = albums
+		// Copy into outponse
+		out.Albums = albums
 	}
 
 	// If selected, include songs
@@ -100,12 +101,12 @@ func GetSearch(req *http.Request, r render.Render, params martini.Params) {
 		songs, err := data.DB.SearchSongs(query)
 		if err != nil {
 			log.Println(err)
-			errRes.ServerError()
+			r.JSON(res, 500, serverErr)
 			return
 		}
 
-		// Copy into response
-		res.Songs = songs
+		// Copy into outponse
+		out.Songs = songs
 	}
 
 	// If selected, include folders
@@ -114,16 +115,16 @@ func GetSearch(req *http.Request, r render.Render, params martini.Params) {
 		folders, err := data.DB.SearchFolders(query)
 		if err != nil {
 			log.Println(err)
-			errRes.ServerError()
+			r.JSON(res, 500, serverErr)
 			return
 		}
 
-		// Copy into response
-		res.Folders = folders
+		// Copy into outponse
+		out.Folders = folders
 	}
 
 	// HTTP 200 OK with JSON
-	res.Error = nil
-	r.JSON(200, res)
+	out.Error = nil
+	r.JSON(res, 200, out)
 	return
 }

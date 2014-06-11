@@ -6,8 +6,9 @@ import (
 
 	"github.com/mdlayher/wavepipe/common"
 
-	"github.com/go-martini/martini"
-	"github.com/martini-contrib/render"
+	"github.com/gorilla/context"
+	"github.com/gorilla/mux"
+	"github.com/unrolled/render"
 )
 
 // StatusResponse represents the JSON response for /api/status
@@ -18,18 +19,18 @@ type StatusResponse struct {
 }
 
 // GetStatus returns the current server status, with an HTTP status and JSON
-func GetStatus(req *http.Request, r render.Render, params martini.Params) {
-	// Output struct for songs request
-	res := StatusResponse{}
+func GetStatus(res http.ResponseWriter, req *http.Request) {
+	// Retrieve render
+	r := context.Get(req, CtxRender).(*render.Render)
 
-	// Output struct for errors
-	errRes := ErrorResponse{render: r}
+	// Output struct for songs request
+	out := StatusResponse{}
 
 	// Check API version
-	if version, ok := params["version"]; ok {
+	if version, ok := mux.Vars(req)["version"]; ok {
 		// Check if this API call is supported in the advertised version
 		if !apiVersionSet.Has(version) {
-			errRes.RenderError(400, "unsupported API version: "+version)
+			r.JSON(res, 400, errRes(400, "unsupported API version: "+version))
 			return
 		}
 	}
@@ -38,28 +39,28 @@ func GetStatus(req *http.Request, r render.Render, params martini.Params) {
 	status, err := common.ServerStatus()
 	if err != nil {
 		log.Println(err)
-		errRes.ServerError()
+		r.JSON(res, 500, serverErr)
 		return
 	}
 
 	// Copy into response
-	res.Status = status
+	out.Status = status
 
 	// If requested, fetch additional metrics (not added by default due to full table scans in database)
 	if pMetrics := req.URL.Query().Get("metrics"); pMetrics == "true" {
 		metrics, err := common.ServerMetrics()
 		if err != nil {
 			log.Println(err)
-			errRes.ServerError()
+			r.JSON(res, 500, serverErr)
 			return
 		}
 
 		// Return metrics
-		res.Metrics = metrics
+		out.Metrics = metrics
 	}
 
 	// HTTP 200 OK with JSON
-	res.Error = nil
-	r.JSON(200, res)
+	out.Error = nil
+	r.JSON(res, 200, out)
 	return
 }
