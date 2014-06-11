@@ -14,7 +14,6 @@ import (
 
 	"github.com/codegangsta/negroni"
 	"github.com/gorilla/context"
-	"github.com/gorilla/mux"
 	"github.com/unrolled/render"
 )
 
@@ -33,10 +32,7 @@ func init() {
 	}
 
 	// Set up Negroni with API routes
-	router := mux.NewRouter().StrictSlash(false)
-	subrouter := router.PathPrefix("/api/{version}/").Subrouter()
-	apiRoutes(subrouter)
-	n.UseHandler(router)
+	n.UseHandler(newRouter())
 }
 
 // TestAPIRouter verifies that all API request processing functionality is working properly

@@ -134,61 +134,8 @@ func apiRouter(apiKillChan chan struct{}) {
 		next(res, req)
 	}))
 
-	// Set up API routes
-	router := mux.NewRouter().StrictSlash(false)
-
-	// Set up robots.txt to disallow crawling, since this is a dynamic service which users self-host
-	router.HandleFunc("/robots.txt", func(res http.ResponseWriter, req *http.Request) {
-		res.Write([]byte("# wavepipe media server\n" +
-			"# https://github.com/mdlayher/wavepipe\n" +
-			"User-agent: *\n" +
-			"Disallow: /"))
-	}).Methods("GET")
-
-	// Set up API information route
-	router.HandleFunc("/api", api.APIInfo).Methods("GET")
-
-	// Set up API group routes, with API version parameter
-	subrouter := router.PathPrefix("/api/{version}/").Subrouter()
-	apiRoutes(subrouter)
-
-	// Set up emulated Subsonic API routes
-	sr := router.PathPrefix("/subsonic/rest").Subrouter()
-
-	// Ping - used to check connectivity
-	sr.HandleFunc("/ping.view", subsonic.GetPing).Methods("GET")
-
-	// GetAlbumList2 - used to return a list of all albums by tags
-	sr.HandleFunc("/getAlbumList2.view", subsonic.GetAlbumList2).Methods("GET")
-
-	// GetAlbum - used to retrieve information about one album
-	sr.HandleFunc("/getAlbum.view", subsonic.GetAlbum).Methods("GET")
-
-	// GetMusicFolders - used to retrieve list of known music folders
-	sr.HandleFunc("/getMusicFolders.view", subsonic.GetMusicFolders).Methods("GET")
-
-	// GetRandomSongs - used to retrieve a number of random songs
-	sr.HandleFunc("/getRandomSongs.view", subsonic.GetRandomSongs).Methods("GET")
-
-	// Stream - used to return a binary file stream
-	sr.HandleFunc("/stream.view", subsonic.GetStream).Methods("GET")
-
-	// On debug mode, enable pprof debug endpoints
-	// Thanks: https://github.com/go-martini/martini/issues/228
-	if os.Getenv("WAVEPIPE_DEBUG") == "1" {
-		dr := router.PathPrefix("/debug/pprof").Subrouter()
-		dr.HandleFunc("/", pprof.Index)
-		dr.HandleFunc("/cmdline", pprof.Cmdline)
-		dr.HandleFunc("/profile", pprof.Profile)
-		dr.HandleFunc("/symbol", pprof.Symbol)
-		dr.HandleFunc("/block", pprof.Handler("block").ServeHTTP)
-		dr.HandleFunc("/heap", pprof.Handler("heap").ServeHTTP)
-		dr.HandleFunc("/goroutine", pprof.Handler("goroutine").ServeHTTP)
-		dr.HandleFunc("/threadcreate", pprof.Handler("threadcreate").ServeHTTP)
-	}
-
 	// Use gorilla mux with negroni, start server
-	n.UseHandler(router)
+	n.UseHandler(newRouter())
 	go func() {
 		// Load config
 		conf, err := config.C.Load()
@@ -230,51 +177,106 @@ func apiRouter(apiKillChan chan struct{}) {
 	}
 }
 
-// apiRoutes sets up the API routes required by wavepipe
-func apiRoutes(r *mux.Router) {
+// newRouter sets up the web and API routes required by wavepipe
+func newRouter() *mux.Router {
+	// Create a router
+	router := mux.NewRouter().StrictSlash(false)
+
+	// Set up robots.txt to disallow crawling, since this is a dynamic service which users self-host
+	router.HandleFunc("/robots.txt", func(res http.ResponseWriter, req *http.Request) {
+		res.Write([]byte("# wavepipe media server\n" +
+			"# https://github.com/mdlayher/wavepipe\n" +
+			"User-agent: *\n" +
+			"Disallow: /"))
+	}).Methods("GET")
+
+	// Set up API information route
+	router.HandleFunc("/api", api.APIInfo).Methods("GET")
+
+	// Set up API group routes, with API version parameter
+	ar := router.PathPrefix("/api/{version}/").Subrouter()
+
 	// Albums API
-	r.HandleFunc("/albums", api.GetAlbums).Methods("GET")
-	r.HandleFunc("/albums/{id}", api.GetAlbums).Methods("GET")
+	ar.HandleFunc("/albums", api.GetAlbums).Methods("GET")
+	ar.HandleFunc("/albums/{id}", api.GetAlbums).Methods("GET")
 
 	// Art API
-	r.HandleFunc("/art", api.GetArt).Methods("GET")
-	r.HandleFunc("/art/{id}", api.GetArt).Methods("GET")
+	ar.HandleFunc("/art", api.GetArt).Methods("GET")
+	ar.HandleFunc("/art/{id}", api.GetArt).Methods("GET")
 
 	// Artists API
-	r.HandleFunc("/artists", api.GetArtists).Methods("GET")
-	r.HandleFunc("/artists/{id}", api.GetArtists).Methods("GET")
+	ar.HandleFunc("/artists", api.GetArtists).Methods("GET")
+	ar.HandleFunc("/artists/{id}", api.GetArtists).Methods("GET")
 
 	// Folders API
-	r.HandleFunc("/folders", api.GetFolders).Methods("GET")
-	r.HandleFunc("/folders/{id}", api.GetFolders).Methods("GET")
+	ar.HandleFunc("/folders", api.GetFolders).Methods("GET")
+	ar.HandleFunc("/folders/{id}", api.GetFolders).Methods("GET")
 
 	// LastFM API
-	r.HandleFunc("/lastfm", api.GetLastFM).Methods("GET")
-	r.HandleFunc("/lastfm/{action}", api.GetLastFM).Methods("GET")
-	r.HandleFunc("/lastfm/{action}/{id}", api.GetLastFM).Methods("GET")
+	ar.HandleFunc("/lastfm", api.GetLastFM).Methods("GET")
+	ar.HandleFunc("/lastfm/{action}", api.GetLastFM).Methods("GET")
+	ar.HandleFunc("/lastfm/{action}/{id}", api.GetLastFM).Methods("GET")
 
 	// Login API
-	r.HandleFunc("/login", api.GetLogin).Methods("GET")
+	ar.HandleFunc("/login", api.GetLogin).Methods("GET")
 
 	// Logout API
-	r.HandleFunc("/logout", api.GetLogout).Methods("GET")
+	ar.HandleFunc("/logout", api.GetLogout).Methods("GET")
 
 	// Search API
-	r.HandleFunc("/search", api.GetSearch).Methods("GET")
-	r.HandleFunc("/search/{query}", api.GetSearch).Methods("GET")
+	ar.HandleFunc("/search", api.GetSearch).Methods("GET")
+	ar.HandleFunc("/search/{query}", api.GetSearch).Methods("GET")
 
 	// Songs API
-	r.HandleFunc("/songs", api.GetSongs).Methods("GET")
-	r.HandleFunc("/songs/{id}", api.GetSongs).Methods("GET")
+	ar.HandleFunc("/songs", api.GetSongs).Methods("GET")
+	ar.HandleFunc("/songs/{id}", api.GetSongs).Methods("GET")
 
 	// Status API
-	r.HandleFunc("/status", api.GetStatus).Methods("GET")
+	ar.HandleFunc("/status", api.GetStatus).Methods("GET")
 
 	// Stream API
-	r.HandleFunc("/stream", api.GetStream).Methods("GET")
-	r.HandleFunc("/stream/{id}", api.GetStream).Methods("GET")
+	ar.HandleFunc("/stream", api.GetStream).Methods("GET")
+	ar.HandleFunc("/stream/{id}", api.GetStream).Methods("GET")
 
 	// Transcode API
-	r.HandleFunc("/transcode", api.GetTranscode).Methods("GET")
-	r.HandleFunc("/transcode/{id}", api.GetTranscode).Methods("GET")
+	ar.HandleFunc("/transcode", api.GetTranscode).Methods("GET")
+	ar.HandleFunc("/transcode/{id}", api.GetTranscode).Methods("GET")
+
+	// Set up emulated Subsonic API routes
+	sr := router.PathPrefix("/subsonic/rest").Subrouter()
+
+	// Ping - used to check connectivity
+	sr.HandleFunc("/ping.view", subsonic.GetPing).Methods("GET")
+
+	// GetAlbumList2 - used to return a list of all albums by tags
+	sr.HandleFunc("/getAlbumList2.view", subsonic.GetAlbumList2).Methods("GET")
+
+	// GetAlbum - used to retrieve information about one album
+	sr.HandleFunc("/getAlbum.view", subsonic.GetAlbum).Methods("GET")
+
+	// GetMusicFolders - used to retrieve list of known music folders
+	sr.HandleFunc("/getMusicFolders.view", subsonic.GetMusicFolders).Methods("GET")
+
+	// GetRandomSongs - used to retrieve a number of random songs
+	sr.HandleFunc("/getRandomSongs.view", subsonic.GetRandomSongs).Methods("GET")
+
+	// Stream - used to return a binary file stream
+	sr.HandleFunc("/stream.view", subsonic.GetStream).Methods("GET")
+
+	// On debug mode, enable pprof debug endpoints
+	// Thanks: https://github.com/go-martini/martini/issues/228
+	if os.Getenv("WAVEPIPE_DEBUG") == "1" {
+		dr := router.PathPrefix("/debug/pprof").Subrouter()
+		dr.HandleFunc("/", pprof.Index)
+		dr.HandleFunc("/cmdline", pprof.Cmdline)
+		dr.HandleFunc("/profile", pprof.Profile)
+		dr.HandleFunc("/symbol", pprof.Symbol)
+		dr.HandleFunc("/block", pprof.Handler("block").ServeHTTP)
+		dr.HandleFunc("/heap", pprof.Handler("heap").ServeHTTP)
+		dr.HandleFunc("/goroutine", pprof.Handler("goroutine").ServeHTTP)
+		dr.HandleFunc("/threadcreate", pprof.Handler("threadcreate").ServeHTTP)
+	}
+
+	// Return configured router
+	return router
 }
