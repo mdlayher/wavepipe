@@ -193,10 +193,11 @@ func apiRoutes(r *mux.Router) {
 	r.HandleFunc("/albums", api.GetAlbums).Methods("GET")
 	r.HandleFunc("/albums/{id}", api.GetAlbums).Methods("GET")
 
+	// Art API
+	r.HandleFunc("/art", api.GetArt).Methods("GET")
+	r.HandleFunc("/art/{id}", api.GetArt).Methods("GET")
+
 	/*
-		// Art API
-		r.Get("/art", api.GetArt)
-		r.Get("/art/:id", api.GetArt)
 
 		// Artists API
 		r.Get("/artists", api.GetArtists)
