@@ -229,7 +229,7 @@ func TestAPIRouter(t *testing.T) {
 
 		// If not HTTP 200, check to ensure error code matches
 		if errRes.Error != nil && errRes.Error.Code != test.code {
-			t.Fatalf("Body [%v != %v] %s", w.Code, test.code, test.url)
+			t.Fatalf("Body [%v != %v] %s", errRes.Error.Code, test.code, test.url)
 		}
 
 		log.Printf("OK: [%d] %s", test.code, test.url)
