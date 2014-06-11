@@ -19,6 +19,8 @@ var (
 
 	// ErrNoToken is returned when no API token is provided on all other API calls
 	ErrNoToken = errors.New("no token provided")
+	// ErrInvalidToken is returned when an invalid API token is provided on all other API calls
+	ErrInvalidToken = errors.New("invalid token")
 	// ErrSessionExpired is returned when the session is expired
 	ErrSessionExpired = errors.New("session expired")
 
@@ -61,7 +63,8 @@ func Factory(path string) AuthMethod {
 	}
 
 	// Check for a login request: /api/vX/login, use bcrypt authenticator
-	if strings.HasPrefix(path, "/api/v") && strings.HasSuffix(path, "/login") {
+	// Note: length check added to prevent this from happening on /api/VX/lastfm/login
+	if len(path) == 13 && strings.HasPrefix(path, "/api/v") && strings.HasSuffix(path, "/login") {
 		return new(BcryptAuth)
 	}
 

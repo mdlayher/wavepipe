@@ -6,8 +6,9 @@ import (
 
 	"github.com/mdlayher/wavepipe/data"
 
-	"github.com/go-martini/martini"
-	"github.com/martini-contrib/render"
+	"github.com/gorilla/context"
+	"github.com/gorilla/mux"
+	"github.com/unrolled/render"
 )
 
 // LoginResponse represents the JSON response for /api/logins
@@ -17,36 +18,47 @@ type LoginResponse struct {
 }
 
 // GetLogin creates a new session on the wavepipe API, and returns a HTTP status and JSON
-func GetLogin(r render.Render, req *http.Request, sessionUser *data.User, params martini.Params) {
-	// Output struct for logins request
-	res := LoginResponse{}
+func GetLogin(res http.ResponseWriter, req *http.Request) {
+	// Retrieve render
+	r := context.Get(req, CtxRender).(*render.Render)
 
-	// Output struct for errors
-	errRes := ErrorResponse{render: r}
+	// Attempt to retrieve user from context
+	user := new(data.User)
+	if tempUser := context.Get(req, CtxUser); tempUser != nil {
+		user = tempUser.(*data.User)
+	} else {
+		// No user stored in context
+		log.Println("api: no user stored in request context!")
+		r.JSON(res, 500, serverErr)
+		return
+	}
+
+	// Output struct for login request
+	out := LoginResponse{}
 
 	// Check API version
-	if version, ok := params["version"]; ok {
+	if version, ok := mux.Vars(req)["version"]; ok {
 		// Check if this API call is supported in the advertised version
 		if !apiVersionSet.Has(version) {
-			errRes.RenderError(400, "unsupported API version: "+version)
+			r.JSON(res, 400, errRes(400, "unsupported API version: "+version))
 			return
 		}
 	}
 
 	// Generate a new API session for this user, with optional specified session name
 	// via "c" query parameter
-	session, err := sessionUser.CreateSession(req.URL.Query().Get("c"))
+	session, err := user.CreateSession(req.URL.Query().Get("c"))
 	if err != nil {
 		log.Println(err)
-		errRes.ServerError()
+		r.JSON(res, 500, serverErr)
 		return
 	}
 
 	// Build response
-	res.Error = nil
-	res.Session = session
+	out.Error = nil
+	out.Session = session
 
 	// HTTP 200 OK with JSON
-	r.JSON(200, res)
+	r.JSON(res, 200, out)
 	return
 }

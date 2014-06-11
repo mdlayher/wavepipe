@@ -9,8 +9,9 @@ import (
 
 	"github.com/mdlayher/wavepipe/data"
 
-	"github.com/go-martini/martini"
-	"github.com/martini-contrib/render"
+	"github.com/gorilla/context"
+	"github.com/gorilla/mux"
+	"github.com/unrolled/render"
 )
 
 // AlbumsResponse represents the JSON response for /api/albums
@@ -21,31 +22,31 @@ type AlbumsResponse struct {
 }
 
 // GetAlbums retrieves one or more albums from wavepipe, and returns a HTTP status and JSON
-func GetAlbums(r render.Render, req *http.Request, params martini.Params) {
-	// Output struct for albums request
-	res := AlbumsResponse{}
+func GetAlbums(res http.ResponseWriter, req *http.Request) {
+	// Retrieve render
+	r := context.Get(req, CtxRender).(*render.Render)
 
-	// Output struct for errors
-	errRes := ErrorResponse{render: r}
+	// Output struct for albums request
+	out := AlbumsResponse{}
 
 	// List of albums to return
 	albums := make([]data.Album, 0)
 
 	// Check API version
-	if version, ok := params["version"]; ok {
+	if version, ok := mux.Vars(req)["version"]; ok {
 		// Check if this API call is supported in the advertised version
 		if !apiVersionSet.Has(version) {
-			errRes.RenderError(400, "unsupported API version: "+version)
+			r.JSON(res, 400, errRes(400, "unsupported API version: "+version))
 			return
 		}
 	}
 
 	// Check for an ID parameter
-	if pID, ok := params["id"]; ok {
+	if pID, ok := mux.Vars(req)["id"]; ok {
 		// Verify valid integer ID
 		id, err := strconv.Atoi(pID)
 		if err != nil {
-			errRes.RenderError(400, "invalid integer album ID")
+			r.JSON(res, 400, errRes(400, "invalid integer album ID"))
 			return
 		}
 
@@ -55,13 +56,13 @@ func GetAlbums(r render.Render, req *http.Request, params martini.Params) {
 		if err := album.Load(); err != nil {
 			// Check for invalid ID
 			if err == sql.ErrNoRows {
-				errRes.RenderError(404, "album ID not found")
+				r.JSON(res, 404, errRes(404, "album ID not found"))
 				return
 			}
 
 			// All other errors
 			log.Println(err)
-			errRes.ServerError()
+			r.JSON(res, 500, serverErr)
 			return
 		}
 
@@ -69,12 +70,12 @@ func GetAlbums(r render.Render, req *http.Request, params martini.Params) {
 		songs, err := data.DB.SongsForAlbum(album.ID)
 		if err != nil {
 			log.Println(err)
-			errRes.ServerError()
+			r.JSON(res, 500, serverErr)
 			return
 		}
 
 		// Add songs to output
-		res.Songs = songs
+		out.Songs = songs
 
 		// Add album to slice
 		albums = append(albums, *album)
@@ -85,7 +86,7 @@ func GetAlbums(r render.Render, req *http.Request, params martini.Params) {
 			var offset int
 			var count int
 			if n, err := fmt.Sscanf(pLimit, "%d,%d", &offset, &count); n < 2 || err != nil {
-				errRes.RenderError(400, "invalid comma-separated integer pair for limit")
+				r.JSON(res, 400, errRes(400, "invalid comma-separated integer pair for limit"))
 				return
 			}
 
@@ -93,7 +94,7 @@ func GetAlbums(r render.Render, req *http.Request, params martini.Params) {
 			tempAlbums, err := data.DB.LimitAlbums(offset, count)
 			if err != nil {
 				log.Println(err)
-				errRes.ServerError()
+				r.JSON(res, 500, serverErr)
 				return
 			}
 
@@ -104,7 +105,7 @@ func GetAlbums(r render.Render, req *http.Request, params martini.Params) {
 			tempAlbums, err := data.DB.AllAlbums()
 			if err != nil {
 				log.Println(err)
-				errRes.ServerError()
+				r.JSON(res, 500, serverErr)
 				return
 			}
 
@@ -114,10 +115,10 @@ func GetAlbums(r render.Render, req *http.Request, params martini.Params) {
 	}
 
 	// Build response
-	res.Error = nil
-	res.Albums = albums
+	out.Error = nil
+	out.Albums = albums
 
 	// HTTP 200 OK with JSON
-	r.JSON(200, res)
+	r.JSON(res, 200, out)
 	return
 }

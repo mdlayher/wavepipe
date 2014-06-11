@@ -11,36 +11,37 @@ import (
 	"github.com/mdlayher/wavepipe/data"
 	"github.com/mdlayher/wavepipe/transcode"
 
-	"github.com/go-martini/martini"
-	"github.com/martini-contrib/render"
+	"github.com/gorilla/context"
+	"github.com/gorilla/mux"
+	"github.com/unrolled/render"
 )
 
 // GetTranscode returns a transcoded media file stream from wavepipe.  On success, this API will
 // return a binary transcode. On failure, it will return a JSON error.
-func GetTranscode(httpReq *http.Request, httpRes http.ResponseWriter, r render.Render, params martini.Params) {
-	// Output struct for errors
-	errRes := ErrorResponse{render: r}
+func GetTranscode(res http.ResponseWriter, req *http.Request) {
+	// Retrieve render
+	r := context.Get(req, CtxRender).(*render.Render)
 
 	// Check API version
-	if version, ok := params["version"]; ok {
+	if version, ok := mux.Vars(req)["version"]; ok {
 		// Check if this API call is supported in the advertised version
 		if !apiVersionSet.Has(version) {
-			errRes.RenderError(400, "unsupported API version: "+version)
+			r.JSON(res, 400, errRes(400, "unsupported API version: "+version))
 			return
 		}
 	}
 
 	// Check for an ID parameter
-	pID, ok := params["id"]
+	pID, ok := mux.Vars(req)["id"]
 	if !ok {
-		errRes.RenderError(400, "no integer transcode ID provided")
+		r.JSON(res, 400, errRes(400, "no integer transcode ID provided"))
 		return
 	}
 
 	// Verify valid integer ID
 	id, err := strconv.Atoi(pID)
 	if err != nil {
-		errRes.RenderError(400, "invalid integer transcode ID")
+		r.JSON(res, 400, errRes(400, "invalid integer transcode ID"))
 		return
 	}
 
@@ -50,18 +51,18 @@ func GetTranscode(httpReq *http.Request, httpRes http.ResponseWriter, r render.R
 	if err := song.Load(); err != nil {
 		// Check for invalid ID
 		if err == sql.ErrNoRows {
-			errRes.RenderError(404, "song ID not found")
+			r.JSON(res, 404, errRes(404, "song ID not found"))
 			return
 		}
 
 		// All other errors
 		log.Println(err)
-		errRes.ServerError()
+		r.JSON(res, 500, serverErr)
 		return
 	}
 
 	// Check for an input codec
-	query := httpReq.URL.Query()
+	query := req.URL.Query()
 	codec := strings.ToUpper(query.Get("codec"))
 	if codec == "" {
 		// Default to MP3
@@ -82,32 +83,32 @@ func GetTranscode(httpReq *http.Request, httpRes http.ResponseWriter, r render.R
 		switch err {
 		// Invalid codec selected
 		case transcode.ErrInvalidCodec:
-			errRes.RenderError(400, "invalid transcoder codec: "+codec)
+			r.JSON(res, 400, errRes(400, "invalid transcoder codec: "+codec))
 			return
 		// Invalid quality for codec
 		case transcode.ErrInvalidQuality:
-			errRes.RenderError(400, "invalid quality for codec "+codec+": "+quality)
+			r.JSON(res, 400, errRes(400, "invalid quality for codec "+codec+": "+quality))
 			return
 		// Transcoding subsystem disabled
 		case transcode.ErrTranscodingDisabled:
-			errRes.RenderError(503, "ffmpeg not found, transcoding disabled")
+			r.JSON(res, 503, errRes(503, "ffmpeg not found, transcoding disabled"))
 			return
 		// MP3 transcoding disabled
 		case transcode.ErrMP3Disabled:
-			errRes.RenderError(503, "ffmpeg codec "+transcode.FFmpegMP3Codec+" not found, MP3 transcoding disabled")
+			r.JSON(res, 503, errRes(503, "ffmpeg codec "+transcode.FFmpegMP3Codec+" not found, MP3 transcoding disabled"))
 			return
 		// OGG transcoding disabled
 		case transcode.ErrOGGDisabled:
-			errRes.RenderError(503, "ffmpeg codec "+transcode.FFmpegOGGCodec+" not found, OGG transcoding disabled")
+			r.JSON(res, 503, errRes(503, "ffmpeg codec "+transcode.FFmpegOGGCodec+" not found, OGG transcoding disabled"))
 			return
 		// OPUS transcoding disabled
 		case transcode.ErrOPUSDisabled:
-			errRes.RenderError(503, "ffmpeg codec "+transcode.FFmpegOPUSCodec+" not found, OPUS transcoding disabled")
+			r.JSON(res, 503, errRes(503, "ffmpeg codec "+transcode.FFmpegOPUSCodec+" not found, OPUS transcoding disabled"))
 			return
 		// All other errors
 		default:
 			log.Println(err)
-			errRes.ServerError()
+			r.JSON(res, 500, serverErr)
 			return
 		}
 	}
@@ -116,7 +117,8 @@ func GetTranscode(httpReq *http.Request, httpRes http.ResponseWriter, r render.R
 	transcodeStream, err := transcoder.Start(song)
 	if err != nil {
 		log.Println(err)
-		errRes.ServerError()
+		r.JSON(res, 500, serverErr)
+		return
 	}
 
 	// Output the command ffmpeg will use to create the transcode
@@ -133,7 +135,7 @@ func GetTranscode(httpReq *http.Request, httpRes http.ResponseWriter, r render.R
 	log.Println("transcode: starting:", opStr)
 
 	// Send transcode stream, no size for now (estimate later)
-	if err := HTTPStream(song, transcoder.MIMEType(), -1, transcodeStream, httpReq, httpRes); err != nil {
+	if err := HTTPStream(song, transcoder.MIMEType(), -1, transcodeStream, req, res); err != nil {
 		// Check for client reset
 		if strings.Contains(err.Error(), "connection reset by peer") || strings.Contains(err.Error(), "broken pipe") {
 			return
@@ -142,7 +144,7 @@ func GetTranscode(httpReq *http.Request, httpRes http.ResponseWriter, r render.R
 		// Check for cannot seek error, since transcodes cannot currently take advantage of seeking
 		if err == ErrCannotSeek {
 			// We can send JSON HTTP 416 error, because no data is written on this error
-			errRes.RenderError(416, "seeking is unavailable on transcoded media")
+			r.JSON(res, 416, errRes(416, "seeking is unavailable on transcoded media"))
 			return
 		}
 

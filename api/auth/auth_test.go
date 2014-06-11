@@ -22,6 +22,8 @@ func TestFactory(t *testing.T) {
 		{"/api/v0/status", new(TokenAuth)},
 		// Subsonic API - subsonic
 		{"/subsonic", new(SubsonicAuth)},
+		// Bugfix: Last.fm login - token
+		{"/api/v0/lastfm/login", new(TokenAuth)},
 	}
 
 	// Iterate and verify tests
