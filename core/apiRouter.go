@@ -17,6 +17,7 @@ import (
 	"github.com/codegangsta/negroni"
 	"github.com/gorilla/context"
 	"github.com/gorilla/mux"
+	"github.com/phyber/negroni-gzip/gzip"
 	"github.com/unrolled/render"
 )
 
@@ -33,6 +34,9 @@ func apiRouter(apiKillChan chan struct{}) {
 		// makes the API much more developer-friendly
 		IndentJSON: true,
 	})
+
+	// GZIP all responses
+	n.Use(gzip.Gzip(gzip.DefaultCompression))
 
 	// Enable graceful shutdown when triggered by manager
 	stopAPI := false
