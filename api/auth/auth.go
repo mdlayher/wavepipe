@@ -19,6 +19,8 @@ var (
 
 	// ErrNoToken is returned when no API token is provided on all other API calls
 	ErrNoToken = errors.New("no token provided")
+	// ErrInvalidToken is returned when an invalid API token is provided on all other API calls
+	ErrInvalidToken = errors.New("invalid token")
 	// ErrSessionExpired is returned when the session is expired
 	ErrSessionExpired = errors.New("session expired")
 

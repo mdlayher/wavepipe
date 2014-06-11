@@ -2,7 +2,6 @@ package auth
 
 import (
 	"database/sql"
-	"errors"
 	"net/http"
 	"time"
 
@@ -46,7 +45,7 @@ func (a TokenAuth) Authenticate(req *http.Request) (*data.User, *data.Session, e
 	if err := session.Load(); err != nil {
 		// Check for invalid user
 		if err == sql.ErrNoRows {
-			return nil, nil, errors.New("invalid token"), nil
+			return nil, nil, ErrInvalidToken, nil
 		}
 
 		// Server error
