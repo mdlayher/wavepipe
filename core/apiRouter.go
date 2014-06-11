@@ -224,12 +224,8 @@ func apiRoutes(r *mux.Router) {
 	r.HandleFunc("/songs", api.GetSongs).Methods("GET")
 	r.HandleFunc("/songs/{id}", api.GetSongs).Methods("GET")
 
-	/*
-
-		// Status API
-		r.Get("/status", api.GetStatus)
-
-	*/
+	// Status API
+	r.HandleFunc("/status", api.GetStatus).Methods("GET")
 
 	// Stream API
 	r.HandleFunc("/stream", api.GetStream).Methods("GET")
