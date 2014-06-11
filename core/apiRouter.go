@@ -213,10 +213,10 @@ func apiRoutes(r *mux.Router) {
 	// Login API
 	r.HandleFunc("/login", api.GetLogin).Methods("GET")
 
-	/*
+	// Logout API
+	r.HandleFunc("/logout", api.GetLogout).Methods("GET")
 
-		// Logout API
-		r.Get("/logout", api.GetLogout)
+	/*
 
 		// Search API
 		r.Get("/search", api.GetSearch)
