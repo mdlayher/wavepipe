@@ -62,13 +62,11 @@ func apiRouter(apiKillChan chan struct{}) {
 
 	// Authenticate all API calls
 	n.Use(negroni.HandlerFunc(func(res http.ResponseWriter, req *http.Request, next http.HandlerFunc) {
-		// Delegate to next middleware on any return
-		defer next(res, req)
-
 		// Use factory to determine the proper authentication method for this path
 		method := auth.Factory(req.URL.Path)
 		if method == nil {
 			// If no method returned, path is not authenticated
+			next(res, req)
 			return
 		}
 
@@ -107,6 +105,9 @@ func apiRouter(apiKillChan chan struct{}) {
 
 		// Print information about this API call
 		log.Printf("api: [%s] %s?%s", req.RemoteAddr, req.URL.Path, req.URL.Query().Encode())
+
+		// Perform API call
+		next(res, req)
 	}))
 
 	// Set up API routes
