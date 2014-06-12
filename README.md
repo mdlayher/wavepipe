@@ -42,8 +42,8 @@ media folder.  Here is an example of the `~/.config/wavepipe/wavepipe.json` conf
 
 ```
 {
-	// The port on which wavepipe will expose its API
-	"port": 8080,
+	// The host address on which wavepipe will expose its API
+	"host": ":8080",
 	// The media folder which wavepipe will scan for valid media files
 	"mediaFolder": "~/Music/",
 	// Configuration for the sqlite database
@@ -53,7 +53,6 @@ media folder.  Here is an example of the `~/.config/wavepipe/wavepipe.json` conf
 	}
 }
 ```
-
 
 FAQ
 ===
