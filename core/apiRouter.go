@@ -3,9 +3,11 @@ package core
 import (
 	"fmt"
 	"log"
+	"mime"
 	"net/http"
 	"net/http/pprof"
 	"os"
+	"path"
 	"runtime"
 	"strings"
 
@@ -181,6 +183,40 @@ func apiRouter(apiKillChan chan struct{}) {
 func newRouter() *mux.Router {
 	// Create a router
 	router := mux.NewRouter().StrictSlash(false)
+
+	// HTTP handler for web UI
+	webUI := func(res http.ResponseWriter, req *http.Request) {
+		// Retrieve render
+		r := context.Get(req, api.CtxRender).(*render.Render)
+
+		// Get the asset name
+		name := mux.Vars(req)["asset"]
+
+		// If asset name empty, return the index
+		if name == "" {
+			name = "index.html"
+		}
+
+		// More information on debug
+		if os.Getenv("WAVEPIPE_DEBUG") == "1" {
+			log.Println("web: fetching resource: res/web/" + name)
+		}
+
+		// Retrieve asset
+		asset, err := data.Asset("res/web/" + name)
+		if err != nil {
+			res.WriteHeader(404)
+			return
+		}
+
+		// Render asset and return its type
+		res.Header().Set("Content-Type", mime.TypeByExtension(path.Ext(name)))
+		r.Data(res, 200, asset)
+	}
+
+	// Web UI and its assets
+	router.HandleFunc("/", webUI).Methods("GET")
+	router.HandleFunc("/res/{asset:.*}", webUI).Methods("GET")
 
 	// Set up robots.txt to disallow crawling, since this is a dynamic service which users self-host
 	router.HandleFunc("/robots.txt", func(res http.ResponseWriter, req *http.Request) {
