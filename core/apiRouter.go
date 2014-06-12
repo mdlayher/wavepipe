@@ -183,6 +183,11 @@ func newRouter() *mux.Router {
 			name = "index.html"
 		}
 
+		// More information on debug
+		if os.Getenv("WAVEPIPE_DEBUG") == "1" {
+			log.Println("web: fetching resource: res/web/" + name)
+		}
+
 		// Retrieve asset
 		asset, err := data.Asset("res/web/" + name)
 		if err != nil {
@@ -197,7 +202,7 @@ func newRouter() *mux.Router {
 
 	// Web UI and its assets
 	router.HandleFunc("/", webUI).Methods("GET")
-	router.HandleFunc("/res/{asset}", webUI).Methods("GET")
+	router.HandleFunc("/res/{asset:.*}", webUI).Methods("GET")
 
 	// Set up robots.txt to disallow crawling, since this is a dynamic service which users self-host
 	router.HandleFunc("/robots.txt", func(res http.ResponseWriter, req *http.Request) {
