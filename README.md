@@ -42,8 +42,8 @@ media folder.  Here is an example of the `~/.config/wavepipe/wavepipe.json` conf
 
 ```
 {
-	// The port on which wavepipe will expose its API
-	"port": 8080,
+	// The host address on which wavepipe will expose its API
+	"host": ":8080",
 	// The media folder which wavepipe will scan for valid media files
 	"mediaFolder": "~/Music/",
 	// Configuration for the sqlite database
@@ -53,6 +53,17 @@ media folder.  Here is an example of the `~/.config/wavepipe/wavepipe.json` conf
 	}
 }
 ```
+
+Recommendations
+===============
+
+For the best possible experience while using wavepipe, it is recommended that you follow these tips:
+  - Run wavepipe using SSL.  In order to effectively secure your wavepipe session, SSL is a must.
+    The most simple way to accomplish this is to proxy requests to wavepipe via [nginx](http://nginx.org), with nginx
+    configured to use SSL.
+  - Ensure your media is properly tagged.  wavepipe will provide a much better experience for users who ensure that their
+    media is consistently tagged.  Proper artist and album naming are especially key, in order to enable the best possible
+    experience.
 
 FAQ
 ===
