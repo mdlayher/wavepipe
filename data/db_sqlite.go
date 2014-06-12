@@ -3,7 +3,6 @@ package data
 import (
 	"database/sql"
 	"errors"
-	"io"
 	"log"
 	"os"
 	"os/user"
@@ -72,11 +71,8 @@ func (s *SqliteBackend) Setup() error {
 		return err
 	}
 
-	// Grab GOPATH, use only the first path
-	gopath := strings.Split(os.Getenv("GOPATH"), ":")[0]
-
-	// Attempt to open database
-	src, err := os.Open(gopath + "/src/github.com/mdlayher/wavepipe/res/sqlite/" + file)
+	// Open database asset
+	dbBuf, err := Asset("res/sqlite/wavepipe.db")
 	if err != nil {
 		return err
 	}
@@ -87,15 +83,12 @@ func (s *SqliteBackend) Setup() error {
 		return err
 	}
 
-	// Copy contents into destination
-	if _, err := io.Copy(dest, src); err != nil {
+	// Write contents into destination
+	if _, err := dest.Write(dbBuf); err != nil {
 		return err
 	}
 
-	// Close files
-	if err := src.Close(); err != nil {
-		return err
-	}
+	// Close file
 	if err := dest.Close(); err != nil {
 		return err
 	}

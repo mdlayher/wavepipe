@@ -5,6 +5,11 @@ WP=wavepipe
 make:
 	go build -o bin/${WP}
 
+# Rebuild go-bindata files
+bindata:
+	go-bindata -o data/bindata.go res/sqlite/
+	gofmt -r "main -> data" -w data/bindata.go
+
 # Remove the bin folder
 clean:
 	rm -rf bin/
