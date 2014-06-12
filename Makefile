@@ -7,7 +7,7 @@ make:
 
 # Rebuild go-bindata files
 bindata:
-	go-bindata -o data/bindata.go res/sqlite/
+	go-bindata -ignore wavepipe.sql -o data/bindata.go res/sqlite/
 	gofmt -r "main -> data" -w data/bindata.go
 
 # Remove the bin folder
