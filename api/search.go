@@ -13,7 +13,7 @@ import (
 	"github.com/unrolled/render"
 )
 
-// SearchResponse repoutents the JSON outponse for /api/search
+// SearchResponse represents the JSON outponse for /api/search
 type SearchResponse struct {
 	Error   *Error        `json:"error"`
 	Artists []data.Artist `json:"artists"`
