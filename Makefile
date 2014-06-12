@@ -1,3 +1,5 @@
+.PHONY: bindata clean fmt test all
+
 # Name of the output binary
 WP=wavepipe
 
