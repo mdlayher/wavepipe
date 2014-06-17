@@ -3,6 +3,7 @@ package transcode
 import (
 	"errors"
 	"io"
+	"strconv"
 
 	"github.com/mdlayher/wavepipe/data"
 
@@ -55,6 +56,11 @@ type Transcoder interface {
 	Start(*data.Song) (io.ReadCloser, error)
 	Wait() error
 	Quality() string
+
+	cbrSet() *set.Set
+	vbrSet() *set.Set
+	setCBR(int)
+	setVBR(string)
 }
 
 // Options represents an audio codec and its quality settings, and includes methods to
@@ -76,6 +82,9 @@ func Factory(codec string, quality string) (Transcoder, error) {
 		return nil, ErrTranscodingDisabled
 	}
 
+	// Output transcoder
+	var transcoder Transcoder
+
 	// Check for a valid codec
 	switch codec {
 	// MP3
@@ -85,7 +94,7 @@ func Factory(codec string, quality string) (Transcoder, error) {
 			return nil, ErrMP3Disabled
 		}
 
-		return NewMP3Transcoder(quality)
+		transcoder = new(MP3Transcoder)
 	// Ogg Vorbis
 	case "OGG":
 		// Verify OGG transcoding is enabled
@@ -93,7 +102,7 @@ func Factory(codec string, quality string) (Transcoder, error) {
 			return nil, ErrOGGDisabled
 		}
 
-		return NewOGGTranscoder(quality)
+		transcoder = new(OGGTranscoder)
 	// Ogg Opus
 	case "OPUS":
 		// Verify OPUS transcoding is enabled
@@ -101,9 +110,32 @@ func Factory(codec string, quality string) (Transcoder, error) {
 			return nil, ErrOPUSDisabled
 		}
 
-		return NewOPUSTranscoder(quality)
+		transcoder = new(OPUSTranscoder)
 	// Invalid choice
 	default:
 		return nil, ErrInvalidCodec
 	}
+
+	// Check for valid quality option
+	// If quality is a valid integer, CBR encode
+	if cbr, err := strconv.Atoi(quality); err == nil {
+		// Check for valid CBR quality
+		if !transcoder.cbrSet().Has(cbr) {
+			return nil, ErrInvalidQuality
+		}
+
+		// Set options
+		transcoder.setCBR(cbr)
+	} else {
+		// Not an integer, so check for valid VBR quality
+		if !transcoder.vbrSet().Has(quality) {
+			return nil, ErrInvalidQuality
+		}
+
+		// Set options
+		transcoder.setVBR(quality)
+	}
+
+	// Return the final transcoder
+	return transcoder, nil
 }
