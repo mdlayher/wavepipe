@@ -5,6 +5,7 @@ import (
 	"compress/gzip"
 	"fmt"
 	"io"
+	"strings"
 )
 
 func bindata_read(data []byte, name string) ([]byte, error) {
@@ -141,10 +142,20 @@ func res_web_index_html() ([]byte, error) {
 // It returns an error if the asset could not be found or
 // could not be loaded.
 func Asset(name string) ([]byte, error) {
-	if f, ok := _bindata[name]; ok {
+	cannonicalName := strings.Replace(name, "\\", "/", -1)
+	if f, ok := _bindata[cannonicalName]; ok {
 		return f()
 	}
 	return nil, fmt.Errorf("Asset %s not found", name)
+}
+
+// AssetNames returns the names of the assets.
+func AssetNames() []string {
+	names := make([]string, 0, len(_bindata))
+	for name := range _bindata {
+		names = append(names, name)
+	}
+	return names
 }
 
 // _bindata is a table, holding each asset generator, mapped to its name.
