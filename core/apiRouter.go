@@ -156,9 +156,12 @@ func apiRouter(apiKillChan chan struct{}) {
 		select {
 		// Stop API
 		case <-apiKillChan:
-			// Block and wait for graceful shutdown
-			log.Println("api: waiting for remaining connections to close...")
-			<-gracefulChan
+			// If testing, don't wait for graceful shutdown
+			if os.Getenv("WAVEPIPE_TEST") != "1" {
+				// Block and wait for graceful shutdown
+				log.Println("api: waiting for remaining connections to close...")
+				<-gracefulChan
+			}
 
 			// Inform manager that shutdown is complete
 			log.Println("api: stopped!")
