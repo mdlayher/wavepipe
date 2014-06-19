@@ -16,42 +16,6 @@ type OGGTranscoder struct {
 	ffmpeg  *FFmpeg
 }
 
-// NewOGGTranscoder creates a new OGG transcoder, and initializes its associated fields
-func NewOGGTranscoder(quality string) (*OGGTranscoder, error) {
-	// OGG transcoder instance to return
-	transcoder := new(OGGTranscoder)
-
-	// Check if quality is a valid integer, meaning CBR encode
-	if cbr, err := strconv.Atoi(quality); err == nil {
-		// Check for valid CBR quality
-		if !set.New(128, 192, 256, 320, 500).Has(cbr) {
-			return nil, ErrInvalidQuality
-		}
-
-		// Create a CBR transcoder
-		transcoder = &OGGTranscoder{
-			Options: OGGCBROptions{
-				quality: quality,
-			},
-		}
-	} else {
-		// Not an integer, so check for a valid VBR quality
-		if !set.New("q6", "Q6", "q8", "Q8", "q10", "Q10").Has(quality) {
-			return nil, ErrInvalidQuality
-		}
-
-		// Create a VBR transcoder
-		transcoder = &OGGTranscoder{
-			Options: OGGVBROptions{
-				quality: strings.ToUpper(quality),
-			},
-		}
-	}
-
-	// Return configured transcoder
-	return transcoder, nil
-}
-
 // Codec returns the selected codec used by the transcoder
 func (m OGGTranscoder) Codec() string {
 	return m.Options.Codec()
@@ -111,4 +75,24 @@ func (m *OGGTranscoder) Wait() error {
 	// Nullify ffmpeg process
 	m.ffmpeg = nil
 	return nil
+}
+
+// cbrSet returns the set of valid CBR qualities for this transcoder
+func (m OGGTranscoder) cbrSet() *set.Set {
+	return set.New(128, 192, 256, 320, 500)
+}
+
+// vbrSet returns the set of valid VBR qualities for this transcoder
+func (m OGGTranscoder) vbrSet() *set.Set {
+	return set.New("q6", "Q6", "q8", "Q8", "q10", "Q10")
+}
+
+// setCBR sets appropriate CBR options for this transcoder
+func (m *OGGTranscoder) setCBR(cbr int) {
+	m.Options = &OGGCBROptions{strconv.Itoa(cbr)}
+}
+
+// setVBR sets appropriate VBR options for this transcoder
+func (m *OGGTranscoder) setVBR(vbr string) {
+	m.Options = &OGGVBROptions{strings.ToUpper(vbr)}
 }
