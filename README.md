@@ -16,7 +16,7 @@ for consuming that API.
 Installation
 ============
 
-wavepipe can be built using Go 1.1+, but also has a dependency on [TagLib](https://github.com/taglib/taglib)
+wavepipe can be built using Go 1.3+, but also has a dependency on [TagLib](https://github.com/taglib/taglib)
 for its ability to read media metadata.  The TagLib static libraries can be installed on Ubuntu as follows:
 
 `$ sudo apt-get install libtagc0-dev`

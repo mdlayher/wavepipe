@@ -10,6 +10,7 @@ import (
 	"path"
 	"runtime"
 	"strings"
+	"time"
 
 	"github.com/mdlayher/wavepipe/api"
 	"github.com/mdlayher/wavepipe/api/auth"
@@ -21,6 +22,7 @@ import (
 	"github.com/gorilla/context"
 	"github.com/gorilla/mux"
 	"github.com/phyber/negroni-gzip/gzip"
+	"github.com/stretchr/graceful"
 	"github.com/unrolled/render"
 )
 
@@ -42,8 +44,7 @@ func apiRouter(apiKillChan chan struct{}) {
 	// GZIP all responses
 	n.Use(gzip.Gzip(gzip.DefaultCompression))
 
-	// Enable graceful shutdown when triggered by manager
-	stopAPI := false
+	// Initial API setup
 	n.Use(negroni.HandlerFunc(func(res http.ResponseWriter, req *http.Request, next http.HandlerFunc) {
 		// On debug, log everything
 		if os.Getenv("WAVEPIPE_DEBUG") == "1" {
@@ -53,15 +54,6 @@ func apiRouter(apiKillChan chan struct{}) {
 
 		// Send a Server header with all responses
 		res.Header().Set("Server", fmt.Sprintf("%s/%s (%s_%s)", App, Version, runtime.GOOS, runtime.GOARCH))
-
-		// If API is stopping, render a HTTP 503
-		if stopAPI {
-			r.JSON(res, 503, api.Error{
-				Code:    503,
-				Message: "service is shutting down",
-			})
-			return
-		}
 
 		// Store render in context for all API calls
 		context.Set(req, api.CtxRender, r)
@@ -136,6 +128,9 @@ func apiRouter(apiKillChan chan struct{}) {
 		next(res, req)
 	}))
 
+	// Wait for graceful to signal termination
+	gracefulChan := make(chan struct{}, 0)
+
 	// Use gorilla mux with negroni, start server
 	n.UseHandler(newRouter())
 	go func() {
@@ -151,16 +146,23 @@ func apiRouter(apiKillChan chan struct{}) {
 			log.Fatalf("api: no host specified in configuration")
 		}
 
-		// Start server
+		// Start server, allowing up to 10 seconds after shutdown for clients to complete
 		log.Println("api: binding to host", conf.Host)
-		if err := http.ListenAndServe(conf.Host, n); err != nil {
+		if err := graceful.ListenAndServe(&http.Server{Addr: conf.Host, Handler: n}, 10*time.Second); err != nil {
 			// Check if address in use
 			if strings.Contains(err.Error(), "address already in use") {
 				log.Fatalf("api: cannot bind to %s, is wavepipe already running?", conf.Host)
 			}
 
-			log.Println(err)
+			// Ignore error on closing
+			if !strings.Contains(err.Error(), "use of closed network connection") {
+				// Log other errors
+				log.Println(err)
+			}
 		}
+
+		// Shutdown complete
+		close(gracefulChan)
 	}()
 
 	// Trigger events via channel
@@ -168,8 +170,12 @@ func apiRouter(apiKillChan chan struct{}) {
 		select {
 		// Stop API
 		case <-apiKillChan:
-			// Stop serving requests
-			stopAPI = true
+			// If testing, don't wait for graceful shutdown
+			if os.Getenv("WAVEPIPE_TEST") != "1" {
+				// Block and wait for graceful shutdown
+				log.Println("api: waiting for remaining connections to close...")
+				<-gracefulChan
+			}
 
 			// Inform manager that shutdown is complete
 			log.Println("api: stopped!")
