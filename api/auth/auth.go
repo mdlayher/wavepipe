@@ -16,6 +16,10 @@ var (
 	ErrNoUsername = errors.New("no username provided")
 	// ErrNoPassword is returned when no password is provided on login
 	ErrNoPassword = errors.New("no password provided")
+	// ErrInvalidUsername is returned when an invalid username is provided on login
+	ErrInvalidUsername = errors.New("invalid username")
+	// ErrInvalidPassword is returned when an invalid password is provided on login
+	ErrInvalidPassword = errors.New("invalid password")
 
 	// ErrNoToken is returned when no API token is provided on all other API calls
 	ErrNoToken = errors.New("no token provided")

@@ -30,24 +30,6 @@ func (c Config) Media() string {
 	return strings.TrimRight(strings.Replace(c.MediaFolder, "~", user.HomeDir, -1), "/\\")
 }
 
-// DefaultConfig is the default JSON configuration for wavepipe
-var DefaultConfig = []byte(`{
-	"host": ":8080",
-	"mediaFolder": "",
-	"sqlite": {
-		"file": "~/.config/wavepipe/wavepipe.db"
-	}
-}`)
-
-// TravisConfig is the JSON configuration used for Travis builds
-var TravisConfig = []byte(`{
-	"host": ":8080",
-	"mediaFolder": "/mem/",
-	"sqlite": {
-		"file": "~/.config/wavepipe/wavepipe.db"
-	}
-}`)
-
 // SqliteConfig represents configuration for an sqlite backend
 type SqliteConfig struct {
 	File string `json:"file"`
@@ -56,5 +38,4 @@ type SqliteConfig struct {
 // ConfigSource represents the configuration source for the program
 type ConfigSource interface {
 	Load() (*Config, error)
-	Use(string) error
 }

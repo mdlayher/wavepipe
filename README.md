@@ -36,22 +36,22 @@ On newer versions of Ubuntu, `ffmpeg` with `libmp3lame` and `libvorbis` can be i
 Configuration
 =============
 
-On first run, wavepipe will attempt to create its sqlite database and configuration file in
-`~/.config/wavepipe/`.  Once this is done, the user must modify the configuration file to include a valid
-media folder.  Here is an example of the `~/.config/wavepipe/wavepipe.json` configuration file, with comments.
+On first run, wavepipe will attempt to create its sqlite database in `~/.config/wavepipe/`.  Once this is done,
+the user may specify command-line flags to configure wavepipe.  Here is an example:
 
 ```
-{
-	// The host address on which wavepipe will expose its API
-	"host": ":8080",
-	// The media folder which wavepipe will scan for valid media files
-	"mediaFolder": "~/Music/",
-	// Configuration for the sqlite database
-	"sqlite": {
-		// sqlite database file location
-		"file": "~/.config/wavepipe/wavepipe.db"
-	}
-}
+$ wavepipe -host :8080 -sqlite ~/.config/wavepipe/wavepipe.db -media ~/Music/
+```
+
+These options will:
+  - Bind wavepipe to localhost on port 8080
+  - Use the specified location for its sqlite database
+  - Scan and watch media in the specified folder
+
+The host and sqlite database will use the above configuration by default, but the media folder must be specified.
+
+```
+$ wavepipe -media ~/Music/
 ```
 
 Recommendations

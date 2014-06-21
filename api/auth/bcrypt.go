@@ -2,7 +2,6 @@ package auth
 
 import (
 	"database/sql"
-	"errors"
 	"net/http"
 
 	"github.com/mdlayher/wavepipe/data"
@@ -51,7 +50,7 @@ func (a BcryptAuth) Authenticate(req *http.Request) (*data.User, *data.Session, 
 	if err := user.Load(); err != nil {
 		// Check for invalid user
 		if err == sql.ErrNoRows {
-			return nil, nil, errors.New("invalid username"), nil
+			return nil, nil, ErrInvalidUsername, nil
 		}
 
 		// Server error
@@ -62,7 +61,7 @@ func (a BcryptAuth) Authenticate(req *http.Request) (*data.User, *data.Session, 
 	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil && err == bcrypt.ErrMismatchedHashAndPassword {
 		// Mismatch password
-		return nil, nil, errors.New("invalid password"), nil
+		return nil, nil, ErrInvalidPassword, nil
 	} else if err != nil && err != bcrypt.ErrMismatchedHashAndPassword {
 		// Return server error
 		return nil, nil, nil, err

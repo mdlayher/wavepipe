@@ -14,9 +14,6 @@ const App = "wavepipe"
 // Version is the application's version
 const Version = "git-dev-subsonic-api"
 
-// ConfigPath is the application's configuration path
-var ConfigPath string
-
 // Manager is responsible for coordinating the application
 func Manager(killChan chan struct{}, exitChan chan int) {
 	log.Printf("manager: initializing %s %s...", App, Version)
@@ -29,16 +26,11 @@ func Manager(killChan chan struct{}, exitChan chan int) {
 		log.Printf("manager: %s - %s_%s (%d CPU) [pid: %d]", stat.Hostname, stat.Platform, stat.Architecture, stat.NumCPU, stat.PID)
 	}
 
-	// Set configuration (if default path used, config will be created)
-	config.C = new(config.JSONFileConfig)
-	if err := config.C.Use(ConfigPath); err != nil {
-		log.Fatalf("manager: could not use config: %s, %s", ConfigPath, err.Error())
-	}
-
-	// Load configuration from specified source
+	// Set configuration source, load configuration
+	config.C = new(config.CLIConfig)
 	conf, err := config.C.Load()
 	if err != nil {
-		log.Fatalf("manager: could not load config: %s, %s", ConfigPath, err.Error())
+		log.Fatalf("manager: could not load config: %s", err.Error())
 	}
 
 	// Check valid media folder, unless in test mode
@@ -46,7 +38,7 @@ func Manager(killChan chan struct{}, exitChan chan int) {
 	if os.Getenv("WAVEPIPE_TEST") != "1" {
 		// Check empty folder
 		if folder == "" {
-			log.Fatalf("manager: no media folder set in config: %s", ConfigPath)
+			log.Fatalf("manager: no media folder set in config")
 		} else if _, err := os.Stat(folder); err != nil {
 			// Check file existence
 			log.Fatalf("manager: invalid media folder set in config: %s", err.Error())
