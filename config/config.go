@@ -38,5 +38,4 @@ type SqliteConfig struct {
 // ConfigSource represents the configuration source for the program
 type ConfigSource interface {
 	Load() (*Config, error)
-	Use(string) error
 }
