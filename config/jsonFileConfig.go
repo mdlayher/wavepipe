@@ -14,6 +14,24 @@ type JSONFileConfig struct {
 	path string
 }
 
+// DefaultConfig is the default JSON configuration for wavepipe
+var DefaultConfig = []byte(`{
+	"host": ":8080",
+	"mediaFolder": "",
+	"sqlite": {
+		"file": "~/.config/wavepipe/wavepipe.db"
+	}
+}`)
+
+// TravisConfig is the JSON configuration used for Travis builds
+var TravisConfig = []byte(`{
+	"host": ":8080",
+	"mediaFolder": "/mem/",
+	"sqlite": {
+		"file": "~/.config/wavepipe/wavepipe.db"
+	}
+}`)
+
 // configCache is a cached configuration
 var configCache *Config
 
