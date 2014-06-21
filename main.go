@@ -35,9 +35,6 @@ func main() {
 		log.Println(core.App, ": WARNING, it is NOT advisable to run wavepipe as root!")
 	}
 
-	// Set configuration path
-	core.ConfigPath = currUser.HomeDir + "/.config/wavepipe/wavepipe.json"
-
 	// Application entry point
 	log.Println(core.App, ": starting...")
 
