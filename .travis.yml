@@ -9,5 +9,5 @@ before_script:
   - go get ./...
 script:
   - make
-  - ./bin/wavepipe -test -media ~
+  - ./bin/wavepipe -test -media /mem
   - make test
