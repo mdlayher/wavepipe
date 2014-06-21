@@ -2,7 +2,6 @@ package data
 
 import (
 	"database/sql"
-	"errors"
 	"log"
 	"os"
 	"os/user"
@@ -49,20 +48,8 @@ func (s *SqliteBackend) Setup() error {
 		return err
 	}
 
-	// Get current user
-	user, err := user.Current()
-	if err != nil {
-		return err
-	}
-
-	// Only create file if it's in the default location
-	if s.Path != user.HomeDir+"/.config/wavepipe/wavepipe.db" {
-		return errors.New("db: cannot create database file: " + s.Path)
-	}
-
+	// Create a new database file in the specified location
 	log.Println("db: creating new database file:", s.Path)
-
-	// Create a new config file in the default location
 	dir := path.Dir(s.Path) + "/"
 	file := path.Base(s.Path)
 
