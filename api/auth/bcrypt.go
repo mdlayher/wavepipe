@@ -21,10 +21,9 @@ func (a BcryptAuth) Authenticate(req *http.Request) (*data.User, *data.Session, 
 
 	// Check for empty authorization header
 	if req.Header.Get("Authorization") == "" {
-		// If no header, check for credentials via querystring parameters
-		query := req.URL.Query()
-		username = query.Get("u")
-		password = query.Get("p")
+		// If no header, check for credentials via POST parameters
+		username = req.PostFormValue("username")
+		password = req.PostFormValue("password")
 	} else {
 		// Fetch credentials from HTTP Basic auth
 		tempUsername, tempPassword, err := basicCredentials(req.Header.Get("Authorization"))

@@ -17,8 +17,8 @@ type LoginResponse struct {
 	Session *data.Session `json:"session"`
 }
 
-// GetLogin creates a new session on the wavepipe API, and returns a HTTP status and JSON
-func GetLogin(res http.ResponseWriter, req *http.Request) {
+// PostLogin creates a new session on the wavepipe API, and returns a HTTP status and JSON
+func PostLogin(res http.ResponseWriter, req *http.Request) {
 	// Retrieve render
 	r := context.Get(req, CtxRender).(*render.Render)
 
@@ -46,8 +46,8 @@ func GetLogin(res http.ResponseWriter, req *http.Request) {
 	}
 
 	// Generate a new API session for this user, with optional specified session name
-	// via "c" query parameter
-	session, err := user.CreateSession(req.URL.Query().Get("c"))
+	// via "client" POST parameter
+	session, err := user.CreateSession(req.PostFormValue("client"))
 	if err != nil {
 		log.Println(err)
 		r.JSON(res, 500, serverErr)

@@ -9,19 +9,16 @@ such as the current API version, supported API versions, and a link to this docu
 
 At this time, the current API version is **v0**.  This API is **unstable**, and is subject to change.
 
-Unless otherwise noted, API endpoints should be accessed using the HTTP `GET` method, due to the vast majority
-of API endpoints being read-only.
-
 **Authentication:**
 
 In order to use the wavepipe API, all requests must be authenticated.  The first step is to generate a new
 session via the [Login](#login) API.  Login username and password can be passed using either HTTP Basic or
-via query string.  In addition, an optional client parameter may be passed, which will identify this session
+via POST body.  In addition, an optional client parameter may be passed, which will identify this session
 with the given name. Both methods can be demonstrated with `curl` as follows:
 
 ```
-$ curl -u test:test http://localhost:8080/api/v0/login?c=testclient
-$ curl http://localhost:8080/api/v0/login?u=test&p=test&c=testclient
+$ curl -X POST -u test:test http://localhost:8080/api/v0/login
+$ curl -X POST -d "username=test&password=test&client=testclient" http://localhost:8080/api/v0/login
 ```
 
 Example [Session](http://godoc.org/github.com/mdlayher/wavepipe/data#Session) output is as follows:
@@ -75,14 +72,14 @@ retrieved about a single album.
 
 **Versions:** `v0`
 
-**URL:** `/api/v0/albums/:id`
+**URL:** `GET /api/v0/albums/:id`
 
 **Examples:**
-  - `http://localhost:8080/api/v0/albums/`
-  - `http://localhost:8080/api/v0/albums/1`
-  - `http://localhost:8080/api/v0/albums?limit=0,100`
+  - `GET http://localhost:8080/api/v0/albums/`
+  - `GET http://localhost:8080/api/v0/albums/1`
+  - `GET http://localhost:8080/api/v0/albums?limit=0,100`
 
-**Parameters:**
+**Query Parameters:**
 
 | Name | Versions | Type | Required | Description |
 | :--: | :------: | :--: | :------: | :---------: |
@@ -112,13 +109,13 @@ Successful calls with return a binary stream, and unsuccessful ones will return 
 
 **Versions:** `v0`
 
-**URL:** `/api/v0/art/:id`
+**URL:** `GET /api/v0/art/:id`
 
 **Examples:**
-  - `http://localhost:8080/api/v0/art/1`
-  - `http://localhost:8080/api/v0/art/1?size=500`
+  - `GET http://localhost:8080/api/v0/art/1`
+  - `GET http://localhost:8080/api/v0/art/1?size=500`
 
-**Parameters:**
+**Query Parameters:**
 
 | Name | Versions | Type | Required | Description |
 | :--: | :------: | :--: | :------: | :---------: |
@@ -149,15 +146,15 @@ retrieved about a single artist.
 
 **Versions:** `v0`
 
-**URL:** `/api/v0/artists/:id`
+**URL:** `GET /api/v0/artists/:id`
 
 **Examples:**
-  - `http://localhost:8080/api/v0/artists/`
-  - `http://localhost:8080/api/v0/artists/1`
-  - `http://localhost:8080/api/v0/artists?limit=0,100`
-  - `http://localhost:8080/api/v0/artists/1?songs=true`
+  - `GET http://localhost:8080/api/v0/artists/`
+  - `GET http://localhost:8080/api/v0/artists/1`
+  - `GET http://localhost:8080/api/v0/artists?limit=0,100`
+  - `GET http://localhost:8080/api/v0/artists/1?songs=true`
 
-**Parameters:**
+**Query Parameters:**
 
 | Name | Versions | Type | Required | Description |
 | :--: | :------: | :--: | :------: | :---------: |
@@ -189,14 +186,14 @@ retrieved about a single folder.
 
 **Versions:** `v0`
 
-**URL:** `/api/v0/folders/:id`
+**URL:** `GET /api/v0/folders/:id`
 
 **Examples:**
-  - `http://localhost:8080/api/v0/folders/`
-  - `http://localhost:8080/api/v0/folders/1`
-  - `http://localhost:8080/api/v0/folders?limit=0,100`
+  - `GET http://localhost:8080/api/v0/folders/`
+  - `GET http://localhost:8080/api/v0/folders/1`
+  - `GET http://localhost:8080/api/v0/folders?limit=0,100`
 
-**Parameters:**
+**Query Parameters:**
 
 | Name | Versions | Type | Required | Description |
 | :--: | :------: | :--: | :------: | :---------: |
@@ -232,19 +229,25 @@ to commit the play to Last.fm.
 
 **Versions:** `v0`
 
-**URL:** `/api/v0/lastfm/:action/:id`
+**URL:** `POST /api/v0/lastfm/:action/:id`
 
 **Examples:**
-  - `http://localhost:8080/api/v0/lastfm/login?lfmu=test&lfmp=test`
-  - `http://localhost:8080/api/v0/lastfm/nowplaying/1`
-  - `http://localhost:8080/api/v0/lastfm/scrobble/1`
+  - `POST http://localhost:8080/api/v0/lastfm/login "username=test&password=test"`
+  - `POST http://localhost:8080/api/v0/lastfm/nowplaying/1`
+  - `POST http://localhost:8080/api/v0/lastfm/scrobble/1`
+  - `POST http://localhost:8080/api/v0/lastfm/scrobble/1?timestamp=1403384162`
 
-**Parameters:**
+**POST Parameters:**
 
 | Name | Versions | Type | Required | Description |
 | :--: | :------: | :--: | :------: | :---------: |
-| lfmu | v0 | string | | Username used to authenticate to Last.fm via wavepipe. Only used for the `login` action. |
-| lfmp | v0 | string | | Associated password used to authenticate to Last.fm via wavepipe. Only used for the `login` action. |
+| username | v0 | string | | Username used to authenticate to Last.fm via wavepipe. Only used for the `login` action. |
+| password | v0 | string | | Password used to authenticate to Last.fm via wavepipe. Only used for the `login` action. |
+
+**Query Parameters:**
+
+| Name | Versions | Type | Required | Description |
+| :--: | :------: | :--: | :------: | :---------: |
 | timestamp | v0 | integer | | Optional integer UNIX timestamp, which can be used to specify a past timestamp. The current timestamp is used if not specified. |
 
 **Return JSON:**
@@ -261,8 +264,8 @@ to commit the play to Last.fm.
 | 400 | unsupported API version: vX | Attempted access to an invalid version of this API, or to a version before this API existed. |
 | 400 | no string action provided | No action was specified in the URL.  An action **must** be specified to use Last.fm functionality. |
 | 400 | invalid string action provided | An unknown action was specified in the URL.  Valid actions are `login`, `nowplaying`, and `scrobble`. |
-| 400 | login: no username provided | No Last.fm username was passed via `lfmu` in query string. Only returned on `login` action. |
-| 400 | login: no password provided | No Last.fm password was passed via `lfmp` in query string. Only returned on `login` action. |
+| 400 | login: no username provided | No Last.fm username was passed via POST body. Only returned on `login` action. |
+| 400 | login: no password provided | No Last.fm password was passed via POST body. Only returned on `login` action. |
 | 400 | no integer song ID provided | No integer ID was sent in request. Only returned on `nowplaying` and `scrobble` actions. |
 | 400 | invalid integer song ID | A valid integer could not be parsed from the ID. Only returned on `nowplaying` and `scrobble` actions. |
 | 401 | action: last.fm authentication failed | Could not authenticate to Last.fm. Could be due to invalid username/password, or an invalid API token. |
@@ -277,18 +280,18 @@ or using a HTTP Basic username and password combination.
 
 **Versions:** `v0`
 
-**URL:** `/api/v0/login`
+**URL:** `POST /api/v0/login`
 
 **Examples:**
-  - `http://localhost:8080/api/v0/login`
+  - `POST http://localhost:8080/api/v0/login "username=test&password=test&client=testclient"`
 
-**Parameters:**
+**POST Parameters:**
 
 | Name | Versions | Type | Required | Description |
 | :--: | :------: | :--: | :------: | :---------: |
-| u | v0 | string | X | Username used to authenticate to wavepipe. Can also be passed via HTTP Basic. |
-| p | v0 | string | X | Associated password used to authenticate to wavepipe. Can also be passed via HTTP Basic. |
-| c | v0 | string | | Optional client name used to identify this session. |
+| username | v0 | string | X | Username used to authenticate to wavepipe. Can also be passed via HTTP Basic. |
+| password | v0 | string | X | Associated password used to authenticate to wavepipe. Can also be passed via HTTP Basic. |
+| client | v0 | string | | Optional client name used to identify this session. |
 
 **Return JSON:**
 
@@ -310,10 +313,10 @@ Used to destroy the current API session from wavepipe.
 
 **Versions:** `v0`
 
-**URL:** `/api/v0/logout`
+**URL:** `POST /api/v0/logout`
 
 **Examples:**
-  - `http://localhost:8080/api/v0/logout`
+  - `POST http://localhost:8080/api/v0/logout`
 
 **Return JSON:**
 
@@ -334,13 +337,13 @@ specified to retrieve results.
 
 **Versions:** `v0`
 
-**URL:** `/api/v0/search/:query`
+**URL:** `GET /api/v0/search/:query`
 
 **Examples:**
-  - `http://localhost:8080/api/v0/search/boston`
-  - `http://localhost:8080/api/v0/search/boston?type=artists,songs`
+  - `GET http://localhost:8080/api/v0/search/boston`
+  - `GET http://localhost:8080/api/v0/search/boston?type=artists,songs`
 
-**Parameters:**
+**Query Parameters:**
 
 | Name | Versions | Type | Required | Description |
 | :--: | :------: | :--: | :------: | :---------: |
@@ -370,15 +373,15 @@ retrieved about a single song.
 
 **Versions:** `v0`
 
-**URL:** `/api/v0/songs/:id`
+**URL:** `GET /api/v0/songs/:id`
 
 **Examples:**
-  - `http://localhost:8080/api/v0/songs/`
-  - `http://localhost:8080/api/v0/songs/1`
-  - `http://localhost:8080/api/v0/songs?limit=0,100`
-  - `http://localhost:8080/api/v0/songs?random=10`
+  - `GET http://localhost:8080/api/v0/songs/`
+  - `GET http://localhost:8080/api/v0/songs/1`
+  - `GET http://localhost:8080/api/v0/songs?limit=0,100`
+  - `GET http://localhost:8080/api/v0/songs?random=10`
 
-**Parameters:**
+**Query Parameters:**
 
 | Name | Versions | Type | Required | Description |
 | :--: | :------: | :--: | :------: | :---------: |
@@ -408,13 +411,13 @@ Used to retrieve current server status from wavepipe.
 
 **Versions:** `v0`
 
-**URL:** `/api/v0/status`
+**URL:** `GET /api/v0/status`
 
 **Examples:**
-  - `http://localhost:8080/api/v0/status`
-  - `http://localhost:8080/api/v0/status?metrics=true`
+  - `GET http://localhost:8080/api/v0/status`
+  - `GET http://localhost:8080/api/v0/status?metrics=true`
 
-**Parameters:**
+**Query Parameters:**
 
 | Name | Versions | Type | Required | Description |
 | :--: | :------: | :--: | :------: | :---------: |
@@ -440,10 +443,10 @@ Used to retrieve a raw, non-transcoded, binary data stream of a media file from 
 
 **Versions:** `v0`
 
-**URL:** `/api/v0/stream/:id`
+**URL:** `GET /api/v0/stream/:id`
 
 **Examples:**
-  - `http://localhost:8080/api/v0/stream/1`
+  - `GET http://localhost:8080/api/v0/stream/1`
 
 **Return Binary:** Binary data stream containing the media file stream.
 
@@ -468,13 +471,13 @@ Used to retrieve a transcoded binary data stream of a media file from wavepipe. 
 
 **Versions:** `v0`
 
-**URL:** `/api/v0/transcode/:id`
+**URL:** `GET /api/v0/transcode/:id`
 
 **Examples:**
-  - `http://localhost:8080/api/v0/transcode/1`
-  - `http://localhost:8080/api/v0/transcode/1?codec=MP3&quality=320`
+  - `GET http://localhost:8080/api/v0/transcode/1`
+  - `GET http://localhost:8080/api/v0/transcode/1?codec=MP3&quality=320`
 
-**Parameters:**
+**Query Parameters:**
 
 | Name | Versions | Type | Required | Description |
 | :--: | :------: | :--: | :------: | :---------: |

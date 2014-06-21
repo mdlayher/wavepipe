@@ -11,8 +11,8 @@ import (
 	"github.com/unrolled/render"
 )
 
-// GetLogout destroys an existing session from the wavepipe API, and returns a HTTP status and JSON
-func GetLogout(res http.ResponseWriter, req *http.Request) {
+// PostLogout destroys an existing session from the wavepipe API, and returns a HTTP status and JSON
+func PostLogout(res http.ResponseWriter, req *http.Request) {
 	// Retrieve render
 	r := context.Get(req, CtxRender).(*render.Render)
 
