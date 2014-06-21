@@ -1,9 +1,12 @@
 package auth
 
 import (
+	"bytes"
 	"fmt"
 	"net/http"
+	"net/url"
 	"reflect"
+	"strconv"
 	"testing"
 
 	"github.com/mdlayher/wavepipe/data"
@@ -119,11 +122,20 @@ func TestAuthenticate(t *testing.T) {
 
 	// Iterate all bcrypt tests and check for valid output
 	for _, test := range bcryptTests {
+		// Generate POST data
+		postData := url.Values{}
+		postData.Set("username", test.username)
+		postData.Set("password", test.password)
+
 		// Generate a HTTP request
-		req, err := http.NewRequest("GET", fmt.Sprintf("http://localhost:8080/api/v0/login?u=%s&p=%s", test.username, test.password), nil)
+		req, err := http.NewRequest("POST", "http://localhost:8080/api/v0/login", bytes.NewBufferString(postData.Encode()))
 		if err != nil {
 			t.Fatal(err)
 		}
+
+		// Set required headers
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		req.Header.Set("Content-Length", strconv.Itoa(len(postData.Encode())))
 
 		// Attempt authentication via bcrypt
 		_, authSession, clientErr, serverErr := new(BcryptAuth).Authenticate(req)
@@ -167,7 +179,7 @@ func TestAuthenticate(t *testing.T) {
 	// Iterate all token tests and check for valid output
 	for _, test := range tokenTests {
 		// Generate a HTTP request
-		req, err := http.NewRequest("GET", fmt.Sprintf("http://localhost:8080/api/v0/login?s=%s", test.token), nil)
+		req, err := http.NewRequest("GET", fmt.Sprintf("http://localhost:8080/api/v0/status?s=%s", test.token), nil)
 		if err != nil {
 			t.Fatal(err)
 		}

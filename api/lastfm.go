@@ -37,9 +37,9 @@ type LastFMResponse struct {
 	URL   string `json:"url"`
 }
 
-// GetLastFM allows access to the Last.fm API, enabling wavepipe to set a user's currently-playing
+// PostLastFM allows access to the Last.fm API, enabling wavepipe to set a user's currently-playing
 // track, as well as to enable scrobbling
-func GetLastFM(res http.ResponseWriter, req *http.Request) {
+func PostLastFM(res http.ResponseWriter, req *http.Request) {
 	// Retrieve render
 	r := context.Get(req, CtxRender).(*render.Render)
 
@@ -84,15 +84,15 @@ func GetLastFM(res http.ResponseWriter, req *http.Request) {
 
 	// Authenticate to the Last.fm API
 	if action == lfmLogin {
-		// Retrieve username from query
-		username := req.URL.Query().Get("lfmu")
+		// Retrieve username from POST body
+		username := req.PostFormValue("username")
 		if username == "" {
 			r.JSON(res, 400, errRes(400, lfmLogin+": no username provided"))
 			return
 		}
 
-		// Retrieve password from query
-		password := req.URL.Query().Get("lfmp")
+		// Retrieve password from POST body
+		password := req.PostFormValue("password")
 		if password == "" {
 			r.JSON(res, 400, errRes(400, lfmLogin+": no password provided"))
 			return
@@ -196,7 +196,7 @@ func GetLastFM(res http.ResponseWriter, req *http.Request) {
 
 	// Check for optional timestamp parameter, which could be useful for sending scrobbles at
 	// past times, etc
-	if pTS, ok := mux.Vars(req)["timestamp"]; ok {
+	if pTS := req.URL.Query().Get("timestamp"); pTS != "" {
 		// Verify valid integer timestamp
 		ts, err := strconv.Atoi(pTS)
 		if err != nil || ts < 0 {

@@ -241,15 +241,15 @@ func newRouter() *mux.Router {
 	ar.HandleFunc("/folders/{id}", api.GetFolders).Methods("GET")
 
 	// LastFM API
-	ar.HandleFunc("/lastfm", api.GetLastFM).Methods("GET")
-	ar.HandleFunc("/lastfm/{action}", api.GetLastFM).Methods("GET")
-	ar.HandleFunc("/lastfm/{action}/{id}", api.GetLastFM).Methods("GET")
+	ar.HandleFunc("/lastfm", api.PostLastFM).Methods("POST")
+	ar.HandleFunc("/lastfm/{action}", api.PostLastFM).Methods("POST")
+	ar.HandleFunc("/lastfm/{action}/{id}", api.PostLastFM).Methods("POST")
 
 	// Login API
-	ar.HandleFunc("/login", api.GetLogin).Methods("GET")
+	ar.HandleFunc("/login", api.PostLogin).Methods("POST")
 
 	// Logout API
-	ar.HandleFunc("/logout", api.GetLogout).Methods("GET")
+	ar.HandleFunc("/logout", api.PostLogout).Methods("POST")
 
 	// Search API
 	ar.HandleFunc("/search", api.GetSearch).Methods("GET")
