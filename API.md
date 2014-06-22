@@ -557,8 +557,10 @@ retrieved about a single user.
 | :--: | :-----: | :---------: |
 | 400 | unsupported API version: vX | Attempted access to an invalid version of this API, or to a version before this API existed. |
 | 400 | invalid integer user ID | A valid integer could not be parsed from the ID. |
+| 400 | invalid integer role ID | A valid integer could not be parsed from the role ID, or an invalid role was specified. |
 | 400 | missing required parameter: username | No username specified in POST body during user creation. |
 | 400 | missing required parameter: password | No password specified in POST body during user creation. |
+| 400 | missing required parameter: role | No role specified in POST body during user creation. |
 | 403 | cannot delete current user | User attempted to delete itself, which is forbidden. |
 | 404 | user ID not found | A user with the specified ID does not exist. |
 | 500 | server error | An internal error occurred. wavepipe will log these errors to its console log. |

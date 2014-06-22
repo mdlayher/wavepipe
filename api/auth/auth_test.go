@@ -96,7 +96,7 @@ func TestAuthenticate(t *testing.T) {
 	defer data.DB.Close()
 
 	// Create a temporary user, remove it on return
-	user, err := data.NewUser("auth_test", "auth_test")
+	user, err := data.NewUser("auth_test", "auth_test", data.RoleGuest)
 	if err != nil {
 		t.Fatal(err)
 	}

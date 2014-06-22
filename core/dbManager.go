@@ -48,7 +48,7 @@ func dbManager(conf config.Config, dbLaunchChan chan struct{}, dbKillChan chan s
 		}
 
 		// TODO: temporary, create a test user
-		data.NewUser("test", "test")
+		data.NewUser("test", "test", data.RoleAdmin)
 	} else {
 		// Invalid config
 		log.Fatalf("db: invalid database selected")

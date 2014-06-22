@@ -105,7 +105,7 @@ func PostUsers(res http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	// Check for required username and password parameters
+	// Check for required username, password, and role parameters
 	username := req.PostFormValue("username")
 	if username == "" {
 		r.JSON(res, 400, errRes(400, "missing required parameter: username"))
@@ -118,8 +118,22 @@ func PostUsers(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	// Generate a new user using the input username and password
-	user, err := data.NewUser(username, password)
+	// Check for role ID
+	role := req.PostFormValue("role")
+	if role == "" {
+		r.JSON(res, 400, errRes(400, "missing required parameter: role"))
+		return
+	}
+
+	// Ensure role is valid integer, and valid role
+	roleID, err := strconv.Atoi(role)
+	if err != nil || (roleID != data.RoleGuest && roleID != data.RoleUser && roleID != data.RoleAdmin) {
+		r.JSON(res, 400, errRes(400, "invalid integer role ID"))
+		return
+	}
+
+	// Generate a new user using the input username, password, and role
+	user, err := data.NewUser(username, password, roleID)
 	if err != nil {
 		log.Println(err)
 		r.JSON(res, 500, serverErr)
@@ -189,6 +203,17 @@ func PutUsers(res http.ResponseWriter, req *http.Request) {
 
 	if password := req.PostFormValue("password"); password != "" {
 		user.SetPassword(password)
+	}
+
+	// Check for role ID
+	if role := req.PostFormValue("role"); role != "" {
+		// Ensure role is valid integer, and valid role
+		roleID, err := strconv.Atoi(role)
+		if err != nil || (roleID != data.RoleGuest && roleID != data.RoleUser && roleID != data.RoleAdmin) {
+			r.JSON(res, 400, errRes(400, "invalid integer role ID"))
+			return
+		}
+		user.RoleID = roleID
 	}
 
 	// Save and update the user
