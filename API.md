@@ -9,6 +9,14 @@ such as the current API version, supported API versions, and a link to this docu
 
 At this time, the current API version is **v0**.  This API is **unstable**, and is subject to change.
 
+API calls may respond to a variety of different HTTP methods.  This documentation will outline the function
+of each method, but they are generally used as follows:
+  - **GET**: retrieve one or more read-only resources from the API
+  - **POST**: create a resource on the API
+  - **PUT**: partially or fully update an existing resource on the API
+  - **PATCH**: equivalent to **PUT**, partially or fully update an existing resource on the API
+  - **DELETE**: delete a resource from the API
+
 **Authentication:**
 
 In order to use the wavepipe API, all requests must be authenticated.  The first step is to generate a new
@@ -526,7 +534,7 @@ retrieved about a single user.
 
 **Versions:** `v0`
 
-**URL:** `GET/POST/DELETE /api/v0/users/:id`
+**URL:** `GET/POST/PUT/PATCH/DELETE /api/v0/users/:id`
 
 **Examples:**
   - `GET http://localhost:8080/api/v0/users/`

@@ -274,6 +274,7 @@ func newRouter() *mux.Router {
 	ar.HandleFunc("/users", api.GetUsers).Methods("GET")
 	ar.HandleFunc("/users/{id}", api.GetUsers).Methods("GET")
 	ar.HandleFunc("/users", api.PostUsers).Methods("POST")
+	ar.HandleFunc("/users/{id}", api.PutUsers).Methods("PUT", "PATCH")
 	ar.HandleFunc("/users/{id}", api.DeleteUsers).Methods("DELETE")
 
 	// On debug mode, enable pprof debug endpoints

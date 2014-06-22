@@ -135,6 +135,78 @@ func PostUsers(res http.ResponseWriter, req *http.Request) {
 	return
 }
 
+// PutUsers updates users on wavepipe, and returns a HTTP status and JSON
+func PutUsers(res http.ResponseWriter, req *http.Request) {
+	// Retrieve render
+	r := context.Get(req, CtxRender).(*render.Render)
+
+	// Output struct for users request
+	out := UsersResponse{}
+
+	// Check API version
+	if version, ok := mux.Vars(req)["version"]; ok {
+		// Check if this API call is supported in the advertised version
+		if !apiVersionSet.Has(version) {
+			r.JSON(res, 400, errRes(400, "unsupported API version: "+version))
+			return
+		}
+	}
+
+	// Check for an ID parameter
+	pID, ok := mux.Vars(req)["id"]
+	if !ok {
+		r.JSON(res, 400, errRes(400, "no integer user ID provided"))
+		return
+	}
+
+	// Verify valid integer ID
+	id, err := strconv.Atoi(pID)
+	if err != nil {
+		r.JSON(res, 400, errRes(400, "invalid integer user ID"))
+		return
+	}
+
+	// Load the user
+	user := new(data.User)
+	user.ID = id
+	if err := user.Load(); err != nil {
+		// Check for invalid ID
+		if err == sql.ErrNoRows {
+			r.JSON(res, 404, errRes(404, "user ID not found"))
+			return
+		}
+
+		// All other errors
+		log.Println(err)
+		r.JSON(res, 500, serverErr)
+		return
+	}
+
+	// Check for parameters to update the user
+	if username := req.PostFormValue("username"); username != "" {
+		user.Username = username
+	}
+
+	if password := req.PostFormValue("password"); password != "" {
+		user.SetPassword(password)
+	}
+
+	// Save and update the user
+	if err := user.Save(); err != nil {
+		log.Println(err)
+		r.JSON(res, 500, serverErr)
+		return
+	}
+
+	// Build response
+	out.Error = nil
+	out.Users = append(out.Users, *user)
+
+	// HTTP 200 OK with JSON
+	r.JSON(res, 200, out)
+	return
+}
+
 // DeleteUsers deletes users from wavepipe, and returns a HTTP status and JSON
 func DeleteUsers(res http.ResponseWriter, req *http.Request) {
 	// Retrieve render
