@@ -47,6 +47,9 @@ func errRes(code int, message string) ErrorResponse {
 	}
 }
 
+// permissionErr is the ErrorResponse returned to clients on a permission denied
+var permissionErr = errRes(403, "permission denied")
+
 // serverErr is the ErrorResponse returned to clients on an internal server error
 var serverErr = errRes(500, "server error")
 

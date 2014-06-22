@@ -93,6 +93,17 @@ func PostUsers(res http.ResponseWriter, req *http.Request) {
 	// Retrieve render
 	r := context.Get(req, CtxRender).(*render.Render)
 
+	// Attempt to retrieve user from context
+	sessionUser := new(data.User)
+	if tempUser := context.Get(req, CtxUser); tempUser != nil {
+		sessionUser = tempUser.(*data.User)
+	} else {
+		// No sessionUser stored in context
+		log.Println("api: no sessionUser stored in request context!")
+		r.JSON(res, 500, serverErr)
+		return
+	}
+
 	// Output struct for users request
 	out := UsersResponse{}
 
@@ -103,6 +114,12 @@ func PostUsers(res http.ResponseWriter, req *http.Request) {
 			r.JSON(res, 400, errRes(400, "unsupported API version: "+version))
 			return
 		}
+	}
+
+	// Only allow administrators to create users
+	if sessionUser.RoleID < data.RoleAdmin {
+		r.JSON(res, 403, permissionErr)
+		return
 	}
 
 	// Check for required username, password, and role parameters
@@ -153,6 +170,17 @@ func PostUsers(res http.ResponseWriter, req *http.Request) {
 func PutUsers(res http.ResponseWriter, req *http.Request) {
 	// Retrieve render
 	r := context.Get(req, CtxRender).(*render.Render)
+
+	// Attempt to retrieve user from context
+	sessionUser := new(data.User)
+	if tempUser := context.Get(req, CtxUser); tempUser != nil {
+		sessionUser = tempUser.(*data.User)
+	} else {
+		// No sessionUser stored in context
+		log.Println("api: no sessionUser stored in request context!")
+		r.JSON(res, 500, serverErr)
+		return
+	}
 
 	// Output struct for users request
 	out := UsersResponse{}
@@ -214,6 +242,18 @@ func PutUsers(res http.ResponseWriter, req *http.Request) {
 			return
 		}
 		user.RoleID = roleID
+
+		// If the user is updating itself and not an administrator, do not allow a role change
+		if sessionUser.RoleID != data.RoleAdmin && sessionUser.RoleID != user.RoleID {
+			r.JSON(res, 403, permissionErr)
+			return
+		}
+	}
+
+	// Only allow administrators to update users, unless the user is updating itself
+	if sessionUser.RoleID < data.RoleAdmin && sessionUser.ID != user.ID {
+		r.JSON(res, 403, permissionErr)
+		return
 	}
 
 	// Save and update the user
@@ -258,6 +298,12 @@ func DeleteUsers(res http.ResponseWriter, req *http.Request) {
 			r.JSON(res, 400, errRes(400, "unsupported API version: "+version))
 			return
 		}
+	}
+
+	// Only allow administrators to delete users
+	if user.RoleID < data.RoleAdmin {
+		r.JSON(res, 403, permissionErr)
+		return
 	}
 
 	// Check for an ID parameter
