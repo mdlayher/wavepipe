@@ -526,12 +526,13 @@ retrieved about a single user.
 
 **Versions:** `v0`
 
-**URL:** `GET/POST /api/v0/users/:id`
+**URL:** `GET/POST/DELETE /api/v0/users/:id`
 
 **Examples:**
   - `GET http://localhost:8080/api/v0/users/`
   - `GET http://localhost:8080/api/v0/users/1`
   - `POST http://localhost:8080/api/v0/users "username=test&password=test"`
+  - `DELETE http://localhost:8080/api/v0/users/1`
 
 **Return JSON:**
 
@@ -548,5 +549,6 @@ retrieved about a single user.
 | 400 | invalid integer user ID | A valid integer could not be parsed from the ID. |
 | 400 | missing required parameter: username | No username specified in POST body during user creation. |
 | 400 | missing required parameter: password | No password specified in POST body during user creation. |
+| 403 | cannot delete current user | User attempted to delete itself, which is forbidden. |
 | 404 | user ID not found | A user with the specified ID does not exist. |
 | 500 | server error | An internal error occurred. wavepipe will log these errors to its console log. |
