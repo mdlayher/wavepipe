@@ -65,6 +65,7 @@ update the expiration time to one week in the future.
 | [Status](#status) | v0 | Used to retrieve current server status from wavepipe. |
 | [Stream](#stream) | v0 | Used to retrieve a raw, non-transcoded, binary data stream of a media file from wavepipe. |
 | [Transcode](#transcode) | v0 | Used to retrieve transcoded binary data stream of a media file from wavepipe. |
+| [Users](#users) | v0 | Used to retrieve information about users from wavepipe. |
 
 ## Albums
 Used to retrieve information about albums from wavepipe.  If an ID is specified, information will be
