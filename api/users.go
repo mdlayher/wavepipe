@@ -1,0 +1,89 @@
+package api
+
+import (
+	"database/sql"
+	"log"
+	"net/http"
+	"strconv"
+
+	"github.com/mdlayher/wavepipe/data"
+
+	"github.com/gorilla/context"
+	"github.com/gorilla/mux"
+	"github.com/unrolled/render"
+)
+
+// UsersResponse represents the JSON response for /api/users
+type UsersResponse struct {
+	Error *Error      `json:"error"`
+	Users []data.User `json:"users"`
+}
+
+// GetUsers retrieves one or more users from wavepipe, and returns a HTTP status and JSON
+func GetUsers(res http.ResponseWriter, req *http.Request) {
+	// Retrieve render
+	r := context.Get(req, CtxRender).(*render.Render)
+
+	// Output struct for users request
+	out := UsersResponse{}
+
+	// List of users to return
+	users := make([]data.User, 0)
+
+	// Check API version
+	if version, ok := mux.Vars(req)["version"]; ok {
+		// Check if this API call is supported in the advertised version
+		if !apiVersionSet.Has(version) {
+			r.JSON(res, 400, errRes(400, "unsupported API version: "+version))
+			return
+		}
+	}
+
+	// Check for an ID parameter
+	if pID, ok := mux.Vars(req)["id"]; ok {
+		// Verify valid integer ID
+		id, err := strconv.Atoi(pID)
+		if err != nil {
+			r.JSON(res, 400, errRes(400, "invalid integer user ID"))
+			return
+		}
+
+		// Load the user
+		user := new(data.User)
+		user.ID = id
+		if err := user.Load(); err != nil {
+			// Check for invalid ID
+			if err == sql.ErrNoRows {
+				r.JSON(res, 404, errRes(404, "user ID not found"))
+				return
+			}
+
+			// All other errors
+			log.Println(err)
+			r.JSON(res, 500, serverErr)
+			return
+		}
+
+		// Add user to slice
+		users = append(users, *user)
+	} else {
+		// Retrieve all users
+		tempUsers, err := data.DB.AllUsers()
+		if err != nil {
+			log.Println(err)
+			r.JSON(res, 500, serverErr)
+			return
+		}
+
+		// Copy users into the output slice
+		users = tempUsers
+	}
+
+	// Build response
+	out.Error = nil
+	out.Users = users
+
+	// HTTP 200 OK with JSON
+	r.JSON(res, 200, out)
+	return
+}

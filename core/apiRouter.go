@@ -270,6 +270,10 @@ func newRouter() *mux.Router {
 	ar.HandleFunc("/transcode", api.GetTranscode).Methods("GET")
 	ar.HandleFunc("/transcode/{id}", api.GetTranscode).Methods("GET")
 
+	// Users API
+	ar.HandleFunc("/users", api.GetUsers).Methods("GET")
+	ar.HandleFunc("/users/{id}", api.GetUsers).Methods("GET")
+
 	// On debug mode, enable pprof debug endpoints
 	// Thanks: https://github.com/go-martini/martini/issues/228
 	if os.Getenv("WAVEPIPE_DEBUG") == "1" {

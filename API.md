@@ -518,3 +518,30 @@ Used to retrieve a transcoded binary data stream of a media file from wavepipe. 
 | 503 | ffmpeg codec libmp3lame not found, MP3 transcoding disabled | ffmpeg was not compiled with libmp3lame codec, so MP3 transcoding is disabled. |
 | 503 | ffmpeg codec libvorbis not found, OGG transcoding disabled | ffmpeg was not compiled with libvorbis codec, so Ogg Vorbis transcoding is disabled. |
 | 503 | ffmpeg codec libopus not found, OPUS transcoding disabled | ffmpeg was not compiled with libopus codec, so Ogg Opus transcoding is disabled. |
+
+## Users
+Used to retrieve information about users from wavepipe.  If an ID is specified, information will be
+retrieved about a single user.
+
+**Versions:** `v0`
+
+**URL:** `GET /api/v0/users/:id`
+
+**Examples:**
+  - `GET http://localhost:8080/api/v0/users/`
+  - `GET http://localhost:8080/api/v0/users/1`
+
+**Return JSON:**
+
+| Name | Type | Description |
+| :--: | :--: | :---------: |
+| error | [Error](http://godoc.org/github.com/mdlayher/wavepipe/api#Error)/null | Information about any errors that occurred.  Value is null if no error occurred. |
+| users | \[\][User](http://godoc.org/github.com/mdlayher/wavepipe/data#User) | Array of User objects returned by the API. |
+
+**Possible errors:**
+
+| Code | Message | Description |
+| :--: | :-----: | :---------: |
+| 400 | unsupported API version: vX | Attempted access to an invalid version of this API, or to a version before this API existed. |
+| 404 | user ID not found | A user with the specified ID does not exist. |
+| 500 | server error | An internal error occurred. wavepipe will log these errors to its console log. |

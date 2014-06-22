@@ -651,6 +651,11 @@ func (s *SqliteBackend) UpdateSong(a *Song) error {
 	return tx.Commit()
 }
 
+// AllUsers loads a slice of all User structs from the database
+func (s *SqliteBackend) AllUsers() ([]User, error) {
+	return s.userQuery("SELECT * FROM users;")
+}
+
 // DeleteUser removes a User from the database
 func (s *SqliteBackend) DeleteUser(u *User) error {
 	// Attempt to delete this user by its ID, if available
@@ -939,6 +944,36 @@ func (s *SqliteBackend) songQuery(query string, args ...interface{}) ([]Song, er
 	}
 
 	return songs, nil
+}
+
+// userQuery loads a slice of User structs matching the input query
+func (s *SqliteBackend) userQuery(query string, args ...interface{}) ([]User, error) {
+	// Perform input query with arguments
+	rows, err := s.db.Queryx(query, args...)
+	if err != nil && err != sql.ErrNoRows {
+		return nil, err
+	}
+	defer rows.Close()
+
+	// Iterate all rows
+	users := make([]User, 0)
+	a := User{}
+	for rows.Next() {
+		// Scan user into struct
+		if err := rows.StructScan(&a); err != nil {
+			return nil, err
+		}
+
+		// Append to list
+		users = append(users, a)
+	}
+
+	// Error check rows
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return users, nil
 }
 
 // integerQuery returns a single integer value from the input query

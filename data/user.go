@@ -8,8 +8,8 @@ import (
 type User struct {
 	ID          int    `json:"id"`
 	Username    string `json:"username"`
-	Password    string `json:"password"`
-	LastFMToken string `db:"lastfm_token" json:"lastfmToken"`
+	Password    string `json:"-"`
+	LastFMToken string `db:"lastfm_token" json:"-"`
 }
 
 // NewUser generates and saves a new user, while also hashing the input password
