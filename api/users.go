@@ -342,6 +342,24 @@ func DeleteUsers(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	// Fetch all sessions for the user
+	sessions, err := data.DB.SessionsForUser(delUser.ID)
+	if err != nil {
+		log.Println(err)
+		r.JSON(res, 500, serverErr)
+		return
+	}
+
+	// Iterate and delete all sessions
+	for _, s := range sessions {
+		// Delete the session
+		if err := s.Delete(); err != nil {
+			log.Println(err)
+			r.JSON(res, 500, serverErr)
+			return
+		}
+	}
+
 	// Delete the user
 	if err := delUser.Delete(); err != nil {
 		log.Println(err)
