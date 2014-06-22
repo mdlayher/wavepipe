@@ -192,7 +192,7 @@ func PutUsers(res http.ResponseWriter, req *http.Request) {
 	}
 
 	// Save and update the user
-	if err := user.Save(); err != nil {
+	if err := user.Update(); err != nil {
 		log.Println(err)
 		r.JSON(res, 500, serverErr)
 		return
