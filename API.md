@@ -280,6 +280,7 @@ to commit the play to Last.fm.
 | 401 | action: last.fm authentication failed | Could not authenticate to Last.fm. Could be due to invalid username/password, or an invalid API token. |
 | 401 | action: user must authenticate to last.fm | User attempted to perform `nowplaying` or `scrobble` action, without first completing `login` action. |
 | 401 | action: last.fm token not yet authorized | User must authorize wavepipe to access their Last.fm account, via the provided URL. |
+| 403 | permission denied | The current user is forbidden from performing this action. |
 | 404 | song ID not found | A song with the specified ID does not exist. Only returned on `nowplaying` and `scrobble` actions. |
 | 500 | server error | An internal error occurred. wavepipe will log these errors to its console log. |
 
@@ -539,7 +540,7 @@ retrieved about a single user.
 **Examples:**
   - `GET http://localhost:8080/api/v0/users/`
   - `GET http://localhost:8080/api/v0/users/1`
-  - `POST http://localhost:8080/api/v0/users "username=test&password=test"`
+  - `POST http://localhost:8080/api/v0/users "username=test&password=test&role=2"`
   - `PUT http://localhost:8080/api/v0/users/1 "username=test2&password=test2"`
   - `PATCH http://localhost:8080/api/v0/users/1 "username=test3"`
   - `DELETE http://localhost:8080/api/v0/users/1`
@@ -561,6 +562,7 @@ retrieved about a single user.
 | 400 | missing required parameter: username | No username specified in POST body during user creation. |
 | 400 | missing required parameter: password | No password specified in POST body during user creation. |
 | 400 | missing required parameter: role | No role specified in POST body during user creation. |
+| 403 | permission denied | The current user is forbidden from performing this action. |
 | 403 | cannot delete current user | User attempted to delete itself, which is forbidden. |
 | 404 | user ID not found | A user with the specified ID does not exist. |
 | 500 | server error | An internal error occurred. wavepipe will log these errors to its console log. |
