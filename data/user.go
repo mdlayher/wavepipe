@@ -4,6 +4,7 @@ import (
 	"code.google.com/p/go.crypto/bcrypt"
 )
 
+// Constants representing the various roles a user may possess
 const (
 	RoleGuest = iota
 	RoleUser
