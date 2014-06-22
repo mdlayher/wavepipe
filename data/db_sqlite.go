@@ -692,9 +692,9 @@ func (s *SqliteBackend) LoadUser(u *User) error {
 // SaveUser attempts to save a User to the database
 func (s *SqliteBackend) SaveUser(u *User) error {
 	// Insert new user
-	query := "INSERT INTO users (`username`, `password`, `lastfm_token`) VALUES (?, ?, ?);"
+	query := "INSERT INTO users (`username`, `password`, `role_id`, `lastfm_token`) VALUES (?, ?, ?, ?);"
 	tx := s.db.MustBegin()
-	tx.Exec(query, u.Username, u.Password, u.LastFMToken)
+	tx.Exec(query, u.Username, u.Password, u.RoleID, u.LastFMToken)
 
 	// Commit transaction
 	if err := tx.Commit(); err != nil {
@@ -716,14 +716,14 @@ func (s *SqliteBackend) UpdateUser(u *User) error {
 	// Attempt to update this user by its ID, if available
 	tx := s.db.MustBegin()
 	if u.ID != 0 {
-		tx.Exec("UPDATE users SET `username` = ?, `password` = ?, `lastfm_token` = ? WHERE id = ?;",
-			u.Username, u.Password, u.LastFMToken, u.ID)
+		tx.Exec("UPDATE users SET `username` = ?, `password` = ?, `role_id` = ?, `lastfm_token` = ? WHERE id = ?;",
+			u.Username, u.Password, u.RoleID, u.LastFMToken, u.ID)
 		return tx.Commit()
 	}
 
 	// Else, attempt to update the user by its username
-	tx.Exec("UPDATE users SET `password` = ?, `lastfm_token` = ? WHERE username = ?;",
-		u.Password, u.LastFMToken, u.Username)
+	tx.Exec("UPDATE users SET `password` = ?, `role_id` = ?, `lastfm_token` = ? WHERE username = ?;",
+		u.Password, u.RoleID, u.LastFMToken, u.Username)
 	return tx.Commit()
 }
 

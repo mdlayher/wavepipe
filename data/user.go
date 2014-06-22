@@ -4,19 +4,27 @@ import (
 	"code.google.com/p/go.crypto/bcrypt"
 )
 
+const (
+	RoleGuest = iota
+	RoleUser
+	RoleAdmin
+)
+
 // User represents an user registered to wavepipe
 type User struct {
 	ID          int    `json:"id"`
 	Username    string `json:"username"`
 	Password    string `json:"-"`
+	RoleID      int    `db:"role_id" json:"roleId"`
 	LastFMToken string `db:"lastfm_token" json:"-"`
 }
 
 // NewUser generates and saves a new user, while also hashing the input password
-func NewUser(username string, password string) (*User, error) {
+func NewUser(username string, password string, roleID int) (*User, error) {
 	// Generate user
 	user := new(User)
 	user.Username = username
+	user.RoleID = roleID
 
 	// Hash input password
 	if err := user.SetPassword(password); err != nil {

@@ -15,7 +15,7 @@ func TestUserDatabase(t *testing.T) {
 	defer DB.Close()
 
 	// Attempt to create and save the user
-	user, err := NewUser("TestUser", "TestPassword")
+	user, err := NewUser("TestUser", "TestPassword", RoleGuest)
 	if err != nil {
 		t.Fatalf("Could not create and save user: %s", err.Error())
 	}
