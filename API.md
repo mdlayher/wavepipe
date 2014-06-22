@@ -540,6 +540,8 @@ retrieved about a single user.
   - `GET http://localhost:8080/api/v0/users/`
   - `GET http://localhost:8080/api/v0/users/1`
   - `POST http://localhost:8080/api/v0/users "username=test&password=test"`
+  - `PUT http://localhost:8080/api/v0/users/1 "username=test2&password=test2"`
+  - `PATCH http://localhost:8080/api/v0/users/1 "username=test3"`
   - `DELETE http://localhost:8080/api/v0/users/1`
 
 **Return JSON:**
