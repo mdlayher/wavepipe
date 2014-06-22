@@ -19,11 +19,9 @@ func NewUser(username string, password string) (*User, error) {
 	user.Username = username
 
 	// Hash input password
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), 13)
-	if err != nil {
+	if err := user.SetPassword(password); err != nil {
 		return nil, err
 	}
-	user.Password = string(hash)
 
 	// Save user
 	if err := user.Save(); err != nil {
@@ -36,6 +34,17 @@ func NewUser(username string, password string) (*User, error) {
 // CreateSession generates a new API session for this user
 func (u User) CreateSession(client string) (*Session, error) {
 	return NewSession(u.ID, u.Password, client)
+}
+
+// SetPassword hashes a password using bcrypt, and stores it in the User struct
+func (u *User) SetPassword(password string) error {
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), 13)
+	if err != nil {
+		return err
+	}
+	u.Password = string(hash)
+
+	return nil
 }
 
 // Delete removes an existing User from the database
