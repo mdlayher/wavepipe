@@ -67,6 +67,7 @@ CREATE TABLE "users" (
 	"id"           INTEGER PRIMARY KEY AUTOINCREMENT,
 	"username"     TEXT,
 	"password"     TEXT,
+	"role_id"      INTEGER,
 	"lastfm_token" TEXT
 );
 CREATE UNIQUE INDEX "users_unique_username" ON "users" ("username");
