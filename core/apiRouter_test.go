@@ -183,6 +183,16 @@ func TestAPIRouter(t *testing.T) {
 		{404, "GET", "/api/v0/transcode/99999999"},
 		//   - ffmpeg not found, transcoding disabled
 		{503, "GET", "/api/v0/transcode/1"},
+
+		// Users API
+		//   - valid request
+		{200, "GET", "/api/v0/users"},
+		//   - valid request for 1 item
+		{200, "GET", "/api/v0/users/1"},
+		//   - invalid integer user ID
+		{400, "GET", "/api/v0/users/foo"},
+		//   - user ID not found
+		{404, "GET", "/api/v0/users/99999999"},
 	}
 
 	// Iterate all tests

@@ -544,6 +544,7 @@ retrieved about a single user.
 | Code | Message | Description |
 | :--: | :-----: | :---------: |
 | 400 | unsupported API version: vX | Attempted access to an invalid version of this API, or to a version before this API existed. |
+| 400 | invalid integer user ID | A valid integer could not be parsed from the ID. |
 | 400 | missing required parameter: username | No username specified in POST body during user creation. |
 | 400 | missing required parameter: password | No password specified in POST body during user creation. |
 | 404 | user ID not found | A user with the specified ID does not exist. |
