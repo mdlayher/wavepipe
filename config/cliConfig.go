@@ -28,8 +28,3 @@ func (c *CLIConfig) Load() (*Config, error) {
 		},
 	}, nil
 }
-
-// Use does nothing for command-line flag configuration
-func (c *CLIConfig) Use(configPath string) error {
-	return nil
-}
