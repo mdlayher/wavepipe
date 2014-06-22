@@ -90,7 +90,7 @@ func Factory(codec string, quality string) (Transcoder, error) {
 	// MP3
 	case "MP3":
 		// Verify MP3 transcoding is enabled
-		if !CodecSet.Has("MP3") {
+		if !CodecSet.Has(FFmpegMP3Codec) {
 			return nil, ErrMP3Disabled
 		}
 
@@ -98,7 +98,7 @@ func Factory(codec string, quality string) (Transcoder, error) {
 	// Ogg Vorbis
 	case "OGG":
 		// Verify OGG transcoding is enabled
-		if !CodecSet.Has("OGG") {
+		if !CodecSet.Has(FFmpegOGGCodec) {
 			return nil, ErrOGGDisabled
 		}
 
@@ -106,7 +106,7 @@ func Factory(codec string, quality string) (Transcoder, error) {
 	// Ogg Opus
 	case "OPUS":
 		// Verify OPUS transcoding is enabled
-		if !CodecSet.Has("OPUS") {
+		if !CodecSet.Has(FFmpegOPUSCodec) {
 			return nil, ErrOPUSDisabled
 		}
 
