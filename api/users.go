@@ -87,3 +87,50 @@ func GetUsers(res http.ResponseWriter, req *http.Request) {
 	r.JSON(res, 200, out)
 	return
 }
+
+// PostUsers creates a new user on the wavepipe API, and returns a HTTP status and JSON
+func PostUsers(res http.ResponseWriter, req *http.Request) {
+	// Retrieve render
+	r := context.Get(req, CtxRender).(*render.Render)
+
+	// Output struct for users request
+	out := UsersResponse{}
+
+	// Check API version
+	if version, ok := mux.Vars(req)["version"]; ok {
+		// Check if this API call is supported in the advertised version
+		if !apiVersionSet.Has(version) {
+			r.JSON(res, 400, errRes(400, "unsupported API version: "+version))
+			return
+		}
+	}
+
+	// Check for required username and password parameters
+	username := req.PostFormValue("username")
+	if username == "" {
+		r.JSON(res, 400, errRes(400, "missing required parameter: username"))
+		return
+	}
+
+	password := req.PostFormValue("password")
+	if password == "" {
+		r.JSON(res, 400, errRes(400, "missing required parameter: password"))
+		return
+	}
+
+	// Generate a new user using the input username and password
+	user, err := data.NewUser(username, password)
+	if err != nil {
+		log.Println(err)
+		r.JSON(res, 500, serverErr)
+		return
+	}
+
+	// Build response
+	out.Users = append(out.Users, *user)
+	out.Error = nil
+
+	// HTTP 200 OK with JSON
+	r.JSON(res, 200, out)
+	return
+}

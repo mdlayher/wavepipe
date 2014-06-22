@@ -525,11 +525,12 @@ retrieved about a single user.
 
 **Versions:** `v0`
 
-**URL:** `GET /api/v0/users/:id`
+**URL:** `GET/POST /api/v0/users/:id`
 
 **Examples:**
   - `GET http://localhost:8080/api/v0/users/`
   - `GET http://localhost:8080/api/v0/users/1`
+  - `POST http://localhost:8080/api/v0/users "username=test&password=test"`
 
 **Return JSON:**
 
@@ -543,5 +544,7 @@ retrieved about a single user.
 | Code | Message | Description |
 | :--: | :-----: | :---------: |
 | 400 | unsupported API version: vX | Attempted access to an invalid version of this API, or to a version before this API existed. |
+| 400 | missing required parameter: username | No username specified in POST body during user creation. |
+| 400 | missing required parameter: password | No password specified in POST body during user creation. |
 | 404 | user ID not found | A user with the specified ID does not exist. |
 | 500 | server error | An internal error occurred. wavepipe will log these errors to its console log. |
