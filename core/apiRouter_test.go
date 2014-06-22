@@ -205,7 +205,7 @@ func TestAPIRouter(t *testing.T) {
 
 		// Map context for request
 		context.Set(req, api.CtxRender, r)
-		context.Set(req, api.CtxUser, new(data.User))
+		context.Set(req, api.CtxUser, &data.User{RoleID: 1})
 		context.Set(req, api.CtxSession, new(data.Session))
 
 		// Capture HTTP response via recorder
