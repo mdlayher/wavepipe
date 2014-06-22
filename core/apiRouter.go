@@ -93,10 +93,10 @@ func apiRouter(apiKillChan chan struct{}) {
 				res.Header().Set("WWW-Authenticate", "Basic")
 			}
 
-			r.JSON(res, 401, api.Error{
+			r.JSON(res, 401, api.ErrorResponse{&api.Error{
 				Code:    401,
 				Message: "authentication failed: " + clientErr.Error(),
-			})
+			}})
 			return
 		}
 
@@ -110,10 +110,10 @@ func apiRouter(apiKillChan chan struct{}) {
 				return
 			}
 
-			r.JSON(res, 500, api.Error{
+			r.JSON(res, 500, api.ErrorResponse{&api.Error{
 				Code:    500,
 				Message: "server error",
-			})
+			}})
 			return
 		}
 
@@ -122,7 +122,7 @@ func apiRouter(apiKillChan chan struct{}) {
 		context.Set(req, api.CtxSession, session)
 
 		// Print information about this API call
-		log.Printf("api: [%s] %s?%s", req.RemoteAddr, req.URL.Path, req.URL.Query().Encode())
+		log.Printf("api: [%s] %s %s?%s", req.RemoteAddr, req.Method, req.URL.Path, req.URL.Query().Encode())
 
 		// Perform API call
 		next(res, req)
@@ -283,6 +283,13 @@ func newRouter() *mux.Router {
 	// Transcode API
 	ar.HandleFunc("/transcode", api.GetTranscode).Methods("GET")
 	ar.HandleFunc("/transcode/{id}", api.GetTranscode).Methods("GET")
+
+	// Users API
+	ar.HandleFunc("/users", api.GetUsers).Methods("GET")
+	ar.HandleFunc("/users/{id}", api.GetUsers).Methods("GET")
+	ar.HandleFunc("/users", api.PostUsers).Methods("POST")
+	ar.HandleFunc("/users/{id}", api.PutUsers).Methods("PUT", "PATCH")
+	ar.HandleFunc("/users/{id}", api.DeleteUsers).Methods("DELETE")
 
 	// Set up emulated Subsonic API routes
 	sr := router.PathPrefix("/subsonic/rest").Subrouter()

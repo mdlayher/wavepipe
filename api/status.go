@@ -47,7 +47,7 @@ func GetStatus(res http.ResponseWriter, req *http.Request) {
 	out.Status = status
 
 	// If requested, fetch additional metrics (not added by default due to full table scans in database)
-	if pMetrics := req.URL.Query().Get("metrics"); pMetrics == "true" {
+	if req.URL.Query().Get("metrics") == "true" {
 		metrics, err := common.ServerMetrics()
 		if err != nil {
 			log.Println(err)

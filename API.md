@@ -9,6 +9,14 @@ such as the current API version, supported API versions, and a link to this docu
 
 At this time, the current API version is **v0**.  This API is **unstable**, and is subject to change.
 
+API calls may respond to a variety of different HTTP methods.  This documentation will outline the function
+of each method, but they are generally used as follows:
+  - **GET**: retrieve one or more read-only resources from the API
+  - **POST**: create a resource on the API
+  - **PUT**: partially or fully update an existing resource on the API
+  - **PATCH**: equivalent to **PUT**, partially or fully update an existing resource on the API
+  - **DELETE**: delete a resource from the API
+
 **Authentication:**
 
 In order to use the wavepipe API, all requests must be authenticated.  The first step is to generate a new
@@ -65,6 +73,7 @@ update the expiration time to one week in the future.
 | [Status](#status) | v0 | Used to retrieve current server status from wavepipe. |
 | [Stream](#stream) | v0 | Used to retrieve a raw, non-transcoded, binary data stream of a media file from wavepipe. |
 | [Transcode](#transcode) | v0 | Used to retrieve transcoded binary data stream of a media file from wavepipe. |
+| [Users](#users) | v0 | Used to retrieve information about users from wavepipe. |
 
 ## Albums
 Used to retrieve information about albums from wavepipe.  If an ID is specified, information will be
@@ -271,6 +280,7 @@ to commit the play to Last.fm.
 | 401 | action: last.fm authentication failed | Could not authenticate to Last.fm. Could be due to invalid username/password, or an invalid API token. |
 | 401 | action: user must authenticate to last.fm | User attempted to perform `nowplaying` or `scrobble` action, without first completing `login` action. |
 | 401 | action: last.fm token not yet authorized | User must authorize wavepipe to access their Last.fm account, via the provided URL. |
+| 403 | permission denied | The current user is forbidden from performing this action. |
 | 404 | song ID not found | A song with the specified ID does not exist. Only returned on `nowplaying` and `scrobble` actions. |
 | 500 | server error | An internal error occurred. wavepipe will log these errors to its console log. |
 
@@ -518,3 +528,41 @@ Used to retrieve a transcoded binary data stream of a media file from wavepipe. 
 | 503 | ffmpeg codec libmp3lame not found, MP3 transcoding disabled | ffmpeg was not compiled with libmp3lame codec, so MP3 transcoding is disabled. |
 | 503 | ffmpeg codec libvorbis not found, OGG transcoding disabled | ffmpeg was not compiled with libvorbis codec, so Ogg Vorbis transcoding is disabled. |
 | 503 | ffmpeg codec libopus not found, OPUS transcoding disabled | ffmpeg was not compiled with libopus codec, so Ogg Opus transcoding is disabled. |
+
+## Users
+Used to retrieve information about users from wavepipe.  If an ID is specified, information will be
+retrieved about a single user.
+
+**Versions:** `v0`
+
+**URL:** `GET/POST/PUT/PATCH/DELETE /api/v0/users/:id`
+
+**Examples:**
+  - `GET http://localhost:8080/api/v0/users/`
+  - `GET http://localhost:8080/api/v0/users/1`
+  - `POST http://localhost:8080/api/v0/users "username=test&password=test&role=2"`
+  - `PUT http://localhost:8080/api/v0/users/1 "username=test2&password=test2"`
+  - `PATCH http://localhost:8080/api/v0/users/1 "username=test3"`
+  - `DELETE http://localhost:8080/api/v0/users/1`
+
+**Return JSON:**
+
+| Name | Type | Description |
+| :--: | :--: | :---------: |
+| error | [Error](http://godoc.org/github.com/mdlayher/wavepipe/api#Error)/null | Information about any errors that occurred.  Value is null if no error occurred. |
+| users | \[\][User](http://godoc.org/github.com/mdlayher/wavepipe/data#User) | Array of User objects returned by the API. |
+
+**Possible errors:**
+
+| Code | Message | Description |
+| :--: | :-----: | :---------: |
+| 400 | unsupported API version: vX | Attempted access to an invalid version of this API, or to a version before this API existed. |
+| 400 | invalid integer user ID | A valid integer could not be parsed from the ID. |
+| 400 | invalid integer role ID | A valid integer could not be parsed from the role ID, or an invalid role was specified. |
+| 400 | missing required parameter: username | No username specified in POST body during user creation. |
+| 400 | missing required parameter: password | No password specified in POST body during user creation. |
+| 400 | missing required parameter: role | No role specified in POST body during user creation. |
+| 403 | permission denied | The current user is forbidden from performing this action. |
+| 403 | cannot delete current user | User attempted to delete itself, which is forbidden. |
+| 404 | user ID not found | A user with the specified ID does not exist. |
+| 500 | server error | An internal error occurred. wavepipe will log these errors to its console log. |

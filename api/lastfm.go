@@ -66,6 +66,12 @@ func PostLastFM(res http.ResponseWriter, req *http.Request) {
 		}
 	}
 
+	// Do not allow guests and below to use Last.fm functionality
+	if user.RoleID < data.RoleUser {
+		r.JSON(res, 403, permissionErr)
+		return
+	}
+
 	// Check API action
 	action, ok := mux.Vars(req)["action"]
 	if !ok {
