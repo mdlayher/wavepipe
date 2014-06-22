@@ -67,6 +67,7 @@ type dbBackend interface {
 	SaveUser(*User) error
 	UpdateUser(*User) error
 
+	SessionsForUser(int) ([]Session, error)
 	DeleteSession(*Session) error
 	LoadSession(*Session) error
 	SaveSession(*Session) error

@@ -727,6 +727,11 @@ func (s *SqliteBackend) UpdateUser(u *User) error {
 	return tx.Commit()
 }
 
+// SessionsForUser loads a slice of all Sessions for a given User from the database
+func (s *SqliteBackend) SessionsForUser(userID int) ([]Session, error) {
+	return s.sessionQuery("SELECT * FROM sessions WHERE user_id = ?", userID)
+}
+
 // DeleteSession removes a Session from the database
 func (s *SqliteBackend) DeleteSession(u *Session) error {
 	// Attempt to delete this session by its ID, if available
@@ -974,6 +979,36 @@ func (s *SqliteBackend) userQuery(query string, args ...interface{}) ([]User, er
 	}
 
 	return users, nil
+}
+
+// sessionQuery loads a slice of Session structs matching the input query
+func (s *SqliteBackend) sessionQuery(query string, args ...interface{}) ([]Session, error) {
+	// Perform input query with arguments
+	rows, err := s.db.Queryx(query, args...)
+	if err != nil && err != sql.ErrNoRows {
+		return nil, err
+	}
+	defer rows.Close()
+
+	// Iterate all rows
+	sessions := make([]Session, 0)
+	a := Session{}
+	for rows.Next() {
+		// Scan session into struct
+		if err := rows.StructScan(&a); err != nil {
+			return nil, err
+		}
+
+		// Append to list
+		sessions = append(sessions, a)
+	}
+
+	// Error check rows
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return sessions, nil
 }
 
 // integerQuery returns a single integer value from the input query
