@@ -108,7 +108,7 @@ func apiRouter(apiKillChan chan struct{}) {
 		context.Set(req, api.CtxSession, session)
 
 		// Print information about this API call
-		log.Printf("api: [%s] %s?%s", req.RemoteAddr, req.URL.Path, req.URL.Query().Encode())
+		log.Printf("api: [%s] %s %s?%s", req.RemoteAddr, req.Method, req.URL.Path, req.URL.Query().Encode())
 
 		// Perform API call
 		next(res, req)
