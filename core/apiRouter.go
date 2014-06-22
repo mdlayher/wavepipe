@@ -85,10 +85,10 @@ func apiRouter(apiKillChan chan struct{}) {
 				res.Header().Set("WWW-Authenticate", "Basic")
 			}
 
-			r.JSON(res, 401, api.Error{
+			r.JSON(res, 401, api.ErrorResponse{&api.Error{
 				Code:    401,
 				Message: "authentication failed: " + clientErr.Error(),
-			})
+			}})
 			return
 		}
 
@@ -96,10 +96,10 @@ func apiRouter(apiKillChan chan struct{}) {
 		if serverErr != nil {
 			log.Println(serverErr)
 
-			r.JSON(res, 500, api.Error{
+			r.JSON(res, 500, api.ErrorResponse{&api.Error{
 				Code:    500,
 				Message: "server error",
-			})
+			}})
 			return
 		}
 
@@ -273,6 +273,7 @@ func newRouter() *mux.Router {
 	// Users API
 	ar.HandleFunc("/users", api.GetUsers).Methods("GET")
 	ar.HandleFunc("/users/{id}", api.GetUsers).Methods("GET")
+	ar.HandleFunc("/users", api.PostUsers).Methods("POST")
 
 	// On debug mode, enable pprof debug endpoints
 	// Thanks: https://github.com/go-martini/martini/issues/228
