@@ -68,6 +68,10 @@ func TestAPIRouter(t *testing.T) {
 		{400, "GET", "/api/v0/art"},
 		//   - invalid art stream ID
 		{400, "GET", "/api/v0/art/foo"},
+		//   - invalid integer size
+		{400, "GET", "/api/v0/art/1?size=foo"},
+		//   - negative integer size
+		{400, "GET", "/api/v0/art/1?size=-1"},
 		//   - art ID not found
 		{404, "GET", "/api/v0/art/99999999"},
 
