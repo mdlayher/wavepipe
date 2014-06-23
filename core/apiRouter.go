@@ -63,7 +63,7 @@ func apiRouter(apiKillChan chan struct{}) {
 	// Authenticate all API calls
 	n.Use(negroni.HandlerFunc(func(res http.ResponseWriter, req *http.Request, next http.HandlerFunc) {
 		// Use factory to determine and invoke the proper authentication method for this path
-		user, session, clientErr, serverErr := auth.Factory(req.URL.Path)(req)
+		user, session, clientErr, serverErr := auth.Factory(req.URL.Path).Authenticate(req)
 
 		// Check for client error
 		if clientErr != nil {
