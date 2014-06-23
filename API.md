@@ -237,6 +237,9 @@ Ideally, a `nowplaying` action will be triggered by clients as soon as the track
 After a fair amount of time has passed (for example, 50-75% of the song), a `scrobble` request should be triggered
 to commit the play to Last.fm.
 
+Last.fm actions are only allowed for users with the role `User` or `Administrator`.  `Guest` users are not permitted
+to use Last.fm functionality, and will receive a `HTTP 403 Forbidden` error when accessing this API call.
+
 **Versions:** `v0`
 
 **URL:** `POST /api/v0/lastfm/:action/:id`
@@ -533,6 +536,14 @@ Used to retrieve a transcoded binary data stream of a media file from wavepipe. 
 ## Users
 Used to retrieve information about users from wavepipe.  If an ID is specified, information will be
 retrieved about a single user.
+
+In addition, this API call may be used to create, modify, or delete existing users.  Different functionality is
+available for each user role:
+  - Users with the role `Administrator` have full control over all users.
+  - Users with the role `User` may update their own account, but may not create, delete, or update other users.
+  - Users with the role `Guest` have no access to create, delete, or update any user.
+
+If a user is disallowed from performing an action, they will receive a `HTTP 403 Forbidden` error.
 
 **Versions:** `v0`
 
