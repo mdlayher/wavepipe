@@ -34,13 +34,17 @@ var (
 	ErrInvalidBasic = errors.New("invalid HTTP Basic header")
 )
 
-// AuthMethod represents a method of authenticating with the API
-type AuthMethod interface {
-	Authenticate(*http.Request) (*data.User, *data.Session, error, error)
+// AuthenticatorFunc is an adapter which allows any function with the appropriate signature to act as an
+// authentication function for the wavepipe API
+type AuthenticatorFunc func(*http.Request) (*data.User, *data.Session, error, error)
+
+// Authenticate invokes an AuthenticatorFunc and returns a user, its session, a client error, and a server error
+func (f AuthenticatorFunc) Authenticate(req *http.Request) (*data.User, *data.Session, error, error) {
+	return f(req)
 }
 
 // Factory generates the appropriate authorization method by using input parameters
-func Factory(path string) AuthMethod {
+func Factory(path string) AuthenticatorFunc {
 	// Check if path does not reside under the /api, meaning it is unauthenticated
 	if !strings.HasPrefix(path, "/api") {
 		return nil
@@ -57,17 +61,17 @@ func Factory(path string) AuthMethod {
 	// Check for a login request: /api/vX/login, use bcrypt authenticator
 	// Note: length check added to prevent this from happening on /api/VX/lastfm/login
 	if len(path) == 13 && strings.HasPrefix(path, "/api/v") && strings.HasSuffix(path, "/login") {
-		return new(BcryptAuth)
+		return bcryptAuthenticate
 	}
 
 	// Check for debug mode, and if it's set, automatically use the Simple method
 	if os.Getenv("WAVEPIPE_DEBUG") == "1" {
 		log.Println("api: warning: authenticating user in debug mode")
-		return new(SimpleAuth)
+		return simpleAuthenticate
 	}
 
 	// All other situations, use the token authenticator
-	return new(TokenAuth)
+	return tokenAuthenticate
 }
 
 // basicCredentials returns HTTP Basic authentication credentials from a header

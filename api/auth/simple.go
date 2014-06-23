@@ -9,13 +9,9 @@ import (
 	"github.com/mdlayher/wavepipe/data"
 )
 
-// SimpleAuth represents the simple authentication method, which is used when the environment
-// variable WAVEPIPE_DEBUG is set to "1". It is meant for development ONLY.
-type SimpleAuth struct{}
-
-// Authenticate uses the simple authentication method to log in to the API, returning
-// a session user and a pair of client/server errors
-func (a SimpleAuth) Authenticate(req *http.Request) (*data.User, *data.Session, error, error) {
+// simpleAuthenticate uses the simple authentication method to log in to the API, returning
+// a session user and a pair of client/server errors.
+func simpleAuthenticate(req *http.Request) (*data.User, *data.Session, error, error) {
 	// Verify that SimpleAuth was triggered in debug mode
 	if os.Getenv("WAVEPIPE_DEBUG") != "1" {
 		return nil, nil, nil, errors.New("not in debug mode")

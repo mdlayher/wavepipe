@@ -9,12 +9,9 @@ import (
 	"code.google.com/p/go.crypto/bcrypt"
 )
 
-// BcryptAuth represents the bcrypt authentication method, used to log in to the API
-type BcryptAuth struct{}
-
-// Authenticate uses the bcrypt authentication method to log in to the API, returning
+// bcryptAuthenticate uses the bcrypt authentication method to log in to the API, returning
 // a session user and a pair of client/server errors
-func (a BcryptAuth) Authenticate(req *http.Request) (*data.User, *data.Session, error, error) {
+func bcryptAuthenticate(req *http.Request) (*data.User, *data.Session, error, error) {
 	// Username and password for authentication
 	var username string
 	var password string
