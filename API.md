@@ -17,6 +17,14 @@ of each method, but they are generally used as follows:
   - **PATCH**: equivalent to **PUT**, partially or fully update an existing resource on the API
   - **DELETE**: delete a resource from the API
 
+For additional security, wavepipe employs a very simple roles system.  In general, these roles are used as follows:
+  - **Guest**: read-only access to the entire API, and no ability to update their own credentials
+  - **User**: full API access, Last.fm scrobbling, the ability to update **only** their own credentials
+  - **Administrator**: full API access, Last.fm scrobbling, full access to create/update/delete all users
+
+If a user attempts to perform an action which is disallowed by their current role, they will receive a
+`HTTP 403 Forbidden` error.
+
 **Authentication:**
 
 In order to use the wavepipe API, all requests must be authenticated.  The first step is to generate a new
