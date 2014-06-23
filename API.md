@@ -17,6 +17,14 @@ of each method, but they are generally used as follows:
   - **PATCH**: equivalent to **PUT**, partially or fully update an existing resource on the API
   - **DELETE**: delete a resource from the API
 
+For additional security, wavepipe employs a very simple roles system.  In general, these roles are used as follows:
+  - **Guest**: read-only access to the entire API, and no ability to update their own credentials
+  - **User**: full API access, Last.fm scrobbling, the ability to update **only** their own credentials
+  - **Administrator**: full API access, Last.fm scrobbling, full access to create/update/delete all users
+
+If a user attempts to perform an action which is disallowed by their current role, they will receive a
+`HTTP 403 Forbidden` error.
+
 **Authentication:**
 
 In order to use the wavepipe API, all requests must be authenticated.  The first step is to generate a new
@@ -145,6 +153,7 @@ Successful calls with return a binary stream, and unsuccessful ones will return 
 | 400 | unsupported API version: vX | Attempted access to an invalid version of this API, or to a version before this API existed. |
 | 400 | no integer art ID provided | No integer ID was sent in request. |
 | 400 | invalid art stream ID | A valid integer could not be parsed from the ID. |
+| 400 | invalid integer size | A valid integer could not be parsed from the size parameter. |
 | 400 | negative integer size | A negative integer was passed to the size parameter. Size **must** be a positive integer. |
 | 404 | art ID not found | An art file with the specified ID does not exist. |
 | 500 | server error | An internal error occurred. wavepipe will log these errors to its console log. |
@@ -235,6 +244,9 @@ will store an API key for the user, and use this key for future requests.
 Ideally, a `nowplaying` action will be triggered by clients as soon as the track begins playing on that client.
 After a fair amount of time has passed (for example, 50-75% of the song), a `scrobble` request should be triggered
 to commit the play to Last.fm.
+
+Last.fm actions are only allowed for users with the role `User` or `Administrator`.  `Guest` users are not permitted
+to use Last.fm functionality, and will receive a `HTTP 403 Forbidden` error when accessing this API call.
 
 **Versions:** `v0`
 
@@ -532,6 +544,14 @@ Used to retrieve a transcoded binary data stream of a media file from wavepipe. 
 ## Users
 Used to retrieve information about users from wavepipe.  If an ID is specified, information will be
 retrieved about a single user.
+
+In addition, this API call may be used to create, modify, or delete existing users.  Different functionality is
+available for each user role:
+  - Users with the role `Administrator` have full control over all users.
+  - Users with the role `User` may update their own account, but may not create, delete, or update other users.
+  - Users with the role `Guest` have no access to create, delete, or update any user.
+
+If a user is disallowed from performing an action, they will receive a `HTTP 403 Forbidden` error.
 
 **Versions:** `v0`
 

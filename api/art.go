@@ -88,12 +88,11 @@ func GetArt(res http.ResponseWriter, req *http.Request) {
 	artBuf := make([]byte, 0)
 
 	// Check for resize request
-	size := req.URL.Query().Get("size")
-	if size != "" {
-		// Ensure size is a positive integer
+	if size := req.URL.Query().Get("size"); size != "" {
+		// Ensure size is a valid integer
 		sizeInt, err := strconv.Atoi(size)
 		if err != nil {
-			log.Println(err)
+			r.JSON(res, 400, errRes(400, "invalid integer size"))
 			return
 		}
 

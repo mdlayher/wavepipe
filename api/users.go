@@ -194,6 +194,12 @@ func PutUsers(res http.ResponseWriter, req *http.Request) {
 		}
 	}
 
+	// Disallow guests from updating any user, including themselves
+	if sessionUser.RoleID == data.RoleGuest {
+		r.JSON(res, 403, permissionErr)
+		return
+	}
+
 	// Check for an ID parameter
 	pID, ok := mux.Vars(req)["id"]
 	if !ok {
