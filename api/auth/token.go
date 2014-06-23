@@ -8,14 +8,9 @@ import (
 	"github.com/mdlayher/wavepipe/data"
 )
 
-// TokenAuth represents the token authentication method, in which a user's public key is
-// passed with each request for authentication.  This method should NOT be used unless the
-// server is run over HTTPS.
-type TokenAuth struct{}
-
-// Authenticate uses the token authentication method to log in to the API, returning
+// tokenAuthenticate uses the token authentication method to log in to the API, returning
 // a session user and a pair of client/server errors
-func (a TokenAuth) Authenticate(req *http.Request) (*data.User, *data.Session, error, error) {
+func tokenAuthenticate(req *http.Request) (*data.User, *data.Session, error, error) {
 	// Token for authentication
 	var token string
 

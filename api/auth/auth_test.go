@@ -17,20 +17,20 @@ func TestFactory(t *testing.T) {
 	// Table of tests and the expected authenticators
 	var tests = []struct {
 		path string
-		auth AuthMethod
+		auth AuthenticatorFunc
 	}{
 		// Root - unauthenticated
 		{"/", nil},
 		// API root - unauthenticated
 		{"/api", nil},
 		// API login - bcrypt
-		{"/api/v0/login", new(BcryptAuth)},
+		{"/api/v0/login", bcryptAuthenticate},
 		// Other API calls - token
-		{"/api/v0/status", new(TokenAuth)},
+		{"/api/v0/status", tokenAuthenticate},
 		// Subsonic API - subsonic
-		{"/subsonic", new(SubsonicAuth)},
+		{"/subsonic", subsonicAuthenticate},
 		// Bugfix: Last.fm login - token
-		{"/api/v0/lastfm/login", new(TokenAuth)},
+		{"/api/v0/lastfm/login", tokenAuthenticate},
 	}
 
 	// Iterate and verify tests
@@ -140,7 +140,7 @@ func TestAuthenticate(t *testing.T) {
 		req.Header.Set("Content-Length", strconv.Itoa(len(postData.Encode())))
 
 		// Attempt authentication via bcrypt
-		_, authSession, clientErr, serverErr := new(BcryptAuth).Authenticate(req)
+		_, authSession, clientErr, serverErr := bcryptAuthenticate(req)
 
 		// Check for nil session, since sessions are not generated on login (they are generated in the API)
 		if authSession != nil {
@@ -187,7 +187,7 @@ func TestAuthenticate(t *testing.T) {
 		}
 
 		// Attempt authentication via token
-		_, _, clientErr, serverErr := new(TokenAuth).Authenticate(req)
+		_, _, clientErr, serverErr := tokenAuthenticate(req)
 
 		// Check for expected client error
 		if clientErr != test.clientErr {

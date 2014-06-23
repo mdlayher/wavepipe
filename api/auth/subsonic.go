@@ -11,13 +11,9 @@ import (
 	"github.com/mdlayher/wavepipe/subsonic"
 )
 
-// SubsonicAuth represents the Subsonic authentication method, which is used ONLY for the Subsonic
-// emulation layer
-type SubsonicAuth struct{}
-
-// Authenticate uses the Subsonic authentication method to log in to the API, returning
+// subsonicAuthenticate uses the Subsonic authentication method to log in to the API, returning
 // only a pair of client/server errors
-func (a SubsonicAuth) Authenticate(req *http.Request) (*data.User, *data.Session, error, error) {
+func subsonicAuthenticate(req *http.Request) (*data.User, *data.Session, error, error) {
 	// Check for required credentials via querystring
 	query := req.URL.Query()
 	username := query.Get("u")
