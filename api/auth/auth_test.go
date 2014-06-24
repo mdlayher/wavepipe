@@ -20,9 +20,9 @@ func TestFactory(t *testing.T) {
 		auth AuthenticatorFunc
 	}{
 		// Root - unauthenticated
-		{"/", nil},
+		{"/", nilAuthenticate},
 		// API root - unauthenticated
-		{"/api", nil},
+		{"/api", nilAuthenticate},
 		// API login - bcrypt
 		{"/api/v0/login", bcryptAuthenticate},
 		// Other API calls - token

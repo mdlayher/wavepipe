@@ -59,7 +59,7 @@ func Factory(path string) AuthenticatorFunc {
 
 	// Check if path does not reside under the /api, meaning it is unauthenticated
 	if !strings.HasPrefix(path, "/api") {
-		return nil
+		return nilAuthenticate
 	}
 
 	// Strip any trailing slashes from the path
@@ -67,7 +67,7 @@ func Factory(path string) AuthenticatorFunc {
 
 	// Check for request to API root (/api, /api/vX), which is unauthenticated
 	if path == "/api" || (strings.HasPrefix(path, "/api/v") && len(path) == 7) {
-		return nil
+		return nilAuthenticate
 	}
 
 	// Check for a login request: /api/vX/login, use bcrypt authenticator
