@@ -5,7 +5,7 @@ WP=wavepipe
 
 # Build the binary for the current platform
 make:
-	go build -o bin/${WP}
+	go build -ldflags "-X main.revision `git rev-parse HEAD`" -o bin/${WP}
 
 # Rebuild go-bindata files
 bindata:

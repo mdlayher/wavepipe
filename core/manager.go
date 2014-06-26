@@ -14,9 +14,12 @@ const App = "wavepipe"
 // Version is the application's version
 const Version = "git-master"
 
+// Revision is the application's current git commit hash
+var Revision string
+
 // Manager is responsible for coordinating the application
 func Manager(killChan chan struct{}, exitChan chan int) {
-	log.Printf("manager: initializing %s %s...", App, Version)
+	log.Printf("manager: initializing %s %s [revision: %s]...", App, Version, Revision)
 
 	// Gather information about the operating system
 	stat, err := common.OSInfo()

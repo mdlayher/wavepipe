@@ -12,6 +12,9 @@ import (
 	"github.com/mdlayher/wavepipe/core"
 )
 
+// revision is the application's current git commit hash, as injected at build time
+var revision string
+
 // testFlag invokes wavepipe in "test" mode, where it will start and exit shortly after.  Used for testing.
 var testFlag = flag.Bool("test", false, "Starts "+core.App+" in test mode, causing it to exit shortly after starting.")
 
@@ -35,8 +38,14 @@ func main() {
 		log.Println(core.App, ": WARNING, it is NOT advisable to run wavepipe as root!")
 	}
 
-	// Application entry point
+	// Application entry point, store commit in core
 	log.Println(core.App, ": starting...")
+	core.Revision = revision
+
+	// Make sure a commit hash was injected
+	if core.Revision == "" {
+		log.Fatal(core.App, ": could not determine current revision, please rebuild using 'make'`")
+	}
 
 	// Check if running in debug mode, which will allow bypass of certain features such as
 	// API authentication.  USE THIS FOR DEVELOPMENT ONLY!
