@@ -29,6 +29,11 @@ func Manager(killChan chan struct{}, exitChan chan int) {
 		log.Printf("manager: %s - %s_%s (%d CPU) [pid: %d]", stat.Hostname, stat.Platform, stat.Architecture, stat.NumCPU, stat.PID)
 	}
 
+	// Make sure a commit hash was injected
+	if Revision == "" {
+		log.Fatal(App, ": could not determine current revision, please rebuild using 'make'`")
+	}
+
 	// Set configuration source, load configuration
 	config.C = new(config.CLIConfig)
 	conf, err := config.C.Load()
