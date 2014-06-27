@@ -14,9 +14,12 @@ const App = "wavepipe"
 // Version is the application's version
 const Version = "git-dev-subsonic-api"
 
+// Revision is the application's current git commit hash
+var Revision string
+
 // Manager is responsible for coordinating the application
 func Manager(killChan chan struct{}, exitChan chan int) {
-	log.Printf("manager: initializing %s %s...", App, Version)
+	log.Printf("manager: initializing %s %s [revision: %s]...", App, Version, Revision)
 
 	// Gather information about the operating system
 	stat, err := common.OSInfo()
@@ -24,6 +27,11 @@ func Manager(killChan chan struct{}, exitChan chan int) {
 		log.Println("manager: could not get operating system info:", err)
 	} else {
 		log.Printf("manager: %s - %s_%s (%d CPU) [pid: %d]", stat.Hostname, stat.Platform, stat.Architecture, stat.NumCPU, stat.PID)
+	}
+
+	// Make sure a commit hash was injected
+	if Revision == "" {
+		log.Fatal(App, ": could not determine current revision, please rebuild using 'make'`")
 	}
 
 	// Set configuration source, load configuration

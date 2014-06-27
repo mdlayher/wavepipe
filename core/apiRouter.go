@@ -220,6 +220,11 @@ func newRouter() *mux.Router {
 			"Disallow: /"))
 	}).Methods("GET")
 
+	// Set up current revision route, for easy identification of a wavepipe build
+	router.HandleFunc("/revision", func(res http.ResponseWriter, req *http.Request) {
+		res.Write([]byte(Revision))
+	}).Methods("GET")
+
 	// Set up API information route
 	router.HandleFunc("/api", api.APIInfo).Methods("GET")
 
