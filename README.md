@@ -80,6 +80,12 @@ For the best possible experience while using wavepipe, it is recommended that yo
 FAQ
 ===
 
+__Q: Where's the web UI?__
+
+A: My frontend skills are very limited, but I am in the process of learning [Ember.js](http://emberjs.com).  If you'd
+like to help contribute code for an official wavepipe web UI, I'd love to hear from you!  Feel free to contact me
+at mdlayher (at) gmail (dot) com!
+
 __Q: Does wavepipe recognize the `ALBUMARTIST` tag?__
 
 A: Not yet, but it will in the future!  I am currently developing a native Go audio tag parser, inspired by
