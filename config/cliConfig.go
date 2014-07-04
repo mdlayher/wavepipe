@@ -16,6 +16,11 @@ var (
 // CLIConfig represents configuration from command-line flags
 type CLIConfig struct{}
 
+// Help returns a string containing help information about command-line flags
+func (CLIConfig) Help() string {
+	return "use the '-media' flag to specify a folder"
+}
+
 // Load returns the configuration from command-line flags
 func (c *CLIConfig) Load() (*Config, error) {
 	flag.Parse()

@@ -1,4 +1,4 @@
-.PHONY: bindata clean fmt test all
+.PHONY: bindata clean fmt install test
 
 # Name of the output binary
 WP=wavepipe
@@ -20,6 +20,10 @@ clean:
 fmt:
 	go fmt ./...
 	golint .
+
+# Copy binary into $GOPATH
+install:
+	cp bin/${WP} ${GOPATH}/bin/${WP}
 
 # Run all tests
 test:
