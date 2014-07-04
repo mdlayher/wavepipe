@@ -3,7 +3,8 @@ wavepipe [![Build Status](https://travis-ci.org/mdlayher/wavepipe.svg?branch=mas
 
 Cross-platform media server, written in Go.  MIT Licensed.
 
-API documentation may be found in [API.md](https://github.com/mdlayher/wavepipe/blob/master/API.md).  Full code documentation may be found on [GoDoc](http://godoc.org/github.com/mdlayher/wavepipe).
+API documentation may be found in [API.md](https://github.com/mdlayher/wavepipe/blob/master/API.md).
+Full code documentation may be found on [GoDoc](http://godoc.org/github.com/mdlayher/wavepipe).
 
 wavepipe is a spiritual successor to [WaveBox](https://github.com/einsteinx2/WaveBox), and much of its design
 and ideas are inspired from the WaveBox project.  This being said, wavepipe is an entirely new project, with
@@ -24,6 +25,15 @@ for its ability to read media metadata.  The TagLib static libraries can be inst
 Once the TagLib library is installed, wavepipe can be downloaded, built, and installed, simply by running:
 
 `$ go get github.com/mdlayher/wavepipe`
+
+To aid in debugging, the current git commit revision can be injected into wavepipe via the Go linker. If wavepipe
+is built without the proper flags, it will log a warning stating "empty git revision", and ask to be built using
+`make`.  For this reason, it is recommended to build and install wavepipe using the included `Makefile`:
+
+```
+$ make
+$ make install
+```
 
 To enable wavepipe's transcoding functionality, you must have `ffmpeg` installed.  In order to enable MP3
 and Ogg Vorbis transcoding, `ffmpeg` must have the `libmp3lame` and `libvorbis` codecs, respectively.  If
