@@ -19,7 +19,12 @@ var Revision string
 
 // Manager is responsible for coordinating the application
 func Manager(killChan chan struct{}, exitChan chan int) {
-	log.Printf("manager: initializing %s %s [revision: %s]...", App, Version, Revision)
+	// Check if a commit hash was injected
+	if Revision == "" {
+		log.Println("manager: empty git revision, please rebuild using 'make'")
+	} else {
+		log.Printf("manager: initializing %s %s [revision: %s]...", App, Version, Revision)
+	}
 
 	// Gather information about the operating system
 	stat, err := common.OSInfo()
@@ -27,11 +32,6 @@ func Manager(killChan chan struct{}, exitChan chan int) {
 		log.Println("manager: could not get operating system info:", err)
 	} else {
 		log.Printf("manager: %s - %s_%s (%d CPU) [pid: %d]", stat.Hostname, stat.Platform, stat.Architecture, stat.NumCPU, stat.PID)
-	}
-
-	// Make sure a commit hash was injected
-	if Revision == "" {
-		log.Fatal(App, ": could not determine current revision, please rebuild using 'make'`")
 	}
 
 	// Set configuration source, load configuration
@@ -44,9 +44,9 @@ func Manager(killChan chan struct{}, exitChan chan int) {
 	// Check valid media folder, unless in test mode
 	folder := conf.Media()
 	if os.Getenv("WAVEPIPE_TEST") != "1" {
-		// Check empty folder
+		// Check empty folder, provide help information if not set
 		if folder == "" {
-			log.Fatalf("manager: no media folder set in config")
+			log.Fatal("manager: no media folder set in config: ", config.C.Help())
 		} else if _, err := os.Stat(folder); err != nil {
 			// Check file existence
 			log.Fatalf("manager: invalid media folder set in config: %s", err.Error())
