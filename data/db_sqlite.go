@@ -175,17 +175,6 @@ func (s *SqliteBackend) SaveArt(a *Art) error {
 	return nil
 }
 
-// UpdateArt attempts to update a Art in the database
-func (s *SqliteBackend) UpdateArt(a *Art) error {
-	// Update existing art
-	query := "UPDATE art SET `file_name` = ?, `file_size` = ?, `last_modified` = ? WHERE `id` = ?;"
-	tx := s.db.MustBegin()
-	tx.Exec(query, a.FileName, a.FileSize, a.LastModified, a.ID)
-
-	// Commit transaction
-	return tx.Commit()
-}
-
 // AllArtists loads a slice of all Artist structs from the database
 func (s *SqliteBackend) AllArtists() ([]Artist, error) {
 	return s.artistQuery("SELECT * FROM artists;")

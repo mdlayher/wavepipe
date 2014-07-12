@@ -28,11 +28,6 @@ func (a *Art) Save() error {
 	return DB.SaveArt(a)
 }
 
-// Update updates existing Art in the database
-func (a *Art) Update() error {
-	return DB.UpdateArt(a)
-}
-
 // Stream returns an art stream from the art file
 func (a Art) Stream() (io.ReadCloser, error) {
 	return os.Open(a.FileName)
