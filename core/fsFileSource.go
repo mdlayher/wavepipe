@@ -157,6 +157,12 @@ func (fsFileSource) MediaScan(mediaFolder string, verbose bool, walkCancelChan c
 				art.FileSize = info.Size()
 				art.LastModified = info.ModTime().Unix()
 
+				// Refuse to save a file with size 0, because the HTTP server will
+				// not allow it to be sent with 0 Content-Length
+				if art.FileSize == 0 {
+					return nil
+				}
+
 				// Save new art
 				if err := art.Save(); err != nil {
 					log.Println(err)
@@ -196,6 +202,12 @@ func (fsFileSource) MediaScan(mediaFolder string, verbose bool, walkCancelChan c
 		song.FileName = currPath
 		song.FileSize = info.Size()
 		song.LastModified = info.ModTime().Unix()
+
+		// Refuse to save a file with size 0, because the HTTP server will
+		// not allow it to be sent with 0 Content-Length
+		if song.FileSize == 0 {
+			return nil
+		}
 
 		// Use this folder's ID
 		song.FolderID = folder.ID
