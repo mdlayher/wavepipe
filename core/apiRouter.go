@@ -288,7 +288,7 @@ func newRouter() *mux.Router {
 	sr := router.PathPrefix("/subsonic/rest").Subrouter()
 
 	// Ping - used to check connectivity
-	sr.HandleFunc("/ping.view", subsonic.GetPing).Methods("GET")
+	sr.HandleFunc("/ping.view", subsonic.Ping).Methods("GET")
 
 	// GetAlbumList2 - used to return a list of all albums by tags
 	sr.HandleFunc("/getAlbumList2.view", subsonic.GetAlbumList2).Methods("GET")
@@ -303,7 +303,7 @@ func newRouter() *mux.Router {
 	sr.HandleFunc("/getRandomSongs.view", subsonic.GetRandomSongs).Methods("GET")
 
 	// Stream - used to return a binary file stream
-	sr.HandleFunc("/stream.view", subsonic.GetStream).Methods("GET")
+	sr.HandleFunc("/stream.view", subsonic.Stream).Methods("GET")
 
 	// On debug mode, enable pprof debug endpoints
 	// Thanks: https://github.com/go-martini/martini/issues/228

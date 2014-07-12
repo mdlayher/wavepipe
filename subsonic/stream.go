@@ -14,8 +14,8 @@ import (
 	"github.com/unrolled/render"
 )
 
-// GetStream is used to return the media stream for a single file
-func GetStream(res http.ResponseWriter, req *http.Request) {
+// Stream is used to return the media stream for a single file
+func Stream(res http.ResponseWriter, req *http.Request) {
 	// Retrieve render
 	r := context.Get(req, api.CtxRender).(*render.Render)
 

@@ -196,8 +196,8 @@ func subSong(song data.Song) Song {
 	}
 }
 
-// GetPing is used in Subsonic to check server connectivity
-func GetPing(res http.ResponseWriter, req *http.Request) {
+// Ping is used in Subsonic to check server connectivity
+func Ping(res http.ResponseWriter, req *http.Request) {
 	// Retrieve render
 	r := context.Get(req, api.CtxRender).(*render.Render)
 
