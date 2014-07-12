@@ -15,6 +15,7 @@ type dbBackend interface {
 	DeleteArt(*Art) error
 	LoadArt(*Art) error
 	SaveArt(*Art) error
+	UpdateArt(*Art) error
 
 	AllArtists() ([]Artist, error)
 	LimitArtists(int, int) ([]Artist, error)
