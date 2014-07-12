@@ -171,6 +171,14 @@ func (fsFileSource) MediaScan(mediaFolder string, verbose bool, walkCancelChan c
 				}
 			}
 
+			// If current art size is 0, ensure it is set
+			if art.FileSize == 0 {
+				art.FileSize = info.Size()
+				if err := art.Update(); err != nil {
+					log.Println(err)
+				}
+			}
+
 			// Continue to next file
 			return nil
 		}
