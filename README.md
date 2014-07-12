@@ -97,6 +97,6 @@ branch will be merged into master, providing additional functionality and much m
 __Q: Is wavepipe compatible with existing media servers?__
 
 A: Yes, but it's a work in progress.  In order to help spur wavepipe adoption, I have started building a Subsonic
-emulation layer.  This work can be found in the [dev_subsonic_api](https://github.com/mdlayher/wavepipe/tree/dev_subsonic_api)
-branch, and is currently functional with the [Clementine](https://www.clementine-player.org/) media player's Subsonic
-plugin.  As more of the Subsonic API is emulated, more clients will become compatible with wavepipe.
+emulation layer.  As of now, building wavepipe's master branch will enable the Subsonic emulation layer.
+This emulation is currently functional with the [Clementine](https://www.clementine-player.org/) media player's
+Subsonic plugin.  As more of the Subsonic API is emulated, more clients will become compatible with wavepipe.
