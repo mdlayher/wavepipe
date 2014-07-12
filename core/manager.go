@@ -12,7 +12,7 @@ import (
 const App = "wavepipe"
 
 // Version is the application's version
-const Version = "git-dev-subsonic-api"
+const Version = "git-master"
 
 // Revision is the application's current git commit hash
 var Revision string
