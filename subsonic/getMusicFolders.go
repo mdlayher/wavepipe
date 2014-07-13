@@ -22,7 +22,8 @@ type MusicFoldersContainer struct {
 	MusicFolders []MusicFolder `xml:"musicFolder"`
 }
 
-// GetMusicFolders is used in Subsonic to return a list of random songs
+// GetMusicFolders is used in Subsonic to return a list of music folders.
+// Since wavepipe only has one, we only return one.
 func GetMusicFolders(res http.ResponseWriter, req *http.Request) {
 	// Retrieve render
 	r := context.Get(req, api.CtxRender).(*render.Render)
