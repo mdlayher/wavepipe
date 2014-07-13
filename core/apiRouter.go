@@ -26,6 +26,17 @@ import (
 	"github.com/unrolled/render"
 )
 
+// httpRWLogger wraps http.ResponseWriter and adds output logging
+type httpRWLogger struct {
+	http.ResponseWriter
+}
+
+// Write wraps http.ResponseWriter's Write, and adds output logging
+func (w httpRWLogger) Write(buf []byte) (int, error) {
+	log.Println(string(buf))
+	return w.ResponseWriter.Write(buf)
+}
+
 // apiRouter sets up the instance of negroni
 func apiRouter(apiKillChan chan struct{}) {
 	log.Println("api: starting...")
@@ -46,20 +57,25 @@ func apiRouter(apiKillChan chan struct{}) {
 
 	// Initial API setup
 	n.Use(negroni.HandlerFunc(func(res http.ResponseWriter, req *http.Request, next http.HandlerFunc) {
-		// On debug, log everything
-		if os.Getenv("WAVEPIPE_DEBUG") == "1" {
-			log.Println(req.Header)
-			log.Println(req.URL)
-		}
-
 		// Send a Server header with all responses
 		res.Header().Set("Server", fmt.Sprintf("%s/%s (%s_%s)", App, Version, runtime.GOOS, runtime.GOARCH))
 
 		// Store render in context for all API calls
 		context.Set(req, api.CtxRender, r)
 
+		// On debug, log everything
+		if os.Getenv("WAVEPIPE_DEBUG") == "1" {
+			log.Println(req.Header)
+			log.Println(req.URL)
+
+			// Wrap response in logging
+			next(httpRWLogger{res}, req)
+			return
+		}
+
 		// Delegate to next middleware
 		next(res, req)
+		return
 	}))
 
 	// Authenticate all API calls
@@ -288,22 +304,34 @@ func newRouter() *mux.Router {
 	sr := router.PathPrefix("/subsonic/rest").Subrouter()
 
 	// Ping - used to check connectivity
-	sr.HandleFunc("/ping.view", subsonic.Ping).Methods("GET")
+	sr.HandleFunc("/ping.view", subsonic.Ping)
 
 	// GetAlbumList2 - used to return a list of all albums by tags
-	sr.HandleFunc("/getAlbumList2.view", subsonic.GetAlbumList2).Methods("GET")
+	sr.HandleFunc("/getAlbumList2.view", subsonic.GetAlbumList2)
 
 	// GetAlbum - used to retrieve information about one album
-	sr.HandleFunc("/getAlbum.view", subsonic.GetAlbum).Methods("GET")
+	sr.HandleFunc("/getAlbum.view", subsonic.GetAlbum)
+
+	// GetIndexes - used to retrieve an index of artists with their IDs
+	sr.HandleFunc("/getIndexes.view", subsonic.GetIndexes)
+
+	// GetLicense - used to retrieve information about a Subsonic server's license
+	sr.HandleFunc("/getLicense.view", subsonic.GetLicense)
+
+	// GetMusicDirectory - used to retrieve folders and contained files
+	sr.HandleFunc("/getMusicDirectory.view", subsonic.GetMusicDirectory)
 
 	// GetMusicFolders - used to retrieve list of known music folders
-	sr.HandleFunc("/getMusicFolders.view", subsonic.GetMusicFolders).Methods("GET")
+	sr.HandleFunc("/getMusicFolders.view", subsonic.GetMusicFolders)
 
 	// GetRandomSongs - used to retrieve a number of random songs
-	sr.HandleFunc("/getRandomSongs.view", subsonic.GetRandomSongs).Methods("GET")
+	sr.HandleFunc("/getRandomSongs.view", subsonic.GetRandomSongs)
+
+	// GetStarred - used to retrieve a list of favorite items
+	sr.HandleFunc("/getStarred.view", subsonic.GetStarred)
 
 	// Stream - used to return a binary file stream
-	sr.HandleFunc("/stream.view", subsonic.Stream).Methods("GET")
+	sr.HandleFunc("/stream.view", subsonic.Stream)
 
 	// On debug mode, enable pprof debug endpoints
 	// Thanks: https://github.com/go-martini/martini/issues/228
