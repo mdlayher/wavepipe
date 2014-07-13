@@ -77,7 +77,6 @@ func GetIndexes(res http.ResponseWriter, req *http.Request) {
 			Name: a.Title,
 			// Since Subsonic and wavepipe have different data models, we get around
 			// the ID restriction by adding a prefix describing what this actually is
-			//ID: "folder_" + strconv.Itoa(f.ID),
 			ID: "artist_" + strconv.Itoa(a.ID),
 		})
 	}

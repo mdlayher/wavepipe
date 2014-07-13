@@ -157,7 +157,7 @@ func subAlbum(album data.Album, songs data.SongSlice) Album {
 		CoverArt:  strconv.Itoa(songs[0].ArtID),
 		SongCount: len(songs),
 		Duration:  songs.Length(),
-		Created:   time.Unix(songs[0].LastModified, 0).Format("2006-01-02T15:04:05"),
+		Created:   subTime(songs[0].LastModified),
 	}
 }
 
@@ -198,7 +198,7 @@ func subSong(song data.Song) Song {
 		Artist:   song.Artist,
 		IsDir:    false,
 		CoverArt: strconv.Itoa(song.ArtID),
-		Created:  time.Unix(song.LastModified, 0).Format("2006-01-02T15:04:05"),
+		Created:  subTime(song.LastModified),
 		Duration: song.Length,
 		BitRate:  song.Bitrate,
 		Track:    song.Track,
@@ -230,4 +230,9 @@ func Ping(res http.ResponseWriter, req *http.Request) {
 type MusicFolder struct {
 	ID   int    `xml:"id,attr"`
 	Name string `xml:"name,attr"`
+}
+
+// subTime converts an input UNIX timestamp to the Subsonic format
+func subTime(unix int64) string {
+	return time.Unix(unix, 0).Format("2006-01-02T15:04:05")
 }

@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/mdlayher/wavepipe/api"
 	"github.com/mdlayher/wavepipe/data"
@@ -141,7 +140,7 @@ func GetMusicDirectory(res http.ResponseWriter, req *http.Request) {
 				Artist:   s.Artist,
 				IsDir:    false,
 				CoverArt: s.ArtID,
-				Created:  time.Unix(s.LastModified, 0).Format("2006-01-02T15:04:05"),
+				Created:  subTime(s.LastModified),
 			})
 		}
 	}
