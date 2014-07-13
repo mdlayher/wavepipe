@@ -29,11 +29,10 @@ type Index struct {
 
 	Name string `xml:"name,attr"`
 
-	// This is not actually an artist, but that's the way Subsonic treats it
 	Artists []Artist `xml:"artist"`
 }
 
-// GetIndexes is used in Subsonic to return an alphabetical index of folders and IDs
+// GetIndexes is used in Subsonic to return an alphabetical index of artists and IDs
 func GetIndexes(res http.ResponseWriter, req *http.Request) {
 	// Retrieve render
 	r := context.Get(req, api.CtxRender).(*render.Render)
@@ -45,8 +44,8 @@ func GetIndexes(res http.ResponseWriter, req *http.Request) {
 		LastModified: time.Now().Unix(),
 	}
 
-	// Fetch list of all folders, ordered alphabetically
-	folders, err := data.DB.AllFoldersByTitle()
+	// Fetch list of all artists, ordered alphabetically
+	artists, err := data.DB.AllArtistsByTitle()
 	if err != nil {
 		log.Println(err)
 		r.XML(res, 200, ErrGeneric)
@@ -56,28 +55,30 @@ func GetIndexes(res http.ResponseWriter, req *http.Request) {
 	// Use a set to track indexes which already exist
 	indexSet := set.New()
 
-	// Iterate all folders and begin building indexes
+	// Iterate all artists and begin building indexes
 	indexes := make([]Index, 0)
-	for i, f := range folders {
-		// Skip folder with ID 1, the root media folder
-		if f.ID == 1 {
-			continue
-		}
 
-		// Get the initial character of the folder title
-		char := string(f.Title[0])
+	// Use a counter which is incremented each time a new index is added, in order to
+	// add artists at the right index
+	i := -1
+	for _, a := range artists {
+		// Get the initial character of the artist title
+		char := string(a.Title[0])
 
-		// Create the index if it doesn't already exist
+		// Create the index if it doesn't already exist, increment counter so new artists
+		// slot into that index
 		if indexSet.Add(char) {
 			indexes = append(indexes, Index{Name: char})
+			i++
 		}
 
 		// Add this folder to the index at the current position
 		indexes[i].Artists = append(indexes[i].Artists, Artist{
-			Name: f.Title,
+			Name: a.Title,
 			// Since Subsonic and wavepipe have different data models, we get around
 			// the ID restriction by adding a prefix describing what this actually is
-			ID: "folder_" + strconv.Itoa(f.ID),
+			//ID: "folder_" + strconv.Itoa(f.ID),
+			ID: "artist_" + strconv.Itoa(a.ID),
 		})
 	}
 

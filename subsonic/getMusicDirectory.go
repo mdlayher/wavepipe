@@ -61,13 +61,8 @@ func GetMusicDirectory(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	// Check for right prefix
-	if pair[0] != "folder" {
-		r.XML(res, 200, ErrMissingParameter)
-		return
-	}
-
 	// Parse ID as integer
+	prefix := pair[0]
 	id, err := strconv.Atoi(pair[1])
 	if err != nil {
 		log.Println(err)
@@ -75,86 +70,87 @@ func GetMusicDirectory(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	// Load folder by ID
-	folder := &data.Folder{ID: id}
-	if err := folder.Load(); err != nil {
-		log.Println(err)
-		r.XML(res, 200, ErrGeneric)
-		return
-	}
+	// Title to relay to clients
+	var outTitle string
 
-	// Load all subfolders
-	subfolders, err := folder.Subfolders()
-	if err != nil {
-		log.Println(err)
-		r.XML(res, 200, ErrGeneric)
-		return
-	}
-
-	// Begin building list of children
+	// Create list of children to relay to clients
 	children := make([]Child, 0)
-	for _, sf := range subfolders {
-		children = append(children, Child{
-			ID:    "folder_" + strconv.Itoa(sf.ID),
-			Title: sf.Title,
-			IsDir: true,
-		})
-	}
 
-	// Load all contained songs in this folder
-	songs, err := data.DB.SongsForFolder(folder.ID)
-	if err != nil {
-		log.Println(err)
-		r.XML(res, 200, ErrGeneric)
-		return
-	}
+	// If an artist was passed, Subsonic probably wants albums
+	if prefix == "artist" {
+		// Load artist to get information
+		artist := &data.Artist{ID: id}
+		if err := artist.Load(); err != nil {
+			log.Println(err)
+			r.XML(res, 200, ErrGeneric)
+			return
+		}
 
-	// Iterate songs and add to children
-	for _, s := range songs {
-		children = append(children, Child{
-			ID:       strconv.Itoa(s.ID),
-			Title:    s.Title,
-			Album:    s.Album,
-			Artist:   s.Artist,
-			IsDir:    false,
-			CoverArt: s.ArtID,
-			Created:  time.Unix(s.LastModified, 0).Format("2006-01-02T15:04:05"),
-		})
-	}
+		// Use artist information for output
+		outTitle = artist.Title
 
-	/*
-		// Load songs for album
-		songs, err := data.DB.SongsForAlbum(album.ID)
+		// Load albums using artist ID
+		albums, err := data.DB.AlbumsForArtist(id)
 		if err != nil {
 			log.Println(err)
 			r.XML(res, 200, ErrGeneric)
 			return
 		}
 
-		// Create slice of Subsonic songs
-		outSongs := make([]Song, 0)
-		for _, s := range songs {
-			outSongs = append(outSongs, subSong(s))
+		// Add albums to children
+		for _, a := range albums {
+			children = append(children, Child{
+				ID:     "album_" + strconv.Itoa(a.ID),
+				Title:  a.Title,
+				Album:  a.Title,
+				Artist: a.Artist,
+				IsDir:  true,
+				//CoverArt: a.ArtID,
+				//Created: time.Unix(a.LastModified, 0).Format("2006-01-02T15:04:05"),
+			})
+		}
+	}
+
+	// If an album was passed, Subsonic probably wants songs
+	if prefix == "album" {
+		// Load album to get information
+		album := &data.Album{ID: id}
+		if err := album.Load(); err != nil {
+			log.Println(err)
+			r.XML(res, 200, ErrGeneric)
+			return
 		}
 
-		// Create a new response container
-		c := newContainer()
+		// Use album information for output
+		outTitle = album.Title
 
-		// Build and copy album container into output
-		outAlbum := subAlbum(*album, songs)
-		outAlbum.Songs = outSongs
-		c.Album = []Album{outAlbum}
+		// Load all contained songs for this album
+		songs, err := data.DB.SongsForAlbum(id)
+		if err != nil {
+			log.Println(err)
+			r.XML(res, 200, ErrGeneric)
+			return
+		}
 
-		// Write response
-		r.XML(res, 200, c)
-		//
-	*/
+		// Iterate songs and add to children
+		for _, s := range songs {
+			children = append(children, Child{
+				ID:       strconv.Itoa(s.ID),
+				Title:    s.Title,
+				Album:    s.Album,
+				Artist:   s.Artist,
+				IsDir:    false,
+				CoverArt: s.ArtID,
+				Created:  time.Unix(s.LastModified, 0).Format("2006-01-02T15:04:05"),
+			})
+		}
+	}
 
 	// Create a new response container
 	c := newContainer()
 	c.MusicDirectory = &MusicDirectoryContainer{
-		ID:       "folder_" + strconv.Itoa(folder.ID),
-		Name:     folder.Title,
+		ID:       pID,
+		Name:     outTitle,
 		Children: children,
 	}
 
