@@ -33,7 +33,15 @@ type httpRWLogger struct {
 
 // Write wraps http.ResponseWriter's Write, and adds output logging
 func (w httpRWLogger) Write(buf []byte) (int, error) {
-	log.Println(string(buf))
+	// Check content type
+	contentType := w.ResponseWriter.Header().Get("Content-Type")
+
+	// Only log JSON or XML output
+	if strings.Contains(contentType, render.ContentJSON) || strings.Contains(contentType, render.ContentXML) {
+		log.Println(string(buf))
+	}
+
+	// Write to underlying writer
 	return w.ResponseWriter.Write(buf)
 }
 
