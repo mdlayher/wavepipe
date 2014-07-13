@@ -87,11 +87,23 @@ type Container struct {
 	// getAlbumList2.view
 	AlbumList2 *AlbumList2Container
 
+	// getIndexes.view
+	Indexes *IndexesContainer
+
+	// getLicense.view
+	License *License `xml:"license"`
+
+	// getMusicDirectory.view
+	MusicDirectory *MusicDirectoryContainer
+
 	// getMusicFolders.view
 	MusicFolders *MusicFoldersContainer
 
 	// getRandomSongs.view
 	RandomSongs *RandomSongsContainer
+
+	// getStarred.view
+	Starred *Starred `xml:"starred"`
 }
 
 // Error returns the error code and message from Subsonic, and enables Subsonic
@@ -106,6 +118,15 @@ type Error struct {
 
 	Code    int    `xml:"code,attr"`
 	Message string `xml:"message,attr"`
+}
+
+// Artist represents an emulated Subsonic artist
+type Artist struct {
+	XMLName xml.Name `xml:"artist,omitempty"`
+
+	// Subsonic fields
+	Name string `xml:"name,attr"`
+	ID   string `xml:"id,attr"`
 }
 
 // Album represents an emulated Subsonic album
