@@ -5,9 +5,9 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/mdlayher/wavepipe/api"
+	"github.com/mdlayher/wavepipe/common"
 	"github.com/mdlayher/wavepipe/data"
 
 	"github.com/gorilla/context"
@@ -40,8 +40,7 @@ func GetIndexes(res http.ResponseWriter, req *http.Request) {
 	// Create a new response container, build indexes container
 	c := newContainer()
 	c.Indexes = &IndexesContainer{
-		// TODO: replace with actual last scan time
-		LastModified: time.Now().Unix(),
+		LastModified: common.ScanTime(),
 	}
 
 	// Fetch list of all artists, ordered alphabetically
