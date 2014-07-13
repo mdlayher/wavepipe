@@ -99,6 +99,9 @@ type Container struct {
 	// getMusicFolders.view
 	MusicFolders *MusicFoldersContainer
 
+	// getPlaylists.view
+	Playlists *Playlists `xml:"playlists"`
+
 	// getRandomSongs.view
 	RandomSongs *RandomSongsContainer
 

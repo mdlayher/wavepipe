@@ -327,10 +327,15 @@ func newRouter() *mux.Router {
 	// GetMusicFolders - used to retrieve list of known music folders
 	sr.HandleFunc("/getMusicFolders.view", subsonic.GetMusicFolders)
 
+	// GetPlaylists - used to retrieve playlists from the server
+	// (not currently implemented by wavepipe)
+	sr.HandleFunc("/getPlaylists.view", subsonic.GetPlaylists)
+
 	// GetRandomSongs - used to retrieve a number of random songs
 	sr.HandleFunc("/getRandomSongs.view", subsonic.GetRandomSongs)
 
 	// GetStarred - used to retrieve a list of favorite items
+	// (not currently implemented by wavepipe)
 	sr.HandleFunc("/getStarred.view", subsonic.GetStarred)
 
 	// Stream - used to return a binary file stream
