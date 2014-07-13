@@ -180,6 +180,11 @@ func (s *SqliteBackend) AllArtists() ([]Artist, error) {
 	return s.artistQuery("SELECT * FROM artists;")
 }
 
+// AllArtistsByTitle loads a slice of all Artist structs from the database, sorted alphabetically by title
+func (s *SqliteBackend) AllArtistsByTitle() ([]Artist, error) {
+	return s.artistQuery("SELECT * FROM artists ORDER BY title;")
+}
+
 // LimitArtists loads a slice of Artist structs from the database using SQL limit, where the first parameter
 // specifies an offset and the second specifies an item count
 func (s *SqliteBackend) LimitArtists(offset int, count int) ([]Artist, error) {
@@ -415,11 +420,6 @@ func (s *SqliteBackend) SaveAlbum(a *Album) error {
 // AllFolders loads a slice of all Folder structs from the database
 func (s *SqliteBackend) AllFolders() ([]Folder, error) {
 	return s.folderQuery("SELECT * FROM folders;")
-}
-
-// AllFoldersByTitle loads a slice of all Folder structs from the database, in alphabetical order by title
-func (s *SqliteBackend) AllFoldersByTitle() ([]Folder, error) {
-	return s.folderQuery("SELECT * FROM folders ORDER BY title;")
 }
 
 // LimitFolders loads a slice of Folder structs from the database using SQL limit, where the first parameter
