@@ -16,10 +16,7 @@ import (
 var testFlag = flag.Bool("test", false, "Starts "+core.App+" in test mode, causing it to exit shortly after starting.")
 
 func main() {
-	// Use more verbose logging in debug mode
-	if os.Getenv("WAVEPIPE_DEBUG") == "1" {
-		log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
-	}
+	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 
 	// Parse command line flags
 	flag.Parse()
