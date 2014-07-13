@@ -417,6 +417,11 @@ func (s *SqliteBackend) AllFolders() ([]Folder, error) {
 	return s.folderQuery("SELECT * FROM folders;")
 }
 
+// AllFoldersByTitle loads a slice of all Folder structs from the database, in alphabetical order by title
+func (s *SqliteBackend) AllFoldersByTitle() ([]Folder, error) {
+	return s.folderQuery("SELECT * FROM folders ORDER BY title;")
+}
+
 // LimitFolders loads a slice of Folder structs from the database using SQL limit, where the first parameter
 // specifies an offset and the second specifies an item count
 func (s *SqliteBackend) LimitFolders(offset int, count int) ([]Folder, error) {
