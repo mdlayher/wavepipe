@@ -312,6 +312,9 @@ func newRouter() *mux.Router {
 	// GetAlbum - used to retrieve information about one album
 	sr.HandleFunc("/getAlbum.view", subsonic.GetAlbum)
 
+	// GetCoverArt - used to retrieve cover art for an item
+	sr.HandleFunc("/getCoverArt.view", subsonic.GetCoverArt)
+
 	// GetIndexes - used to retrieve an index of artists with their IDs
 	sr.HandleFunc("/getIndexes.view", subsonic.GetIndexes)
 
