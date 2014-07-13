@@ -3,11 +3,17 @@ package common
 import (
 	"os"
 	"runtime"
+	"sync/atomic"
 	"time"
 )
 
 // startTime represents the application's starting UNIX timestamp
 var startTime = time.Now().Unix()
+
+// scanTime is the last time the application did a media or orphan scan which
+// created, modified, or deleted one or more items.  It defaults to the startup
+// time, and is then updated by the filesystem manager.
+var scanTime = startTime
 
 // osInfo represents basic, static information about the host operating system for this process
 type osInfo struct {
@@ -28,6 +34,7 @@ type Status struct {
 	NumGoroutine int     `json:"numGoroutine"`
 	PID          int     `json:"pid"`
 	Platform     string  `json:"platform"`
+	ScanTime     int64   `json:"scanTime"`
 	Uptime       int64   `json:"uptime"`
 }
 
@@ -76,6 +83,18 @@ func ServerStatus() (*Status, error) {
 		NumGoroutine: runtime.NumGoroutine(),
 		PID:          osStat.PID,
 		Platform:     osStat.Platform,
+		ScanTime:     ScanTime(),
 		Uptime:       uptime,
 	}, nil
+}
+
+// ScanTime returns the UNIX timestamp of the last time a media scan made changes
+// to the database
+func ScanTime() int64 {
+	return atomic.LoadInt64(&scanTime)
+}
+
+// UpdateScanTime updates the scanTime to the current UNIX timestamp
+func UpdateScanTime() {
+	atomic.StoreInt64(&scanTime, time.Now().Unix())
 }

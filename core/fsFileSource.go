@@ -28,7 +28,7 @@ type folderArtPair struct {
 }
 
 // MediaScan scans for media files in the local filesystem
-func (fsFileSource) MediaScan(mediaFolder string, verbose bool, walkCancelChan chan struct{}) error {
+func (fsFileSource) MediaScan(mediaFolder string, verbose bool, walkCancelChan chan struct{}) (int, error) {
 	// Halt walk if needed
 	var mutex sync.RWMutex
 	haltWalk := false
@@ -301,7 +301,7 @@ func (fsFileSource) MediaScan(mediaFolder string, verbose bool, walkCancelChan c
 
 	// Check for filesystem walk errors
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	// Iterate all new folder/art ID pairs
@@ -309,14 +309,14 @@ func (fsFileSource) MediaScan(mediaFolder string, verbose bool, walkCancelChan c
 		// Fetch all songs for the folder from the pair
 		songs, err := data.DB.SongsForFolder(a.folderID)
 		if err != nil {
-			return err
+			return 0, err
 		}
 
 		// Iterate and update songs with their new art ID
 		for _, s := range songs {
 			s.ArtID = a.artID
 			if err := s.Update(); err != nil {
-				return err
+				return 0, err
 			}
 		}
 	}
@@ -329,12 +329,15 @@ func (fsFileSource) MediaScan(mediaFolder string, verbose bool, walkCancelChan c
 		log.Printf("fs: updated: [songs: %d]", songUpdateCount)
 	}
 
+	// Sum up all changes
+	sum := artCount + artistCount + albumCount + songCount + folderCount + songUpdateCount
+
 	// No errors
-	return nil
+	return sum, nil
 }
 
 // OrphanScan scans for missing "orphaned" media files in the local filesystem
-func (fsFileSource) OrphanScan(baseFolder string, subFolder string, verbose bool, orphanCancelChan chan struct{}) error {
+func (fsFileSource) OrphanScan(baseFolder string, subFolder string, verbose bool, orphanCancelChan chan struct{}) (int, error) {
 	// Halt scan if needed
 	var mutex sync.RWMutex
 	haltOrphanScan := false
@@ -364,7 +367,7 @@ func (fsFileSource) OrphanScan(baseFolder string, subFolder string, verbose bool
 		art, err := data.DB.ArtNotInPath(baseFolder)
 		if err != nil {
 			log.Println(err)
-			return err
+			return 0, err
 		}
 
 		// Remove all art which is not in this path
@@ -372,7 +375,7 @@ func (fsFileSource) OrphanScan(baseFolder string, subFolder string, verbose bool
 			// Remove art from database
 			if err := a.Delete(); err != nil {
 				log.Println(err)
-				return err
+				return 0, err
 			}
 
 			artCount++
@@ -382,7 +385,7 @@ func (fsFileSource) OrphanScan(baseFolder string, subFolder string, verbose bool
 		songs, err := data.DB.SongsNotInPath(baseFolder)
 		if err != nil {
 			log.Println(err)
-			return err
+			return 0, err
 		}
 
 		// Remove all songs which are not in this path
@@ -390,7 +393,7 @@ func (fsFileSource) OrphanScan(baseFolder string, subFolder string, verbose bool
 			// Remove song from database
 			if err := s.Delete(); err != nil {
 				log.Println(err)
-				return err
+				return 0, err
 			}
 
 			songCount++
@@ -400,7 +403,7 @@ func (fsFileSource) OrphanScan(baseFolder string, subFolder string, verbose bool
 		folders, err := data.DB.FoldersNotInPath(baseFolder)
 		if err != nil {
 			log.Println(err)
-			return err
+			return 0, err
 		}
 
 		// Remove all folders which are not in this path
@@ -408,7 +411,7 @@ func (fsFileSource) OrphanScan(baseFolder string, subFolder string, verbose bool
 			// Remove folder from database
 			if err := f.Delete(); err != nil {
 				log.Println(err)
-				return err
+				return 0, err
 			}
 
 			folderCount++
@@ -430,7 +433,7 @@ func (fsFileSource) OrphanScan(baseFolder string, subFolder string, verbose bool
 	art, err := data.DB.ArtInPath(subFolder)
 	if err != nil {
 		log.Println(err)
-		return err
+		return 0, err
 	}
 
 	// Iterate all art in this path
@@ -440,7 +443,7 @@ func (fsFileSource) OrphanScan(baseFolder string, subFolder string, verbose bool
 			// Remove art from database
 			if err := a.Delete(); err != nil {
 				log.Println(err)
-				return err
+				return 0, err
 			}
 
 			artCount++
@@ -451,7 +454,7 @@ func (fsFileSource) OrphanScan(baseFolder string, subFolder string, verbose bool
 	songs, err := data.DB.SongsInPath(subFolder)
 	if err != nil {
 		log.Println(err)
-		return err
+		return 0, err
 	}
 
 	// Iterate all songs in this path
@@ -461,7 +464,7 @@ func (fsFileSource) OrphanScan(baseFolder string, subFolder string, verbose bool
 			// Remove song from database
 			if err := s.Delete(); err != nil {
 				log.Println(err)
-				return err
+				return 0, err
 			}
 
 			songCount++
@@ -471,7 +474,7 @@ func (fsFileSource) OrphanScan(baseFolder string, subFolder string, verbose bool
 	// Scan for all folders in subfolder
 	folders, err := data.DB.FoldersInPath(subFolder)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	// Iterate all folders in this path
@@ -480,14 +483,14 @@ func (fsFileSource) OrphanScan(baseFolder string, subFolder string, verbose bool
 		files, err := ioutil.ReadDir(f.Path)
 		if err != nil && !os.IsNotExist(err) {
 			log.Println(err)
-			return err
+			return 0, err
 		}
 
 		// Delete any folders with 0 items
 		if len(files) == 0 {
 			if err := f.Delete(); err != nil {
 				log.Println(err)
-				return err
+				return 0, err
 			}
 
 			folderCount++
@@ -498,14 +501,14 @@ func (fsFileSource) OrphanScan(baseFolder string, subFolder string, verbose bool
 	albumCount, err := data.DB.PurgeOrphanAlbums()
 	if err != nil {
 		log.Println(err)
-		return err
+		return 0, err
 	}
 
 	// Check for artists
 	artistCount, err := data.DB.PurgeOrphanArtists()
 	if err != nil {
 		log.Println(err)
-		return err
+		return 0, err
 	}
 
 	// Print metrics
@@ -514,5 +517,9 @@ func (fsFileSource) OrphanScan(baseFolder string, subFolder string, verbose bool
 		log.Printf("fs: removed: [art: %d] [artists: %d] [albums: %d] [songs: %d] [folders: %d]",
 			artCount, artistCount, albumCount, songCount, folderCount)
 	}
-	return nil
+
+	// Sum up changes
+	sum := artCount + artistCount + albumCount + songCount + folderCount
+
+	return sum, nil
 }

@@ -6,6 +6,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/mdlayher/wavepipe/common"
+
 	"github.com/mdlayher/goset"
 	"github.com/romanoff/fsmonitor"
 )
@@ -27,14 +29,14 @@ var fsSource fileSource
 type fsTask interface {
 	Folders() (string, string)
 	SetFolders(string, string)
-	Scan(string, string, chan struct{}) error
+	Scan(string, string, chan struct{}) (int, error)
 	Verbose(bool)
 }
 
 // fileSource represents a source from which files can be scanned and indexed
 type fileSource interface {
-	MediaScan(string, bool, chan struct{}) error
-	OrphanScan(string, string, bool, chan struct{}) error
+	MediaScan(string, bool, chan struct{}) (int, error)
+	OrphanScan(string, string, bool, chan struct{}) (int, error)
 }
 
 // fsManager handles fsWalker processes, and communicates back and forth with the manager goroutine
@@ -83,8 +85,14 @@ func fsManager(mediaFolder string, fsKillChan chan struct{}) {
 				baseFolder, subFolder := task.Folders()
 
 				// Start the scan
-				if err := task.Scan(baseFolder, subFolder, cancelChan); err != nil {
+				changes, err := task.Scan(baseFolder, subFolder, cancelChan)
+				if err != nil {
 					log.Println(err)
+				}
+
+				// If changes occurred, update the scan time
+				if changes > 0 {
+					common.UpdateScanTime()
 				}
 
 				// On completion, close the cancel channel
@@ -242,10 +250,10 @@ func (fs *fsMediaScan) Verbose(verbose bool) {
 
 // Scan scans for media files in a specified path, and queues them up for inclusion
 // in the wavepipe database
-func (fs *fsMediaScan) Scan(mediaFolder string, subFolder string, walkCancelChan chan struct{}) error {
+func (fs *fsMediaScan) Scan(mediaFolder string, subFolder string, walkCancelChan chan struct{}) (int, error) {
 	// Media scans are comprehensive, so subfolder has no purpose
 	if subFolder != "" {
-		return errors.New("media scan: subfolder not valid for media scan operation")
+		return 0, errors.New("media scan: subfolder not valid for media scan operation")
 	}
 
 	// Scan for media using the specified file source
@@ -288,10 +296,10 @@ func (fs *fsOrphanScan) Verbose(verbose bool) {
 // The subFolder is the current file location, under the baseFolder.  This is used to allow for
 // quick scans of a small subsection of the directory, such as on a filesystem change.  Any files
 // which are in the database, but do not exist on disk, will be orphaned and removed.
-func (fs *fsOrphanScan) Scan(baseFolder string, subFolder string, orphanCancelChan chan struct{}) error {
+func (fs *fsOrphanScan) Scan(baseFolder string, subFolder string, orphanCancelChan chan struct{}) (int, error) {
 	// If both folders are empty, there is nothing to do
 	if baseFolder == "" && subFolder == "" {
-		return errors.New("orphan scan: no base folder or subfolder")
+		return 0, errors.New("orphan scan: no base folder or subfolder")
 	}
 
 	// Scan for orphans using the specified file source
