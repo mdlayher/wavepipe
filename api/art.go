@@ -6,7 +6,6 @@ import (
 	"image"
 	"image/png"
 	"io"
-	"io/ioutil"
 	"log"
 	"mime"
 	"net/http"
@@ -80,12 +79,12 @@ func GetArt(res http.ResponseWriter, req *http.Request) {
 	}
 	defer stream.Close()
 
+	// Output stream
+	var outStream io.Reader
+
 	// Output for HTTP headers
 	var length int64
 	var mimeType string
-
-	// Output art buffer
-	artBuf := make([]byte, 0)
 
 	// Check for resize request
 	if size := req.URL.Query().Get("size"); size != "" {
@@ -121,27 +120,19 @@ func GetArt(res http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		// Copy PNG into output buffer
-		artBuf = buffer.Bytes()
-
 		// Set HTTP response
 		length = int64(buffer.Len())
 		mimeType = "image/png"
+
+		// Store the resized art stream for output
+		outStream = buffer
 	} else {
-		// Read in the entire art stream
-		tempBuf, err := ioutil.ReadAll(stream)
-		if err != nil {
-			log.Println(err)
-			r.JSON(res, 500, serverErr)
-			return
-		}
-
-		// Copy into output buffer
-		artBuf = tempBuf
-
-		// Set HTTP response
+		// If not resizing, set HTTP headers with known values
 		length = art.FileSize
 		mimeType = mime.TypeByExtension(path.Ext(art.FileName))
+
+		// Store the original art stream for output
+		outStream = stream
 	}
 
 	// Set necessary HTTP output headers
@@ -161,10 +152,9 @@ func GetArt(res http.ResponseWriter, req *http.Request) {
 	// Specify connection close on send
 	res.Header().Set("Connection", "close")
 
-	// Transfer the art stream via HTTP response writer
-	if _, err := res.Write(artBuf); err != nil && err != io.EOF {
+	// Stream the output over HTTP
+	if _, err := io.Copy(res, outStream); err != nil {
 		log.Println(err)
+		return
 	}
-
-	return
 }
