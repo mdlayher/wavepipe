@@ -105,10 +105,12 @@ func apiRouter(apiKillChan chan struct{}) {
 				res.Header().Set("WWW-Authenticate", "Basic")
 			}
 
-			r.JSON(res, 401, api.ErrorResponse{&api.Error{
-				Code:    401,
-				Message: "authentication failed: " + clientErr.Error(),
-			}})
+			r.JSON(res, 401, api.ErrorResponse{
+				Error: &api.Error{
+					Code:    401,
+					Message: "authentication failed: " + clientErr.Error(),
+				},
+			})
 			return
 		}
 
@@ -122,10 +124,12 @@ func apiRouter(apiKillChan chan struct{}) {
 				return
 			}
 
-			r.JSON(res, 500, api.ErrorResponse{&api.Error{
-				Code:    500,
-				Message: "server error",
-			}})
+			r.JSON(res, 500, api.ErrorResponse{
+				Error: &api.Error{
+					Code:    500,
+					Message: "server error",
+				},
+			})
 			return
 		}
 

@@ -20,7 +20,7 @@ func TestOSInfo(t *testing.T) {
 
 	// Architecture
 	if osStat.Architecture != runtime.GOARCH {
-		t.Error("Mismatched architecture: %s != %s", osStat.Architecture, runtime.GOARCH)
+		t.Fatalf("Mismatched architecture: %s != %s", osStat.Architecture, runtime.GOARCH)
 	}
 
 	// Get the current hostname
@@ -31,22 +31,22 @@ func TestOSInfo(t *testing.T) {
 
 	// Hostname
 	if osStat.Hostname != hostname {
-		t.Error("Mismatched hostname: %s != %s", osStat.Hostname, hostname)
+		t.Fatalf("Mismatched hostname: %s != %s", osStat.Hostname, hostname)
 	}
 
 	// NumCPU
 	if osStat.NumCPU != runtime.NumCPU() {
-		t.Error("Mismatched NumCPU: %d != %d", osStat.NumCPU, runtime.NumCPU())
+		t.Fatalf("Mismatched NumCPU: %d != %d", osStat.NumCPU, runtime.NumCPU())
 	}
 
 	// PID
 	pid := os.Getpid()
 	if osStat.PID != pid {
-		t.Error("Mismatched PID: %d != %d", osStat.PID, pid)
+		t.Fatalf("Mismatched PID: %d != %d", osStat.PID, pid)
 	}
 
 	// Platform
 	if osStat.Platform != runtime.GOOS {
-		t.Error("Mismatched platform: %s != %s", osStat.Platform, runtime.GOOS)
+		t.Fatalf("Mismatched platform: %s != %s", osStat.Platform, runtime.GOOS)
 	}
 }
