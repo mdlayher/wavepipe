@@ -26,6 +26,7 @@ type MusicDirectoryContainer struct {
 	Children []Child `xml:"child"`
 }
 
+// Child is any item displayed to Subsonic when browsing using getMusicDirectory
 type Child struct {
 	// Container name
 	XMLName xml.Name `xml:"child,omitempty"`
