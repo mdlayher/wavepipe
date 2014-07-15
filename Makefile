@@ -19,6 +19,7 @@ clean:
 # Format and error-check all files
 fmt:
 	go fmt ./...
+	go vet ./...
 	golint .
 
 # Copy binary into $GOPATH
