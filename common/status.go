@@ -34,7 +34,6 @@ type Status struct {
 	NumGoroutine int     `json:"numGoroutine"`
 	PID          int     `json:"pid"`
 	Platform     string  `json:"platform"`
-	ScanTime     int64   `json:"scanTime"`
 	Uptime       int64   `json:"uptime"`
 }
 
@@ -83,7 +82,6 @@ func ServerStatus() (*Status, error) {
 		NumGoroutine: runtime.NumGoroutine(),
 		PID:          osStat.PID,
 		Platform:     osStat.Platform,
-		ScanTime:     ScanTime(),
 		Uptime:       uptime,
 	}, nil
 }

@@ -48,12 +48,17 @@ func GetStatus(res http.ResponseWriter, req *http.Request) {
 
 	// If requested, fetch additional metrics (not added by default due to full table scans in database)
 	if req.URL.Query().Get("metrics") == "true" {
-		metrics, err := common.ServerMetrics()
+		// Begin building metrics
+		metrics := &common.Metrics{}
+
+		// Get metrics about the database
+		dbMetrics, err := common.GetDatabaseMetrics()
 		if err != nil {
 			log.Println(err)
 			r.JSON(res, 500, serverErr)
 			return
 		}
+		metrics.Database = dbMetrics
 
 		// Return metrics
 		out.Metrics = metrics

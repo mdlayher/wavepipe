@@ -4,16 +4,26 @@ import (
 	"github.com/mdlayher/wavepipe/data"
 )
 
-// Metrics represents a variety of metrics about wavepipe's database
+// Metrics represents a variety of metrics about the current wavepipe instance, and contains several
+// nested structs which contain more specific metrics
 type Metrics struct {
+	Database *DatabaseMetrics `json:"database"`
+}
+
+// DatabaseMetrics represents metrics regarding the wavepipe database, including total numbers
+// of specific objects, and the time when the database was last updated
+type DatabaseMetrics struct {
+	Updated int64 `json:"updated"`
+
 	Artists int64 `json:"artists"`
 	Albums  int64 `json:"albums"`
 	Songs   int64 `json:"songs"`
 	Folders int64 `json:"folders"`
 }
 
-// ServerMetrics returns a variety of metrics about the wavepipe database and server
-func ServerMetrics() (*Metrics, error) {
+// GetDatabaseMetrics returns a variety of metrics about the wavepipe database, including
+// total numbers of specific objects, and the time when the database was last updated
+func GetDatabaseMetrics() (*DatabaseMetrics, error) {
 	// Fetch total artists
 	artists, err := data.DB.CountArtists()
 	if err != nil {
@@ -39,7 +49,8 @@ func ServerMetrics() (*Metrics, error) {
 	}
 
 	// Combine all metrics
-	return &Metrics{
+	return &DatabaseMetrics{
+		Updated: ScanTime(),
 		Artists: artists,
 		Albums:  albums,
 		Songs:   songs,
