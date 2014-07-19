@@ -2,6 +2,7 @@ package core
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"mime"
 	"net/http"
@@ -14,6 +15,7 @@ import (
 
 	"github.com/mdlayher/wavepipe/api"
 	"github.com/mdlayher/wavepipe/api/auth"
+	"github.com/mdlayher/wavepipe/common"
 	"github.com/mdlayher/wavepipe/config"
 	"github.com/mdlayher/wavepipe/data"
 	"github.com/mdlayher/wavepipe/subsonic"
@@ -25,25 +27,6 @@ import (
 	"github.com/stretchr/graceful"
 	"github.com/unrolled/render"
 )
-
-// httpRWLogger wraps http.ResponseWriter and adds output logging
-type httpRWLogger struct {
-	http.ResponseWriter
-}
-
-// Write wraps http.ResponseWriter's Write, and adds output logging
-func (w httpRWLogger) Write(buf []byte) (int, error) {
-	// Check content type
-	contentType := w.ResponseWriter.Header().Get("Content-Type")
-
-	// Only log JSON or XML output
-	if strings.Contains(contentType, render.ContentJSON) || strings.Contains(contentType, render.ContentXML) {
-		log.Println(string(buf))
-	}
-
-	// Write to underlying writer
-	return w.ResponseWriter.Write(buf)
-}
 
 // apiRouter sets up the instance of negroni
 func apiRouter(apiKillChan chan struct{}) {
@@ -71,18 +54,22 @@ func apiRouter(apiKillChan chan struct{}) {
 		// Store render in context for all API calls
 		context.Set(req, api.CtxRender, r)
 
+		// Wrap HTTP request and response with metrics instrumentation
+		req.Body = httpRMetricsLogger{req.Body}
+		metricsRes := httpWMetricsLogger{res}
+
 		// On debug, log everything
 		if os.Getenv("WAVEPIPE_DEBUG") == "1" {
 			log.Println(req.Header)
 			log.Println(req.URL)
 
-			// Wrap response in logging
-			next(httpRWLogger{res}, req)
+			// Wrap response in debug logging
+			next(httpWDebugLogger{metricsRes}, req)
 			return
 		}
 
 		// Delegate to next middleware
-		next(res, req)
+		next(metricsRes, req)
 		return
 	}))
 
@@ -369,4 +356,55 @@ func newRouter() *mux.Router {
 
 	// Return configured router
 	return router
+}
+
+// httpWDebugLogger wraps http.ResponseWriter and adds output logging in debug mode
+type httpWDebugLogger struct {
+	http.ResponseWriter
+}
+
+// Write wraps http.ResponseWriter's Write, and adds output logging
+func (w httpWDebugLogger) Write(buf []byte) (int, error) {
+	// Check content type
+	contentType := w.ResponseWriter.Header().Get("Content-Type")
+
+	// Only log JSON or XML output
+	if strings.Contains(contentType, render.ContentJSON) || strings.Contains(contentType, render.ContentXML) {
+		log.Println(string(buf))
+	}
+
+	// Write to underlying writer
+	return w.ResponseWriter.Write(buf)
+}
+
+// httpRMetricsLogger wraps http.Request.Body and increments the total number of bytes
+// received whenever reading data
+type httpRMetricsLogger struct {
+	io.ReadCloser
+}
+
+// Read wraps http.Request.Body's Read, and counts the number of bytes read
+func (r httpRMetricsLogger) Read(buf []byte) (int, error) {
+	// Read into buffer
+	n, err := r.ReadCloser.Read(buf)
+
+	// Increment counter and return
+	common.AddRXBytes(int64(n))
+	return n, err
+}
+
+// httpWMetricsLogger wraps http.ResponseWriter and increments the total number of bytes
+// transmitted whenever writing data
+type httpWMetricsLogger struct {
+	http.ResponseWriter
+}
+
+// Write wraps http.ResponseWriter's Write, and counts the number of bytes transmitted
+func (w httpWMetricsLogger) Write(buf []byte) (int, error) {
+	// Write the buffer
+	n, err := w.ResponseWriter.Write(buf)
+
+	// Increment counter and return
+	common.AddTXBytes(int64(n))
+	return n, err
 }
