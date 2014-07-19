@@ -35,8 +35,8 @@ type DatabaseMetrics struct {
 // NetworkMetrics represents metrics regarding wavepipe network traffic, including total traffic
 // received and transmitted in bytes
 type NetworkMetrics struct {
-	RXBytes int64 `json:"totalRxBytes"`
-	TXBytes int64 `json:"totalTxBytes"`
+	RXBytes int64 `json:"rxBytes"`
+	TXBytes int64 `json:"txBytes"`
 }
 
 // GetDatabaseMetrics returns a variety of metrics about the wavepipe database, including
