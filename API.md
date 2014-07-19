@@ -437,13 +437,13 @@ Used to retrieve current server status from wavepipe, as well as server metrics,
 
 **Examples:**
   - `GET http://localhost:8080/api/v0/status`
-  - `GET http://localhost:8080/api/v0/status?metrics=true`
+  - `GET http://localhost:8080/api/v0/status?metrics=all`
+  - `GET http://localhost:8080/api/v0/status?metrics=database`
 
 **Query Parameters:**
 
 | Name | Versions | Type | Required | Description |
 | :--: | :------: | :--: | :------: | :---------: |
-| metrics | v0 | boolean | | If true, wavepipe will generate and return additional metrics about its database. |
 | metrics | v0 | string | | Comma-separated string containing metric types (`all`, `database`) to return. If not specified, no metrics will be returned. |
 
 **Return JSON:**
@@ -452,7 +452,7 @@ Used to retrieve current server status from wavepipe, as well as server metrics,
 | :--: | :--: | :---------: |
 | error | [Error](http://godoc.org/github.com/mdlayher/wavepipe/api#Error)/null | Information about any errors that occurred.  Value is null if no error occurred. |
 | status | [Status](http://godoc.org/github.com/mdlayher/wavepipe/common#Status) | Status object containing current server information, returned by the API. |
-| metrics | [Metrics](http://godoc.org/github.com/mdlayher/wavepipe/common#Metrics)/null | Metrics object containing current server and database metrics, returned by the API. Value is null unless parameter `metrics` is true. |
+| metrics | [Metrics](http://godoc.org/github.com/mdlayher/wavepipe/common#Metrics)/null | Metrics object containing current server metrics, returned by the API. Value is null unless parameter `metrics` contains a comma-separated list of metric types. |
 
 **Possible errors:**
 
