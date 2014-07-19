@@ -132,12 +132,12 @@ func HTTPStream(song *data.Song, mimeType string, contentLength int64, inputStre
 					// Capture current percentage
 					percent := int64(float64(float64(currTotal)/float64(contentLength)) * 100)
 
-					log.Printf("[%d] [%03d%%] %02.3f / %02.3f MB [%02.3f Mbps]", song.ID, percent, current, totalSize, rate)
+					log.Printf("[#%05d] [%03d%%] %02.3f / %02.3f MB [%02.3f Mbps]", song.ID, percent, current, totalSize, rate)
 					break
 				}
 
 				// Else, print the current transfer size and rate
-				log.Printf("[%d] sent: %02.3f MB [%02.3f Mbps]", song.ID, current, rate)
+				log.Printf("[#%05d] sent: %02.3f MB [%02.3f Mbps]", song.ID, current, rate)
 			// Stop printing
 			case <-stopProgressChan:
 				return
