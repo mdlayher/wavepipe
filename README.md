@@ -6,13 +6,13 @@ Cross-platform media server, written in Go.  MIT Licensed.
 API documentation may be found in [doc/API.md](https://github.com/mdlayher/wavepipe/blob/master/doc/API.md).
 Full code documentation may be found on [GoDoc](http://godoc.org/github.com/mdlayher/wavepipe).
 
+wavepipe **currently** has no official web UI, but it can be used with a variety of [Subsonic](http://www.subsonic.org/pages/index.jsp)
+clients.  Follow the guide under [doc/Subsonic.md](https://github.com/mdlayher/wavepipe/blob/master/doc/Subsonic.md)
+to set wavepipe up for use with Subsonic clients!
+
 wavepipe is a spiritual successor to [WaveBox](https://github.com/einsteinx2/WaveBox), and much of its design
 and ideas are inspired from the WaveBox project.  This being said, wavepipe is an entirely new project, with
 its own goals.
-
-In simple terms, wavepipe will scan a media library, and expose it as a RESTful API for client consumption.
-More features may be added at a later date, but first priority is to create a working API, and a web client
-for consuming that API.
 
 Installation
 ============
@@ -93,10 +93,3 @@ A: Not yet, but it will in the future!  I am currently developing a native Go au
 and I intend to use it with wavepipe to completely remove the need for Cgo and TagLib bindings.  Once taggolib is
 able to parse a wide variety of media formats, the [dev_taggolib](https://github.com/mdlayher/wavepipe/tree/dev_taggolib)
 branch will be merged into master, providing additional functionality and much more tagging flexibility.
-
-__Q: Is wavepipe compatible with existing media servers?__
-
-A: Yes, but it's a work in progress.  In order to help spur wavepipe adoption, I have started building a Subsonic
-emulation layer.  As of now, building wavepipe's master branch will enable the Subsonic emulation layer.
-This emulation is currently functional with the [Clementine](https://www.clementine-player.org/) media player's
-Subsonic plugin.  As more of the Subsonic API is emulated, more clients will become compatible with wavepipe.
