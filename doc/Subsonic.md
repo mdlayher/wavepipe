@@ -50,7 +50,7 @@ $ curl http://localhost:8080/subsonic/rest/ping.view?u=test&p=abcdef0123456789ab
 ```
 
 At this point, you have successfully authenticated to wavepipe's emulated Subsonic API.  Often, Subsonic clients
-will ask for the following parmaters:
+will ask for the following parameters:
 
 | Name | Example | Description |
 | :--: | :-----: | :---------: |
