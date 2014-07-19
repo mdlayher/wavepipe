@@ -3,11 +3,13 @@ package api
 import (
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/mdlayher/wavepipe/common"
 
 	"github.com/gorilla/context"
 	"github.com/gorilla/mux"
+	"github.com/mdlayher/goset"
 	"github.com/unrolled/render"
 )
 
@@ -47,18 +49,38 @@ func GetStatus(res http.ResponseWriter, req *http.Request) {
 	out.Status = status
 
 	// If requested, fetch additional metrics (not added by default due to full table scans in database)
-	if req.URL.Query().Get("metrics") == "true" {
+	if metricTypes := req.URL.Query().Get("metrics"); metricTypes != "" {
 		// Begin building metrics
 		metrics := &common.Metrics{}
 
-		// Get metrics about the database
-		dbMetrics, err := common.GetDatabaseMetrics()
-		if err != nil {
-			log.Println(err)
-			r.JSON(res, 500, serverErr)
-			return
+		// Constants to check for various metric types
+		const (
+			mAll      = "all"
+			mDatabase = "database"
+		)
+
+		// Set of valid metric types
+		validSet := set.New(mAll, mDatabase)
+
+		// Check for comma-separated list of metric types
+		metricSet := set.New()
+		for _, m := range strings.Split(metricTypes, ",") {
+			// Add valid types to set
+			if validSet.Has(m) {
+				metricSet.Add(m)
+			}
 		}
-		metrics.Database = dbMetrics
+
+		// If requested, get metrics about the database
+		if metricSet.Has(mAll) || metricSet.Has(mDatabase) {
+			dbMetrics, err := common.GetDatabaseMetrics()
+			if err != nil {
+				log.Println(err)
+				r.JSON(res, 500, serverErr)
+				return
+			}
+			metrics.Database = dbMetrics
+		}
 
 		// Return metrics
 		out.Metrics = metrics

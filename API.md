@@ -78,7 +78,7 @@ update the expiration time to one week in the future.
 | [Logout](#logout) | v0 | Used to destroy the current API session from wavepipe. |
 | [Search](#search) | v0 | Used to retrieve artists, albums, songs, and folders which match a specified search query. |
 | [Songs](#songs) | v0 | Used to retrieve information about songs from wavepipe. |
-| [Status](#status) | v0 | Used to retrieve current server status from wavepipe. |
+| [Status](#status) | v0 | Used to retrieve current server status from wavepipe, as well as server metrics, if specified. |
 | [Stream](#stream) | v0 | Used to retrieve a raw, non-transcoded, binary data stream of a media file from wavepipe. |
 | [Transcode](#transcode) | v0 | Used to retrieve transcoded binary data stream of a media file from wavepipe. |
 | [Users](#users) | v0 | Used to retrieve information about users from wavepipe. |
@@ -429,7 +429,7 @@ retrieved about a single song.
 | 500 | server error | An internal error occurred. wavepipe will log these errors to its console log. |
 
 ## Status
-Used to retrieve current server status from wavepipe.
+Used to retrieve current server status from wavepipe, as well as server metrics, if specified.
 
 **Versions:** `v0`
 
@@ -444,6 +444,7 @@ Used to retrieve current server status from wavepipe.
 | Name | Versions | Type | Required | Description |
 | :--: | :------: | :--: | :------: | :---------: |
 | metrics | v0 | boolean | | If true, wavepipe will generate and return additional metrics about its database. |
+| metrics | v0 | string | | Comma-separated string containing metric types (`all`, `database`) to return. If not specified, no metrics will be returned. |
 
 **Return JSON:**
 
