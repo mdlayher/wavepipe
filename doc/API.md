@@ -444,7 +444,7 @@ Used to retrieve current server status from wavepipe, as well as server metrics,
 
 | Name | Versions | Type | Required | Description |
 | :--: | :------: | :--: | :------: | :---------: |
-| metrics | v0 | string | | Comma-separated string containing metric types (`all`, `database`) to return. If not specified, no metrics will be returned. |
+| metrics | v0 | string | | Comma-separated string containing metric types (`all`, `database`, `network`) to return. If not specified, no metrics will be returned. |
 
 **Return JSON:**
 
