@@ -13,7 +13,7 @@ const (
 	// Version is the current version of the API
 	Version = "v0"
 	// Documentation provides a link to the current API documentation
-	Documentation = "https://github.com/mdlayher/wavepipe/blob/master/API.md"
+	Documentation = "https://github.com/mdlayher/wavepipe/blob/master/doc/API.md"
 
 	// CtxRender is the key used to store a render instance in gorilla context
 	CtxRender = "middleware_render"
