@@ -1,13 +1,23 @@
 package common
 
 import (
+	"sync/atomic"
+
 	"github.com/mdlayher/wavepipe/data"
+)
+
+var (
+	// rxBytes is the total number of bytes received over the network
+	rxBytes int64
+	// txBytes is the total number of bytes received over the network
+	txBytes int64
 )
 
 // Metrics represents a variety of metrics about the current wavepipe instance, and contains several
 // nested structs which contain more specific metrics
 type Metrics struct {
 	Database *DatabaseMetrics `json:"database"`
+	Network  *NetworkMetrics  `json:"network"`
 }
 
 // DatabaseMetrics represents metrics regarding the wavepipe database, including total numbers
@@ -20,6 +30,13 @@ type DatabaseMetrics struct {
 	Songs   int64 `json:"songs"`
 	Folders int64 `json:"folders"`
 	Art     int64 `json:"art"`
+}
+
+// NetworkMetrics represents metrics regarding wavepipe network traffic, including total traffic
+// received and transmitted in bytes
+type NetworkMetrics struct {
+	RXBytes int64 `json:"totalRxBytes"`
+	TXBytes int64 `json:"totalTxBytes"`
 }
 
 // GetDatabaseMetrics returns a variety of metrics about the wavepipe database, including
@@ -64,4 +81,24 @@ func GetDatabaseMetrics() (*DatabaseMetrics, error) {
 		Art:     art,
 		Folders: folders,
 	}, nil
+}
+
+// AddRXBytes atomically increments the rxBytes counter by the amount specified
+func AddRXBytes(count int64) {
+	atomic.AddInt64(&rxBytes, count)
+}
+
+// AddTXBytes atomically increments the txBytes counter by the amount specified
+func AddTXBytes(count int64) {
+	atomic.AddInt64(&txBytes, count)
+}
+
+// RXBytes returns the total number of bytes received over the network
+func RXBytes() int64 {
+	return atomic.LoadInt64(&rxBytes)
+}
+
+// TXBytes returns the total number of bytes transmitted over the network
+func TXBytes() int64 {
+	return atomic.LoadInt64(&txBytes)
 }

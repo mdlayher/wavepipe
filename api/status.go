@@ -57,10 +57,11 @@ func GetStatus(res http.ResponseWriter, req *http.Request) {
 		const (
 			mAll      = "all"
 			mDatabase = "database"
+			mNetwork  = "network"
 		)
 
 		// Set of valid metric types
-		validSet := set.New(mAll, mDatabase)
+		validSet := set.New(mAll, mDatabase, mNetwork)
 
 		// Check for comma-separated list of metric types
 		metricSet := set.New()
@@ -80,6 +81,14 @@ func GetStatus(res http.ResponseWriter, req *http.Request) {
 				return
 			}
 			metrics.Database = dbMetrics
+		}
+
+		// If requested, get metrics about the network
+		if metricSet.Has(mAll) || metricSet.Has(mNetwork) {
+			metrics.Network = &common.NetworkMetrics{
+				RXBytes: common.RXBytes(),
+				TXBytes: common.TXBytes(),
+			}
 		}
 
 		// Return metrics
