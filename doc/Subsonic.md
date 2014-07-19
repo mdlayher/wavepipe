@@ -9,7 +9,7 @@ but where possible, efforts are made to emulate Subsonic in the most sane way po
 
 To see which Subsonic API endpoints are currently available with wavepipe, check [GoDoc](http://godoc.org/github.com/mdlayher/wavepipe/subsonic).
 
-Clients which are known to work includ:
+Clients which are known to work include:
   - [Clementine](https://www.clementine-player.org/)
   - [Subsonic for Android](https://play.google.com/store/apps/details?id=net.sourceforge.subsonic.androidapp&hl=en)
 
