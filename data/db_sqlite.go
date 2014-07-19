@@ -123,6 +123,11 @@ func (s *SqliteBackend) ArtNotInPath(path string) ([]Art, error) {
 	return s.artQuery("SELECT * FROM art WHERE file_name NOT LIKE ?;", path+"%")
 }
 
+// CountArt fetches the total number of Art structs from the database
+func (s *SqliteBackend) CountArt() (int64, error) {
+	return s.integerQuery("SELECT COUNT(*) AS int FROM art;")
+}
+
 // DeleteArt removes Art from the database
 func (s *SqliteBackend) DeleteArt(a *Art) error {
 	// Attempt to delete this art by its ID

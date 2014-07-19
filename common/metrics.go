@@ -19,6 +19,7 @@ type DatabaseMetrics struct {
 	Albums  int64 `json:"albums"`
 	Songs   int64 `json:"songs"`
 	Folders int64 `json:"folders"`
+	Art     int64 `json:"art"`
 }
 
 // GetDatabaseMetrics returns a variety of metrics about the wavepipe database, including
@@ -48,12 +49,19 @@ func GetDatabaseMetrics() (*DatabaseMetrics, error) {
 		return nil, err
 	}
 
+	// Fetch total art
+	art, err := data.DB.CountArt()
+	if err != nil {
+		return nil, err
+	}
+
 	// Combine all metrics
 	return &DatabaseMetrics{
 		Updated: ScanTime(),
 		Artists: artists,
 		Albums:  albums,
 		Songs:   songs,
+		Art:     art,
 		Folders: folders,
 	}, nil
 }

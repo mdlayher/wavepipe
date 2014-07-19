@@ -12,6 +12,7 @@ type dbBackend interface {
 
 	ArtInPath(string) ([]Art, error)
 	ArtNotInPath(string) ([]Art, error)
+	CountArt() (int64, error)
 	DeleteArt(*Art) error
 	LoadArt(*Art) error
 	SaveArt(*Art) error
