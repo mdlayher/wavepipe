@@ -103,6 +103,9 @@ func HTTPStream(song *data.Song, mimeType string, contentLength int64, inputStre
 		// Print progress every 5 seconds
 		progress := time.NewTicker(5 * time.Second)
 
+		// Track last total on each iteration, to check for zero change
+		var lastTotal int64
+
 		// Calculate total file length
 		totalSize := float64(contentLength) / 1024 / 1024
 		for {
@@ -112,6 +115,14 @@ func HTTPStream(song *data.Song, mimeType string, contentLength int64, inputStre
 				// Capture current progress
 				currTotal := atomic.LoadInt64(&total)
 				current := float64(currTotal) / 1024 / 1024
+
+				// Check if no change since last run
+				if currTotal == lastTotal {
+					break
+				}
+
+				// Update last total
+				lastTotal = currTotal
 
 				// Capture current transfer rate
 				rate := float64(float64((currTotal*8)/1024/1024) / float64(time.Now().Sub(startTime).Seconds()))
