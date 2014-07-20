@@ -14,7 +14,7 @@ import (
 	"github.com/unrolled/render"
 )
 
-// FoldersResponse represents the JSON response for /api/folders
+// FoldersResponse represents the JSON response for the Folders API.
 type FoldersResponse struct {
 	Error      *Error        `json:"error"`
 	Folders    []data.Folder `json:"folders"`
@@ -22,59 +22,57 @@ type FoldersResponse struct {
 	Songs      []data.Song   `json:"songs"`
 }
 
-// GetFolders retrieves one or more folders from wavepipe, and returns a HTTP status and JSON
-func GetFolders(res http.ResponseWriter, req *http.Request) {
+// GetFolders retrieves one or more folders from wavepipe, and returns a HTTP status and JSON.
+// It can be used to fetch a single folder, a limited subset of folders, or all folders, depending
+// on the request parameters.
+func GetFolders(w http.ResponseWriter, r *http.Request) {
 	// Retrieve render
-	r := context.Get(req, CtxRender).(*render.Render)
+	ren := context.Get(r, CtxRender).(*render.Render)
 
 	// Output struct for folders request
 	out := FoldersResponse{}
 
-	// List of folders to return
-	folders := make([]data.Folder, 0)
-
 	// Check API version
-	if version, ok := mux.Vars(req)["version"]; ok {
+	if version, ok := mux.Vars(r)["version"]; ok {
 		// Check if this API call is supported in the advertised version
 		if !apiVersionSet.Has(version) {
-			r.JSON(res, 400, errRes(400, "unsupported API version: "+version))
+			ren.JSON(w, 400, errRes(400, "unsupported API version: "+version))
 			return
 		}
 	}
 
 	// Check for an ID parameter
-	if pID, ok := mux.Vars(req)["id"]; ok {
+	if pID, ok := mux.Vars(r)["id"]; ok {
 		// Verify valid integer ID
 		id, err := strconv.Atoi(pID)
 		if err != nil {
-			r.JSON(res, 400, errRes(400, "invalid integer folder ID"))
+			ren.JSON(w, 400, errRes(400, "invalid integer folder ID"))
 			return
 		}
 
 		// Load the folder
-		folder := new(data.Folder)
-		folder.ID = id
+		folder := &data.Folder{ID: id}
 		if err := folder.Load(); err != nil {
 			// Check for invalid ID
 			if err == sql.ErrNoRows {
-				r.JSON(res, 404, errRes(404, "folder ID not found"))
+				ren.JSON(w, 404, errRes(404, "folder ID not found"))
 				return
 			}
 
 			// All other errors
 			log.Println(err)
-			r.JSON(res, 500, serverErr)
+			ren.JSON(w, 500, serverErr)
 			return
 		}
 
-		// Add folder to slice
-		folders = append(folders, *folder)
+		// Add folder to output
+		out.Folders = []data.Folder{*folder}
 
 		// Load all subfolders
 		subfolders, err := folder.Subfolders()
 		if err != nil {
 			log.Println(err)
-			r.JSON(res, 500, serverErr)
+			ren.JSON(w, 500, serverErr)
 			return
 		}
 
@@ -85,52 +83,52 @@ func GetFolders(res http.ResponseWriter, req *http.Request) {
 		songs, err := data.DB.SongsForFolder(folder.ID)
 		if err != nil {
 			log.Println(err)
-			r.JSON(res, 500, serverErr)
+			ren.JSON(w, 500, serverErr)
 			return
 		}
 
 		// Add songs to response
 		out.Songs = songs
-	} else {
-		// Check for a limit parameter
-		if pLimit := req.URL.Query().Get("limit"); pLimit != "" {
-			// Split limit into two integers
-			var offset int
-			var count int
-			if n, err := fmt.Sscanf(pLimit, "%d,%d", &offset, &count); n < 2 || err != nil {
-				r.JSON(res, 400, errRes(400, "invalid comma-separated integer pair for limit"))
-				return
-			}
 
-			// Retrieve limited subset of folders
-			tempFolders, err := data.DB.LimitFolders(offset, count)
-			if err != nil {
-				log.Println(err)
-				r.JSON(res, 500, serverErr)
-				return
-			}
-
-			// Copy folders into the output slice
-			folders = tempFolders
-		} else {
-			// Retrieve all folders
-			tempFolders, err := data.DB.AllFolders()
-			if err != nil {
-				log.Println(err)
-				r.JSON(res, 500, serverErr)
-				return
-			}
-
-			// Copy folders into the output slice
-			folders = tempFolders
-		}
+		// HTTP 200 OK with JSON
+		ren.JSON(w, 200, out)
+		return
 	}
 
-	// Build response
-	out.Error = nil
-	out.Folders = folders
+	// Check for a limit parameter
+	if pLimit := r.URL.Query().Get("limit"); pLimit != "" {
+		// Split limit into two integers
+		var offset int
+		var count int
+		if n, err := fmt.Sscanf(pLimit, "%d,%d", &offset, &count); n < 2 || err != nil {
+			ren.JSON(w, 400, errRes(400, "invalid comma-separated integer pair for limit"))
+			return
+		}
+
+		// Retrieve limited subset of folders
+		folders, err := data.DB.LimitFolders(offset, count)
+		if err != nil {
+			log.Println(err)
+			ren.JSON(w, 500, serverErr)
+			return
+		}
+
+		// HTTP 200 OK with JSON
+		out.Folders = folders
+		ren.JSON(w, 200, out)
+		return
+	}
+
+	// If no other case, retrieve all folders
+	folders, err := data.DB.AllFolders()
+	if err != nil {
+		log.Println(err)
+		ren.JSON(w, 500, serverErr)
+		return
+	}
 
 	// HTTP 200 OK with JSON
-	r.JSON(res, 200, out)
+	out.Folders = folders
+	ren.JSON(w, 200, out)
 	return
 }
