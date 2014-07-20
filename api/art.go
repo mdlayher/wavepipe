@@ -11,12 +11,11 @@ import (
 	"net/http"
 	"path"
 	"strconv"
-	"strings"
-	"time"
 
 	// Extra image manipulation formats
 	_ "image/jpeg"
 
+	"github.com/mdlayher/wavepipe/common"
 	"github.com/mdlayher/wavepipe/data"
 
 	"github.com/gorilla/context"
@@ -25,48 +24,47 @@ import (
 	"github.com/unrolled/render"
 )
 
-// GetArt a binary art file from wavepipe.  On success, this API will
-// return binary art. On failure, it will return a JSON error.
-func GetArt(res http.ResponseWriter, req *http.Request) {
+// GetArt retrieves a binary art file from wavepipe, optionally resizing the art file.
+// On success, this API will return binary art. On failure, it will return a JSON error.
+func GetArt(w http.ResponseWriter, r *http.Request) {
 	// Retrieve render
-	r := context.Get(req, CtxRender).(*render.Render)
+	ren := context.Get(r, CtxRender).(*render.Render)
 
 	// Check API version
-	if version, ok := mux.Vars(req)["version"]; ok {
+	if version, ok := mux.Vars(r)["version"]; ok {
 		// Check if this API call is supported in the advertised version
 		if !apiVersionSet.Has(version) {
-			r.JSON(res, 400, errRes(400, "unsupported API version: "+version))
+			ren.JSON(w, 400, errRes(400, "unsupported API version: "+version))
 			return
 		}
 	}
 
 	// Check for an ID parameter
-	pID, ok := mux.Vars(req)["id"]
+	pID, ok := mux.Vars(r)["id"]
 	if !ok {
-		r.JSON(res, 400, errRes(400, "no integer art ID provided"))
+		ren.JSON(w, 400, errRes(400, "no integer art ID provided"))
 		return
 	}
 
 	// Verify valid integer ID
 	id, err := strconv.Atoi(pID)
 	if err != nil {
-		r.JSON(res, 400, errRes(400, "invalid integer art ID"))
+		ren.JSON(w, 400, errRes(400, "invalid integer art ID"))
 		return
 	}
 
 	// Attempt to load the art with matching ID
-	art := new(data.Art)
-	art.ID = id
+	art := &data.Art{ID: id}
 	if err := art.Load(); err != nil {
 		// Check for invalid ID
 		if err == sql.ErrNoRows {
-			r.JSON(res, 404, errRes(404, "art ID not found"))
+			ren.JSON(w, 404, errRes(404, "art ID not found"))
 			return
 		}
 
 		// All other errors
 		log.Println(err)
-		r.JSON(res, 500, serverErr)
+		ren.JSON(w, 500, serverErr)
 		return
 	}
 
@@ -74,7 +72,7 @@ func GetArt(res http.ResponseWriter, req *http.Request) {
 	stream, err := art.Stream()
 	if err != nil {
 		log.Println(err)
-		r.JSON(res, 500, serverErr)
+		ren.JSON(w, 500, serverErr)
 		return
 	}
 	defer stream.Close()
@@ -87,17 +85,17 @@ func GetArt(res http.ResponseWriter, req *http.Request) {
 	var mimeType string
 
 	// Check for resize request
-	if size := req.URL.Query().Get("size"); size != "" {
+	if size := r.URL.Query().Get("size"); size != "" {
 		// Ensure size is a valid integer
 		sizeInt, err := strconv.Atoi(size)
 		if err != nil {
-			r.JSON(res, 400, errRes(400, "invalid integer size"))
+			ren.JSON(w, 400, errRes(400, "invalid integer size"))
 			return
 		}
 
 		// Verify positive integer
 		if sizeInt < 1 {
-			r.JSON(res, 400, errRes(400, "negative integer size"))
+			ren.JSON(w, 400, errRes(400, "negative integer size"))
 			return
 		}
 
@@ -105,7 +103,7 @@ func GetArt(res http.ResponseWriter, req *http.Request) {
 		img, _, err := image.Decode(stream)
 		if err != nil {
 			log.Println(err)
-			r.JSON(res, 500, serverErr)
+			ren.JSON(w, 500, serverErr)
 			return
 		}
 
@@ -116,7 +114,7 @@ func GetArt(res http.ResponseWriter, req *http.Request) {
 		buffer := bytes.NewBuffer(make([]byte, 0))
 		if err := png.Encode(buffer, thumb); err != nil {
 			log.Println(err)
-			r.JSON(res, 500, serverErr)
+			ren.JSON(w, 500, serverErr)
 			return
 		}
 
@@ -138,22 +136,19 @@ func GetArt(res http.ResponseWriter, req *http.Request) {
 	// Set necessary HTTP output headers
 
 	// Get content length from file size
-	res.Header().Set("Content-Length", strconv.FormatInt(length, 10))
+	w.Header().Set("Content-Length", strconv.FormatInt(length, 10))
 
 	// Set content type via MIME type
-	res.Header().Set("Content-Type", mimeType)
+	w.Header().Set("Content-Type", mimeType)
 
-	// Get art last modify time in RFC1123 format, replace UTC with GMT
-	lastMod := strings.Replace(time.Unix(art.LastModified, 0).UTC().Format(time.RFC1123), "UTC", "GMT", 1)
-
-	// Set last modified time
-	res.Header().Set("Last-Modified", lastMod)
+	// Set last modified time in RFC1123 format
+	w.Header().Set("Last-Modified", common.UNIXtoRFC1123(art.LastModified))
 
 	// Specify connection close on send
-	res.Header().Set("Connection", "close")
+	w.Header().Set("Connection", "close")
 
 	// Stream the output over HTTP
-	if _, err := io.Copy(res, outStream); err != nil {
+	if _, err := io.Copy(w, outStream); err != nil {
 		log.Println(err)
 		return
 	}
