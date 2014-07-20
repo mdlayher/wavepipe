@@ -50,8 +50,7 @@ func GetAlbums(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Load the album
-		album := new(data.Album)
-		album.ID = id
+		album := &data.Album{ID: id}
 		if err := album.Load(); err != nil {
 			// Check for invalid ID
 			if err == sql.ErrNoRows {
