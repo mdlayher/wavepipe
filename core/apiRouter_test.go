@@ -158,7 +158,7 @@ func TestAPIRouter(t *testing.T) {
 		//   - valid request
 		{200, "GET", "/api/v0/status"},
 		//   - valid request with metrics
-		{200, "GET", "/api/v0/status?metrics=true"},
+		{200, "GET", "/api/v0/status?metrics=all"},
 		//   - invalid API version
 		{400, "GET", "/api/v999/status"},
 
