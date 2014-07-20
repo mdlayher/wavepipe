@@ -14,39 +14,38 @@ import (
 	"github.com/unrolled/render"
 )
 
-// AlbumsResponse represents the JSON response for /api/albums
+// AlbumsResponse represents the JSON response for the Albums API.
 type AlbumsResponse struct {
 	Error  *Error       `json:"error"`
 	Albums []data.Album `json:"albums"`
 	Songs  []data.Song  `json:"songs"`
 }
 
-// GetAlbums retrieves one or more albums from wavepipe, and returns a HTTP status and JSON
-func GetAlbums(res http.ResponseWriter, req *http.Request) {
+// GetAlbums retrieves one or more albums from wavepipe, and returns a HTTP status and JSON.
+// It can be used to fetch a single album, a limited subset of albums, or all albums, depending
+// on the request parameters.
+func GetAlbums(w http.ResponseWriter, r *http.Request) {
 	// Retrieve render
-	r := context.Get(req, CtxRender).(*render.Render)
+	ren := context.Get(r, CtxRender).(*render.Render)
 
 	// Output struct for albums request
 	out := AlbumsResponse{}
 
-	// List of albums to return
-	albums := make([]data.Album, 0)
-
 	// Check API version
-	if version, ok := mux.Vars(req)["version"]; ok {
+	if version, ok := mux.Vars(r)["version"]; ok {
 		// Check if this API call is supported in the advertised version
 		if !apiVersionSet.Has(version) {
-			r.JSON(res, 400, errRes(400, "unsupported API version: "+version))
+			ren.JSON(w, 400, errRes(400, "unsupported API version: "+version))
 			return
 		}
 	}
 
 	// Check for an ID parameter
-	if pID, ok := mux.Vars(req)["id"]; ok {
+	if pID, ok := mux.Vars(r)["id"]; ok {
 		// Verify valid integer ID
 		id, err := strconv.Atoi(pID)
 		if err != nil {
-			r.JSON(res, 400, errRes(400, "invalid integer album ID"))
+			ren.JSON(w, 400, errRes(400, "invalid integer album ID"))
 			return
 		}
 
@@ -56,13 +55,13 @@ func GetAlbums(res http.ResponseWriter, req *http.Request) {
 		if err := album.Load(); err != nil {
 			// Check for invalid ID
 			if err == sql.ErrNoRows {
-				r.JSON(res, 404, errRes(404, "album ID not found"))
+				ren.JSON(w, 404, errRes(404, "album ID not found"))
 				return
 			}
 
 			// All other errors
 			log.Println(err)
-			r.JSON(res, 500, serverErr)
+			ren.JSON(w, 500, serverErr)
 			return
 		}
 
@@ -70,55 +69,53 @@ func GetAlbums(res http.ResponseWriter, req *http.Request) {
 		songs, err := data.DB.SongsForAlbum(album.ID)
 		if err != nil {
 			log.Println(err)
-			r.JSON(res, 500, serverErr)
+			ren.JSON(w, 500, serverErr)
 			return
 		}
 
-		// Add songs to output
+		// Add album and songs to output
+		out.Albums = []data.Album{*album}
 		out.Songs = songs
 
-		// Add album to slice
-		albums = append(albums, *album)
-	} else {
-		// Check for a limit parameter
-		if pLimit := req.URL.Query().Get("limit"); pLimit != "" {
-			// Split limit into two integers
-			var offset int
-			var count int
-			if n, err := fmt.Sscanf(pLimit, "%d,%d", &offset, &count); n < 2 || err != nil {
-				r.JSON(res, 400, errRes(400, "invalid comma-separated integer pair for limit"))
-				return
-			}
-
-			// Retrieve limited subset of albums
-			tempAlbums, err := data.DB.LimitAlbums(offset, count)
-			if err != nil {
-				log.Println(err)
-				r.JSON(res, 500, serverErr)
-				return
-			}
-
-			// Copy albums into the output slice
-			albums = tempAlbums
-		} else {
-			// Retrieve all albums
-			tempAlbums, err := data.DB.AllAlbums()
-			if err != nil {
-				log.Println(err)
-				r.JSON(res, 500, serverErr)
-				return
-			}
-
-			// Copy albums into the output slice
-			albums = tempAlbums
-		}
+		// HTTP 200 OK with JSON
+		ren.JSON(w, 200, out)
+		return
 	}
 
-	// Build response
-	out.Error = nil
-	out.Albums = albums
+	// Check for a limit parameter
+	if pLimit := r.URL.Query().Get("limit"); pLimit != "" {
+		// Split limit into two integers
+		var offset int
+		var count int
+		if n, err := fmt.Sscanf(pLimit, "%d,%d", &offset, &count); n < 2 || err != nil {
+			ren.JSON(w, 400, errRes(400, "invalid comma-separated integer pair for limit"))
+			return
+		}
+
+		// Retrieve limited subset of albums
+		albums, err := data.DB.LimitAlbums(offset, count)
+		if err != nil {
+			log.Println(err)
+			ren.JSON(w, 500, serverErr)
+			return
+		}
+
+		// HTTP 200 OK with JSON
+		out.Albums = albums
+		ren.JSON(w, 200, out)
+		return
+	}
+
+	// If no other case, retrieve all albums
+	albums, err := data.DB.AllAlbums()
+	if err != nil {
+		log.Println(err)
+		ren.JSON(w, 500, serverErr)
+		return
+	}
 
 	// HTTP 200 OK with JSON
-	r.JSON(res, 200, out)
+	out.Albums = albums
+	ren.JSON(w, 200, out)
 	return
 }
