@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/mdlayher/wavepipe/common"
 
@@ -12,6 +13,12 @@ import (
 	"github.com/mdlayher/goset"
 	"github.com/unrolled/render"
 )
+
+// databaseMetricsCache is used to cache database metrics until a database update occurs
+var databaseMetricsCache *common.DatabaseMetrics
+
+// cacheTime is used to determine when metrics were last cached
+var cacheTime int64
 
 // StatusResponse represents the JSON response for /api/status
 type StatusResponse struct {
@@ -74,13 +81,23 @@ func GetStatus(res http.ResponseWriter, req *http.Request) {
 
 		// If requested, get metrics about the database
 		if metricSet.Has(mAll) || metricSet.Has(mDatabase) {
-			dbMetrics, err := common.GetDatabaseMetrics()
-			if err != nil {
-				log.Println(err)
-				r.JSON(res, 500, serverErr)
-				return
+			// Check for cached metrics, and make sure they are up to date
+			if databaseMetricsCache != nil && common.ScanTime() <= cacheTime {
+				metrics.Database = databaseMetricsCache
+			} else {
+				// Fetch new metrics
+				dbMetrics, err := common.GetDatabaseMetrics()
+				if err != nil {
+					log.Println(err)
+					r.JSON(res, 500, serverErr)
+					return
+				}
+				metrics.Database = dbMetrics
+
+				// Cache metrics and update time
+				databaseMetricsCache = dbMetrics
+				cacheTime = time.Now().Unix()
 			}
-			metrics.Database = dbMetrics
 		}
 
 		// If requested, get metrics about the network
