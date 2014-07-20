@@ -118,8 +118,7 @@ func GetArt(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// Set HTTP response
-		length = int64(buffer.Len())
+		// Set MIME type for response
 		mimeType = "image/png"
 
 		// Store the resized art stream for output
@@ -135,8 +134,10 @@ func GetArt(w http.ResponseWriter, r *http.Request) {
 
 	// Set necessary HTTP output headers
 
-	// Get content length from file size
-	w.Header().Set("Content-Length", strconv.FormatInt(length, 10))
+	// If not resizing, set content length from file size
+	if length > 0 {
+		w.Header().Set("Content-Length", strconv.FormatInt(length, 10))
+	}
 
 	// Set content type via MIME type
 	w.Header().Set("Content-Type", mimeType)
