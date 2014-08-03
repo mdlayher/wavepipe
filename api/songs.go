@@ -14,117 +14,120 @@ import (
 	"github.com/unrolled/render"
 )
 
-// SongsResponse represents the JSON response for /api/songs
+// SongsResponse represents the JSON response for the Songs API.
 type SongsResponse struct {
 	Error *Error      `json:"error"`
 	Songs []data.Song `json:"songs"`
 }
 
-// GetSongs retrieves one or more songs from wavepipe, and returns a HTTP status and JSON
-func GetSongs(res http.ResponseWriter, req *http.Request) {
+// GetSongs retrieves one or more songs from wavepipe, and returns a HTTP status and JSON.
+// It can be used to fetch a single song, a limited subset of songs, a specified number of
+// random songs, or all songs, depending on the request parameters.
+func GetSongs(w http.ResponseWriter, r *http.Request) {
 	// Retrieve render
-	r := context.Get(req, CtxRender).(*render.Render)
+	ren := context.Get(r, CtxRender).(*render.Render)
 
 	// Output struct for songs request
 	out := SongsResponse{}
 
-	// List of songs to return
-	songs := make([]data.Song, 0)
-
 	// Check API version
-	if version, ok := mux.Vars(req)["version"]; ok {
+	if version, ok := mux.Vars(r)["version"]; ok {
 		// Check if this API call is supported in the advertised version
 		if !apiVersionSet.Has(version) {
-			r.JSON(res, 400, errRes(400, "unsupported API version: "+version))
+			ren.JSON(w, 400, errRes(400, "unsupported API version: "+version))
 			return
 		}
 	}
 
 	// Check for an ID parameter
-	if pID, ok := mux.Vars(req)["id"]; ok {
+	if pID, ok := mux.Vars(r)["id"]; ok {
 		// Verify valid integer ID
 		id, err := strconv.Atoi(pID)
 		if err != nil {
-			r.JSON(res, 400, errRes(400, "invalid integer song ID"))
+			ren.JSON(w, 400, errRes(400, "invalid integer song ID"))
 			return
 		}
 
 		// Load the song
-		song := new(data.Song)
-		song.ID = id
+		song := &data.Song{ID: id}
 		if err := song.Load(); err != nil {
 			// Check for invalid ID
 			if err == sql.ErrNoRows {
-				r.JSON(res, 404, errRes(404, "song ID not found"))
+				ren.JSON(w, 404, errRes(404, "song ID not found"))
 				return
 			}
 
 			// All other errors
 			log.Println(err)
-			r.JSON(res, 500, serverErr)
+			ren.JSON(w, 500, serverErr)
 			return
 		}
 
-		// Add song to slice
-		songs = append(songs, *song)
-	} else {
-		// Check for a limit parameter
-		if pLimit := req.URL.Query().Get("limit"); pLimit != "" {
-			// Split limit into two integers
-			var offset int
-			var count int
-			if n, err := fmt.Sscanf(pLimit, "%d,%d", &offset, &count); n < 2 || err != nil {
-				r.JSON(res, 400, errRes(400, "invalid comma-separated integer pair for limit"))
-				return
-			}
+		// Add song to output
+		out.Songs = []data.Song{*song}
 
-			// Retrieve limited subset of songs
-			tempSongs, err := data.DB.LimitSongs(offset, count)
-			if err != nil {
-				log.Println(err)
-				r.JSON(res, 500, serverErr)
-				return
-			}
-
-			// Copy songs into the output slice
-			songs = tempSongs
-		} else if pRandom := req.URL.Query().Get("random"); pRandom != "" {
-			// Check for a random songs request
-			random, err := strconv.Atoi(pRandom)
-			if err != nil {
-				r.JSON(res, 400, errRes(400, "invalid integer for random"))
-				return
-			}
-
-			// Retrieve the specified number of random songs
-			tempSongs, err := data.DB.RandomSongs(random)
-			if err != nil {
-				log.Println(err)
-				r.JSON(res, 500, serverErr)
-				return
-			}
-
-			// Copy songs into the output slice
-			songs = tempSongs
-		} else {
-			// Retrieve all songs
-			tempSongs, err := data.DB.AllSongs()
-			if err != nil {
-				log.Println(err)
-				r.JSON(res, 500, serverErr)
-				return
-			}
-
-			// Copy songs into the output slice
-			songs = tempSongs
-		}
+		// HTTP 200 OK with JSON
+		ren.JSON(w, 200, out)
+		return
 	}
 
-	// Build response
-	out.Error = nil
-	out.Songs = songs
+	// Check for a limit parameter
+	if pLimit := r.URL.Query().Get("limit"); pLimit != "" {
+		// Split limit into two integers
+		var offset int
+		var count int
+		if n, err := fmt.Sscanf(pLimit, "%d,%d", &offset, &count); n < 2 || err != nil {
+			ren.JSON(w, 400, errRes(400, "invalid comma-separated integer pair for limit"))
+			return
+		}
+
+		// Retrieve limited subset of songs
+		songs, err := data.DB.LimitSongs(offset, count)
+		if err != nil {
+			log.Println(err)
+			ren.JSON(w, 500, serverErr)
+			return
+		}
+
+		// HTTP 200 OK with JSON
+		out.Songs = songs
+		ren.JSON(w, 200, out)
+		return
+	}
+
+	// Check for a random songs request
+	if pRandom := r.URL.Query().Get("random"); pRandom != "" {
+		// Verify valid integer random count
+		random, err := strconv.Atoi(pRandom)
+		if err != nil {
+			ren.JSON(w, 400, errRes(400, "invalid integer for random"))
+			return
+		}
+
+		// Retrieve the specified number of random songs
+		songs, err := data.DB.RandomSongs(random)
+		if err != nil {
+			log.Println(err)
+			ren.JSON(w, 500, serverErr)
+			return
+		}
+
+		// HTTP 200 OK with JSON
+		out.Songs = songs
+		ren.JSON(w, 200, out)
+		return
+	}
+
+	// If no other case, retrieve all songs
+	songs, err := data.DB.AllSongs()
+	if err != nil {
+		log.Println(err)
+		ren.JSON(w, 500, serverErr)
+		return
+	}
 
 	// HTTP 200 OK with JSON
-	r.JSON(res, 200, out)
+	out.Songs = songs
+	ren.JSON(w, 200, out)
 	return
 }
