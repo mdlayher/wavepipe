@@ -23,27 +23,27 @@ type SearchResponse struct {
 }
 
 // GetSearch searches for artists, albums, songs, and folders matching a specified search query,
-// and returns a HTTP status and JSON
-func GetSearch(res http.ResponseWriter, req *http.Request) {
+// and returns a HTTP status and JSON.
+func GetSearch(w http.ResponseWriter, r *http.Request) {
 	// Retrieve render
-	r := context.Get(req, CtxRender).(*render.Render)
+	ren := context.Get(r, CtxRender).(*render.Render)
 
 	// Output struct for songs request
 	out := SearchResponse{}
 
 	// Check API version
-	if version, ok := mux.Vars(req)["version"]; ok {
+	if version, ok := mux.Vars(r)["version"]; ok {
 		// Check if this API call is supported in the advertised version
 		if !apiVersionSet.Has(version) {
-			r.JSON(res, 400, errRes(400, "unsupported API version: "+version))
+			ren.JSON(w, 400, errRes(400, "unsupported API version: "+version))
 			return
 		}
 	}
 
 	// Check for a search query
-	query, ok := mux.Vars(req)["query"]
+	query, ok := mux.Vars(r)["query"]
 	if !ok {
-		r.JSON(res, 400, errRes(400, "no search query specified"))
+		ren.JSON(w, 400, errRes(400, "no search query specified"))
 		return
 	}
 
@@ -51,7 +51,7 @@ func GetSearch(res http.ResponseWriter, req *http.Request) {
 	defaultTypeSet := set.New("artists", "albums", "songs", "folders")
 
 	// Check for a comma-separated list of data types to search
-	types := req.URL.Query().Get("type")
+	types := r.URL.Query().Get("type")
 	var typeSet *set.Set
 	if types == "" {
 		// Search for all types if not specified
@@ -73,7 +73,7 @@ func GetSearch(res http.ResponseWriter, req *http.Request) {
 		artists, err := data.DB.SearchArtists(query)
 		if err != nil {
 			log.Println(err)
-			r.JSON(res, 500, serverErr)
+			ren.JSON(w, 500, serverErr)
 			return
 		}
 
@@ -87,7 +87,7 @@ func GetSearch(res http.ResponseWriter, req *http.Request) {
 		albums, err := data.DB.SearchAlbums(query)
 		if err != nil {
 			log.Println(err)
-			r.JSON(res, 500, serverErr)
+			ren.JSON(w, 500, serverErr)
 			return
 		}
 
@@ -101,7 +101,7 @@ func GetSearch(res http.ResponseWriter, req *http.Request) {
 		songs, err := data.DB.SearchSongs(query)
 		if err != nil {
 			log.Println(err)
-			r.JSON(res, 500, serverErr)
+			ren.JSON(w, 500, serverErr)
 			return
 		}
 
@@ -115,7 +115,7 @@ func GetSearch(res http.ResponseWriter, req *http.Request) {
 		folders, err := data.DB.SearchFolders(query)
 		if err != nil {
 			log.Println(err)
-			r.JSON(res, 500, serverErr)
+			ren.JSON(w, 500, serverErr)
 			return
 		}
 
@@ -125,6 +125,6 @@ func GetSearch(res http.ResponseWriter, req *http.Request) {
 
 	// HTTP 200 OK with JSON
 	out.Error = nil
-	r.JSON(res, 200, out)
+	ren.JSON(w, 200, out)
 	return
 }
