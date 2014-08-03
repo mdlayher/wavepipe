@@ -17,19 +17,20 @@ type LoginResponse struct {
 	Session *data.Session `json:"session"`
 }
 
-// PostLogin creates a new session on the wavepipe API, and returns a HTTP status and JSON
-func PostLogin(res http.ResponseWriter, req *http.Request) {
+// PostLogin creates a new session for the input user to use the wavepipe API,
+// and returns a HTTP status and JSON.
+func PostLogin(w http.ResponseWriter, r *http.Request) {
 	// Retrieve render
-	r := context.Get(req, CtxRender).(*render.Render)
+	ren := context.Get(r, CtxRender).(*render.Render)
 
 	// Attempt to retrieve user from context
 	user := new(data.User)
-	if tempUser := context.Get(req, CtxUser); tempUser != nil {
+	if tempUser := context.Get(r, CtxUser); tempUser != nil {
 		user = tempUser.(*data.User)
 	} else {
 		// No user stored in context
 		log.Println("api: no user stored in request context!")
-		r.JSON(res, 500, serverErr)
+		ren.JSON(w, 500, serverErr)
 		return
 	}
 
@@ -37,28 +38,25 @@ func PostLogin(res http.ResponseWriter, req *http.Request) {
 	out := LoginResponse{}
 
 	// Check API version
-	if version, ok := mux.Vars(req)["version"]; ok {
+	if version, ok := mux.Vars(r)["version"]; ok {
 		// Check if this API call is supported in the advertised version
 		if !apiVersionSet.Has(version) {
-			r.JSON(res, 400, errRes(400, "unsupported API version: "+version))
+			ren.JSON(w, 400, errRes(400, "unsupported API version: "+version))
 			return
 		}
 	}
 
 	// Generate a new API session for this user, with optional specified session name
 	// via "client" POST parameter
-	session, err := user.CreateSession(req.PostFormValue("client"))
+	session, err := user.CreateSession(r.PostFormValue("client"))
 	if err != nil {
 		log.Println(err)
-		r.JSON(res, 500, serverErr)
+		ren.JSON(w, 500, serverErr)
 		return
 	}
 
-	// Build response
-	out.Error = nil
-	out.Session = session
-
 	// HTTP 200 OK with JSON
-	r.JSON(res, 200, out)
+	out.Session = session
+	ren.JSON(w, 200, out)
 	return
 }
