@@ -245,7 +245,5 @@ func PostLastFM(res http.ResponseWriter, req *http.Request) {
 	}
 
 	// Invalid action, meaning programmer error, HTTP 500
-	log.Println("no such Last.fm action:", action)
-	r.JSON(res, 500, serverErr)
-	return
+	panic("no such Last.fm action: " + action)
 }
