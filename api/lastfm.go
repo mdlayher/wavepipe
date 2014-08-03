@@ -38,19 +38,19 @@ type LastFMResponse struct {
 }
 
 // PostLastFM allows access to the Last.fm API, enabling wavepipe to set a user's currently-playing
-// track, as well as to enable scrobbling
-func PostLastFM(res http.ResponseWriter, req *http.Request) {
+// track, as well as to enable scrobbling.
+func PostLastFM(w http.ResponseWriter, r *http.Request) {
 	// Retrieve render
-	r := context.Get(req, CtxRender).(*render.Render)
+	ren := context.Get(r, CtxRender).(*render.Render)
 
 	// Attempt to retrieve user from context
 	user := new(data.User)
-	if tempUser := context.Get(req, CtxUser); tempUser != nil {
+	if tempUser := context.Get(r, CtxUser); tempUser != nil {
 		user = tempUser.(*data.User)
 	} else {
 		// No user stored in context
 		log.Println("api: no user stored in request context!")
-		r.JSON(res, 500, serverErr)
+		ren.JSON(w, 500, serverErr)
 		return
 	}
 
@@ -58,30 +58,30 @@ func PostLastFM(res http.ResponseWriter, req *http.Request) {
 	out := LastFMResponse{}
 
 	// Check API version
-	if version, ok := mux.Vars(req)["version"]; ok {
+	if version, ok := mux.Vars(r)["version"]; ok {
 		// Check if this API call is supported in the advertised version
 		if !apiVersionSet.Has(version) {
-			r.JSON(res, 400, errRes(400, "unsupported API version: "+version))
+			ren.JSON(w, 400, errRes(400, "unsupported API version: "+version))
 			return
 		}
 	}
 
 	// Do not allow guests and below to use Last.fm functionality
 	if user.RoleID < data.RoleUser {
-		r.JSON(res, 403, permissionErr)
+		ren.JSON(w, 403, permissionErr)
 		return
 	}
 
 	// Check API action
-	action, ok := mux.Vars(req)["action"]
+	action, ok := mux.Vars(r)["action"]
 	if !ok {
-		r.JSON(res, 400, errRes(400, "no string action provided"))
+		ren.JSON(w, 400, errRes(400, "no string action provided"))
 		return
 	}
 
 	// Check for valid action
 	if !set.New(lfmLogin, lfmNowPlaying, lfmScrobble).Has(action) {
-		r.JSON(res, 400, errRes(400, "invalid string action provided"))
+		ren.JSON(w, 400, errRes(400, "invalid string action provided"))
 		return
 	}
 
@@ -91,22 +91,22 @@ func PostLastFM(res http.ResponseWriter, req *http.Request) {
 	// Authenticate to the Last.fm API
 	if action == lfmLogin {
 		// Retrieve username from POST body
-		username := req.PostFormValue("username")
+		username := r.PostFormValue("username")
 		if username == "" {
-			r.JSON(res, 400, errRes(400, lfmLogin+": no username provided"))
+			ren.JSON(w, 400, errRes(400, lfmLogin+": no username provided"))
 			return
 		}
 
 		// Retrieve password from POST body
-		password := req.PostFormValue("password")
+		password := r.PostFormValue("password")
 		if password == "" {
-			r.JSON(res, 400, errRes(400, lfmLogin+": no password provided"))
+			ren.JSON(w, 400, errRes(400, lfmLogin+": no password provided"))
 			return
 		}
 
 		// Send a login request to Last.fm
 		if err := lfm.Login(username, password); err != nil {
-			r.JSON(res, 401, errRes(401, lfmLogin+": last.fm authentication failed"))
+			ren.JSON(w, 401, errRes(401, lfmLogin+": last.fm authentication failed"))
 			return
 		}
 
@@ -114,7 +114,7 @@ func PostLastFM(res http.ResponseWriter, req *http.Request) {
 		token, err := lfm.GetToken()
 		if err != nil {
 			log.Println(err)
-			r.JSON(res, 500, serverErr)
+			ren.JSON(w, 500, serverErr)
 			return
 		}
 
@@ -122,7 +122,7 @@ func PostLastFM(res http.ResponseWriter, req *http.Request) {
 		user.LastFMToken = token
 		if err := user.Update(); err != nil {
 			log.Println(err)
-			r.JSON(res, 500, serverErr)
+			ren.JSON(w, 500, serverErr)
 			return
 		}
 
@@ -133,7 +133,7 @@ func PostLastFM(res http.ResponseWriter, req *http.Request) {
 
 		// HTTP 200 OK with JSON
 		out.Error = nil
-		r.JSON(res, 200, out)
+		ren.JSON(w, 200, out)
 		return
 	}
 
@@ -141,7 +141,7 @@ func PostLastFM(res http.ResponseWriter, req *http.Request) {
 
 	// Make sure this user has logged in using wavepipe before
 	if user.LastFMToken == "" {
-		r.JSON(res, 401, errRes(401, action+": user must authenticate to last.fm"))
+		ren.JSON(w, 401, errRes(401, action+": user must authenticate to last.fm"))
 		return
 	}
 
@@ -151,26 +151,26 @@ func PostLastFM(res http.ResponseWriter, req *http.Request) {
 		if strings.HasPrefix(err.Error(), "LastfmError[14]") {
 			// Generate error output, but add the token authorization URL
 			out.URL = lfm.GetAuthTokenUrl(user.LastFMToken)
-			r.JSON(res, 401, errRes(401, action+": last.fm token not yet authorized"))
+			ren.JSON(w, 401, errRes(401, action+": last.fm token not yet authorized"))
 			return
 		}
 
 		// All other failures
-		r.JSON(res, 401, errRes(401, action+": last.fm authentication failed"))
+		ren.JSON(w, 401, errRes(401, action+": last.fm authentication failed"))
 		return
 	}
 
 	// Check for an ID parameter
-	pID, ok := mux.Vars(req)["id"]
+	pID, ok := mux.Vars(r)["id"]
 	if !ok {
-		r.JSON(res, 400, errRes(400, action+": no integer song ID provided"))
+		ren.JSON(w, 400, errRes(400, action+": no integer song ID provided"))
 		return
 	}
 
 	// Verify valid integer ID
 	id, err := strconv.Atoi(pID)
 	if err != nil {
-		r.JSON(res, 400, errRes(400, action+": invalid integer song ID"))
+		ren.JSON(w, 400, errRes(400, action+": invalid integer song ID"))
 		return
 	}
 
@@ -179,13 +179,13 @@ func PostLastFM(res http.ResponseWriter, req *http.Request) {
 	if err := song.Load(); err != nil {
 		// Check for invalid ID
 		if err == sql.ErrNoRows {
-			r.JSON(res, 404, errRes(404, action+": song ID not found"))
+			ren.JSON(w, 404, errRes(404, action+": song ID not found"))
 			return
 		}
 
 		// All other errors
 		log.Println(err)
-		r.JSON(res, 500, serverErr)
+		ren.JSON(w, 500, serverErr)
 		return
 	}
 
@@ -202,11 +202,11 @@ func PostLastFM(res http.ResponseWriter, req *http.Request) {
 
 	// Check for optional timestamp parameter, which could be useful for sending scrobbles at
 	// past times, etc
-	if pTS := req.URL.Query().Get("timestamp"); pTS != "" {
+	if pTS := r.URL.Query().Get("timestamp"); pTS != "" {
 		// Verify valid integer timestamp
 		ts, err := strconv.Atoi(pTS)
 		if err != nil || ts < 0 {
-			r.JSON(res, 400, errRes(400, action+": invalid integer timestamp"))
+			ren.JSON(w, 400, errRes(400, action+": invalid integer timestamp"))
 			return
 		}
 
@@ -219,13 +219,13 @@ func PostLastFM(res http.ResponseWriter, req *http.Request) {
 		// Perform the action
 		if _, err := lfm.Track.UpdateNowPlaying(track); err != nil {
 			log.Println(err)
-			r.JSON(res, 500, serverErr)
+			ren.JSON(w, 500, serverErr)
 			return
 		}
 
 		// HTTP 200 OK with JSON
 		out.Error = nil
-		r.JSON(res, 200, out)
+		ren.JSON(w, 200, out)
 		return
 	}
 
@@ -234,13 +234,13 @@ func PostLastFM(res http.ResponseWriter, req *http.Request) {
 		// Perform the action
 		if _, err := lfm.Track.Scrobble(track); err != nil {
 			log.Println(err)
-			r.JSON(res, 500, serverErr)
+			ren.JSON(w, 500, serverErr)
 			return
 		}
 
 		// HTTP 200 OK with JSON
 		out.Error = nil
-		r.JSON(res, 200, out)
+		ren.JSON(w, 200, out)
 		return
 	}
 
