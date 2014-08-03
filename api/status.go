@@ -27,19 +27,20 @@ type StatusResponse struct {
 	Metrics *common.Metrics `json:"metrics"`
 }
 
-// GetStatus returns the current server status, with an HTTP status and JSON
-func GetStatus(res http.ResponseWriter, req *http.Request) {
+// GetStatus returns the current server status, and optionally, server metrics, with
+// an HTTP status and JSON.
+func GetStatus(w http.ResponseWriter, r *http.Request) {
 	// Retrieve render
-	r := context.Get(req, CtxRender).(*render.Render)
+	ren := context.Get(r, CtxRender).(*render.Render)
 
 	// Output struct for songs request
 	out := StatusResponse{}
 
 	// Check API version
-	if version, ok := mux.Vars(req)["version"]; ok {
+	if version, ok := mux.Vars(r)["version"]; ok {
 		// Check if this API call is supported in the advertised version
 		if !apiVersionSet.Has(version) {
-			r.JSON(res, 400, errRes(400, "unsupported API version: "+version))
+			ren.JSON(w, 400, errRes(400, "unsupported API version: "+version))
 			return
 		}
 	}
@@ -48,7 +49,7 @@ func GetStatus(res http.ResponseWriter, req *http.Request) {
 	status, err := common.ServerStatus()
 	if err != nil {
 		log.Println(err)
-		r.JSON(res, 500, serverErr)
+		ren.JSON(w, 500, serverErr)
 		return
 	}
 
@@ -56,7 +57,7 @@ func GetStatus(res http.ResponseWriter, req *http.Request) {
 	out.Status = status
 
 	// If requested, fetch additional metrics (not added by default due to full table scans in database)
-	if metricTypes := req.URL.Query().Get("metrics"); metricTypes != "" {
+	if metricTypes := r.URL.Query().Get("metrics"); metricTypes != "" {
 		// Begin building metrics
 		metrics := &common.Metrics{}
 
@@ -89,7 +90,7 @@ func GetStatus(res http.ResponseWriter, req *http.Request) {
 				dbMetrics, err := common.GetDatabaseMetrics()
 				if err != nil {
 					log.Println(err)
-					r.JSON(res, 500, serverErr)
+					ren.JSON(w, 500, serverErr)
 					return
 				}
 				metrics.Database = dbMetrics
@@ -114,6 +115,6 @@ func GetStatus(res http.ResponseWriter, req *http.Request) {
 
 	// HTTP 200 OK with JSON
 	out.Error = nil
-	r.JSON(res, 200, out)
+	ren.JSON(w, 200, out)
 	return
 }
