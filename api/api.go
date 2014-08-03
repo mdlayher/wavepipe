@@ -61,10 +61,11 @@ type Information struct {
 	Documentation string   `json:"documentation"`
 }
 
-// APIInfo returns information about the API
-func APIInfo(res http.ResponseWriter, req *http.Request) {
+// APIInfo returns information about the API, including the current API version,
+// the supported API versions, and a link to API documentation.
+func APIInfo(w http.ResponseWriter, r *http.Request) {
 	// Retrieve render
-	r := context.Get(req, CtxRender).(*render.Render)
+	ren := context.Get(r, CtxRender).(*render.Render)
 
 	// Enumerate available API versions
 	versions := make([]string, 0)
@@ -74,21 +75,20 @@ func APIInfo(res http.ResponseWriter, req *http.Request) {
 
 	// Output response
 	info := Information{
-		Error:         nil,
 		Version:       Version,
 		Supported:     versions,
 		Documentation: Documentation,
 	}
 
 	// Check if a "version" was set
-	if version, ok := mux.Vars(req)["version"]; ok {
+	if version, ok := mux.Vars(r)["version"]; ok {
 		// Check if API version is supported
 		if !apiVersionSet.Has(version) {
-			r.JSON(res, 400, errRes(400, "unsupported API version: "+version))
+			ren.JSON(w, 400, errRes(400, "unsupported API version: "+version))
 			return
 		}
 	}
 
 	// HTTP 200 OK
-	r.JSON(res, 200, info)
+	ren.JSON(w, 200, info)
 }
