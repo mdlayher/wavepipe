@@ -3,7 +3,6 @@ package core
 import (
 	"log"
 	"os"
-	"strings"
 
 	"github.com/mdlayher/wavepipe/common"
 	"github.com/mdlayher/wavepipe/config"
@@ -20,7 +19,7 @@ func dbManager(conf config.Config, dbLaunchChan chan struct{}, dbKillChan chan s
 		log.Println("db: sqlite:", conf.Sqlite.File)
 
 		// Replace the home character to set path
-		path := strings.Replace(conf.Sqlite.File, "~", common.System.User.HomeDir, -1)
+		path := common.ExpandHomeDir(conf.Sqlite.File)
 
 		// Set DSN
 		data.DB = new(data.SqliteBackend)

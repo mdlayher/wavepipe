@@ -5,7 +5,6 @@ import (
 	"log"
 	"os"
 	"path"
-	"strings"
 
 	"github.com/mdlayher/wavepipe/common"
 
@@ -24,7 +23,7 @@ type SqliteBackend struct {
 // DSN sets the Path for use with sqlite3
 func (s *SqliteBackend) DSN(path string) {
 	// Replace the home character to set path
-	s.Path = strings.Replace(path, "~", common.System.User.HomeDir, -1)
+	s.Path = common.ExpandHomeDir(path)
 }
 
 // Setup copies the empty sqlite database into the wavepipe configuration directory

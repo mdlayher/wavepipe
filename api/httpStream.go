@@ -13,6 +13,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/mdlayher/wavepipe/common"
 	"github.com/mdlayher/wavepipe/data"
 )
 
@@ -164,11 +165,8 @@ func HTTPStream(song *data.Song, mimeType string, contentLength int64, inputStre
 	}
 	res.Header().Set("Content-Type", contentType)
 
-	// Get song modify time in RFC1123 format, replace UTC with GMT
-	lastMod := strings.Replace(time.Unix(song.LastModified, 0).UTC().Format(time.RFC1123), "UTC", "GMT", 1)
-
 	// Set Last-Modified using filesystem modify time
-	res.Header().Set("Last-Modified", lastMod)
+	res.Header().Set("Last-Modified", common.UNIXtoRFC1123(song.LastModified))
 
 	// Specify connection close on send
 	res.Header().Set("Connection", "close")

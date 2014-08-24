@@ -1,7 +1,7 @@
 package config
 
 import (
-	"strings"
+	"path"
 
 	"github.com/mdlayher/wavepipe/common"
 )
@@ -17,11 +17,11 @@ type Config struct {
 }
 
 // Media returns the media folder from config, but with special
-// characters such as '~' replaced
+// characters such as '~' replaced, and any trailing slashes trimmed.
 func (c Config) Media() string {
 	// Return path with strings replaced, trailing slash removed,
 	// tilde replaced with current user's home directory
-	return strings.TrimRight(strings.Replace(c.MediaFolder, "~", common.System.User.HomeDir, -1), "/\\")
+	return path.Clean(common.ExpandHomeDir(c.MediaFolder))
 }
 
 // SqliteConfig represents configuration for an sqlite backend

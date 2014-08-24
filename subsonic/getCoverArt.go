@@ -12,13 +12,12 @@ import (
 	"net/http"
 	"path"
 	"strconv"
-	"strings"
-	"time"
 
 	// Extra image manipulation formats
 	_ "image/jpeg"
 
 	"github.com/mdlayher/wavepipe/api"
+	"github.com/mdlayher/wavepipe/common"
 	"github.com/mdlayher/wavepipe/data"
 
 	"github.com/gorilla/context"
@@ -143,11 +142,8 @@ func GetCoverArt(res http.ResponseWriter, req *http.Request) {
 	// Set content type via MIME type
 	res.Header().Set("Content-Type", mimeType)
 
-	// Get art last modify time in RFC1123 format, replace UTC with GMT
-	lastMod := strings.Replace(time.Unix(art.LastModified, 0).UTC().Format(time.RFC1123), "UTC", "GMT", 1)
-
 	// Set last modified time
-	res.Header().Set("Last-Modified", lastMod)
+	res.Header().Set("Last-Modified", common.UNIXtoRFC1123(art.LastModified))
 
 	// Specify connection close on send
 	res.Header().Set("Connection", "close")
