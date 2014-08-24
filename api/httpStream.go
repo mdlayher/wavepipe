@@ -148,12 +148,6 @@ func HTTPStream(song *data.Song, mimeType string, contentLength int64, inputStre
 	// Stop progress on return
 	defer close(stopProgressChan)
 
-	// Buffer to store and transfer file bytes
-	buf := make([]byte, 8192)
-
-	// Indicate when stream is complete
-	streamComplete := false
-
 	// Set necessary output HTTP headers
 
 	// Set Content-Length if set
@@ -181,29 +175,15 @@ func HTTPStream(song *data.Song, mimeType string, contentLength int64, inputStre
 
 	// Begin transferring the data stream
 	for {
-		// Read in a buffer from the file
-		n, err := stream.Read(buf)
+		// Copy bytes in chunks from input stream to output HTTP response
+		n, err := io.CopyN(res, stream, 8192)
 		if err != nil && err != io.EOF {
 			return err
 		} else if err == io.EOF {
-			// Halt streaming after next write
-			streamComplete = true
+			return nil
 		}
 
-		// Count bytes
+		// Count bytes sent to track progress
 		atomic.AddInt64(&total, int64(n))
-
-		// Write bytes over HTTP
-		if _, err := res.Write(buf[:n]); err != nil && err != io.EOF {
-			return err
-		}
-
-		// If stream is complete, break loop
-		if streamComplete {
-			break
-		}
 	}
-
-	// No errors
-	return nil
 }
