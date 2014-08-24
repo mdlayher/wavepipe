@@ -11,10 +11,7 @@ import (
 // is dynamic except for what is provided by OSInfo()
 func TestOSInfo(t *testing.T) {
 	// Retrieve information about the operating system
-	osStat, err := OSInfo()
-	if err != nil {
-		t.Fatalf("Failed to retrieve OS information: %s", err.Error())
-	}
+	osStat := OSInfo()
 
 	// Verify correctness of all fields
 

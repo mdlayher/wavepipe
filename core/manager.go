@@ -27,12 +27,8 @@ func Manager(killChan chan struct{}, exitChan chan int) {
 	}
 
 	// Gather information about the operating system
-	stat, err := common.OSInfo()
-	if err != nil {
-		log.Println("manager: could not get operating system info:", err)
-	} else {
-		log.Printf("manager: %s - %s_%s (%d CPU) [pid: %d]", stat.Hostname, stat.Platform, stat.Architecture, stat.NumCPU, stat.PID)
-	}
+	stat := common.OSInfo()
+	log.Printf("manager: %s - %s_%s (%d CPU) [pid: %d]", stat.Hostname, stat.Platform, stat.Architecture, stat.NumCPU, stat.PID)
 
 	// Set configuration source, load configuration
 	config.C = new(config.CLIConfig)

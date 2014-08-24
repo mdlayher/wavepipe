@@ -38,30 +38,20 @@ type Status struct {
 }
 
 // OSInfo returns information about the host operating system for this process
-func OSInfo() (*osInfo, error) {
-	// Get system hostname
-	hostname, err := os.Hostname()
-	if err != nil {
-		return nil, err
-	}
-
-	// Return osInfo
+func OSInfo() *osInfo {
 	return &osInfo{
 		Architecture: runtime.GOARCH,
-		Hostname:     hostname,
+		Hostname:     System.Hostname,
 		NumCPU:       runtime.NumCPU(),
 		PID:          os.Getpid(),
 		Platform:     runtime.GOOS,
-	}, nil
+	}
 }
 
 // ServerStatus returns information about the current process status
-func ServerStatus() (*Status, error) {
+func ServerStatus() *Status {
 	// Retrieve basic OS information
-	osStat, err := OSInfo()
-	if err != nil {
-		return nil, err
-	}
+	osStat := OSInfo()
 
 	// Get current memory profile
 	mem := &runtime.MemStats{}
@@ -83,7 +73,7 @@ func ServerStatus() (*Status, error) {
 		PID:          osStat.PID,
 		Platform:     osStat.Platform,
 		Uptime:       uptime,
-	}, nil
+	}
 }
 
 // ScanTime returns the UNIX timestamp of the last time a media scan made changes

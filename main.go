@@ -5,10 +5,10 @@ import (
 	"log"
 	"os"
 	"os/signal"
-	"os/user"
 	"syscall"
 	"time"
 
+	"github.com/mdlayher/wavepipe/common"
 	"github.com/mdlayher/wavepipe/core"
 )
 
@@ -22,13 +22,8 @@ func main() {
 	flag.Parse()
 
 	// Check if wavepipe was invoked as root (which is a really bad idea)
-	currUser, err := user.Current()
-	if err != nil {
-		log.Fatal(core.App, ": could not determine current user, exiting")
-	}
-
-	// Check for root, notify user if so
-	if currUser.Uid == "0" || currUser.Gid == "0" || currUser.Username == "root" {
+	user := common.System.User
+	if user.Uid == "0" || user.Gid == "0" || user.Username == "root" {
 		log.Println(core.App, ": WARNING, it is NOT advisable to run wavepipe as root!")
 	}
 
@@ -68,8 +63,7 @@ func main() {
 	go core.Manager(killChan, exitChan)
 
 	// Trigger a shutdown if SIGINT or SIGTERM received
-	signal.Notify(sigChan, os.Interrupt)
-	signal.Notify(sigChan, syscall.SIGTERM)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 	for sig := range sigChan {
 		log.Println(core.App, ": caught signal:", sig)
 		killChan <- struct{}{}

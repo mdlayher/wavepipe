@@ -46,15 +46,7 @@ func GetStatus(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Retrieve current server status
-	status, err := common.ServerStatus()
-	if err != nil {
-		log.Println(err)
-		ren.JSON(w, 500, serverErr)
-		return
-	}
-
-	// Copy into response
-	out.Status = status
+	out.Status = common.ServerStatus()
 
 	// If requested, fetch additional metrics (not added by default due to full table scans in database)
 	if metricTypes := r.URL.Query().Get("metrics"); metricTypes != "" {
