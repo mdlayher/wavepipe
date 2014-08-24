@@ -3,9 +3,9 @@ package core
 import (
 	"log"
 	"os"
-	"os/user"
 	"strings"
 
+	"github.com/mdlayher/wavepipe/common"
 	"github.com/mdlayher/wavepipe/config"
 	"github.com/mdlayher/wavepipe/data"
 )
@@ -19,14 +19,8 @@ func dbManager(conf config.Config, dbLaunchChan chan struct{}, dbKillChan chan s
 	if conf.Sqlite != nil {
 		log.Println("db: sqlite:", conf.Sqlite.File)
 
-		// Get current user
-		user, err := user.Current()
-		if err != nil {
-			log.Fatalf("db: could not get current user: %s", err.Error())
-		}
-
 		// Replace the home character to set path
-		path := strings.Replace(conf.Sqlite.File, "~", user.HomeDir, -1)
+		path := strings.Replace(conf.Sqlite.File, "~", common.System.User.HomeDir, -1)
 
 		// Set DSN
 		data.DB = new(data.SqliteBackend)

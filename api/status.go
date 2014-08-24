@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/mdlayher/wavepipe/common"
+	"github.com/mdlayher/wavepipe/metrics"
 
 	"github.com/gorilla/context"
 	"github.com/gorilla/mux"
@@ -15,16 +16,16 @@ import (
 )
 
 // databaseMetricsCache is used to cache database metrics until a database update occurs
-var databaseMetricsCache *common.DatabaseMetrics
+var databaseMetricsCache *metrics.DatabaseMetrics
 
 // cacheTime is used to determine when metrics were last cached
 var cacheTime int64
 
 // StatusResponse represents the JSON response for /api/status
 type StatusResponse struct {
-	Error   *Error          `json:"error"`
-	Status  *common.Status  `json:"status"`
-	Metrics *common.Metrics `json:"metrics"`
+	Error   *Error           `json:"error"`
+	Status  *common.Status   `json:"status"`
+	Metrics *metrics.Metrics `json:"metrics"`
 }
 
 // GetStatus returns the current server status, and optionally, server metrics, with
@@ -51,7 +52,7 @@ func GetStatus(w http.ResponseWriter, r *http.Request) {
 	// If requested, fetch additional metrics (not added by default due to full table scans in database)
 	if metricTypes := r.URL.Query().Get("metrics"); metricTypes != "" {
 		// Begin building metrics
-		metrics := &common.Metrics{}
+		outMetrics := &metrics.Metrics{}
 
 		// Constants to check for various metric types
 		const (
@@ -76,16 +77,16 @@ func GetStatus(w http.ResponseWriter, r *http.Request) {
 		if metricSet.Has(mAll) || metricSet.Has(mDatabase) {
 			// Check for cached metrics, and make sure they are up to date
 			if databaseMetricsCache != nil && common.ScanTime() <= cacheTime {
-				metrics.Database = databaseMetricsCache
+				outMetrics.Database = databaseMetricsCache
 			} else {
 				// Fetch new metrics
-				dbMetrics, err := common.GetDatabaseMetrics()
+				dbMetrics, err := metrics.GetDatabaseMetrics()
 				if err != nil {
 					log.Println(err)
 					ren.JSON(w, 500, serverErr)
 					return
 				}
-				metrics.Database = dbMetrics
+				outMetrics.Database = dbMetrics
 
 				// Cache metrics and update time
 				databaseMetricsCache = dbMetrics
@@ -95,14 +96,14 @@ func GetStatus(w http.ResponseWriter, r *http.Request) {
 
 		// If requested, get metrics about the network
 		if metricSet.Has(mAll) || metricSet.Has(mNetwork) {
-			metrics.Network = &common.NetworkMetrics{
-				RXBytes: common.RXBytes(),
-				TXBytes: common.TXBytes(),
+			outMetrics.Network = &metrics.NetworkMetrics{
+				RXBytes: metrics.RXBytes(),
+				TXBytes: metrics.TXBytes(),
 			}
 		}
 
 		// Return metrics
-		out.Metrics = metrics
+		out.Metrics = outMetrics
 	}
 
 	// HTTP 200 OK with JSON

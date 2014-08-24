@@ -15,9 +15,9 @@ import (
 
 	"github.com/mdlayher/wavepipe/api"
 	"github.com/mdlayher/wavepipe/api/auth"
-	"github.com/mdlayher/wavepipe/common"
 	"github.com/mdlayher/wavepipe/config"
 	"github.com/mdlayher/wavepipe/data"
+	"github.com/mdlayher/wavepipe/metrics"
 	"github.com/mdlayher/wavepipe/subsonic"
 
 	"github.com/codegangsta/negroni"
@@ -389,7 +389,7 @@ func (r httpRMetricsLogger) Read(buf []byte) (int, error) {
 	n, err := r.ReadCloser.Read(buf)
 
 	// Increment counter and return
-	common.AddRXBytes(int64(n))
+	metrics.AddRXBytes(int64(n))
 	return n, err
 }
 
@@ -405,6 +405,6 @@ func (w httpWMetricsLogger) Write(buf []byte) (int, error) {
 	n, err := w.ResponseWriter.Write(buf)
 
 	// Increment counter and return
-	common.AddTXBytes(int64(n))
+	metrics.AddTXBytes(int64(n))
 	return n, err
 }

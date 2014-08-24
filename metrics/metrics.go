@@ -1,8 +1,9 @@
-package common
+package metrics
 
 import (
 	"sync/atomic"
 
+	"github.com/mdlayher/wavepipe/common"
 	"github.com/mdlayher/wavepipe/data"
 )
 
@@ -74,7 +75,7 @@ func GetDatabaseMetrics() (*DatabaseMetrics, error) {
 
 	// Combine all metrics
 	return &DatabaseMetrics{
-		Updated: ScanTime(),
+		Updated: common.ScanTime(),
 		Artists: artists,
 		Albums:  albums,
 		Songs:   songs,

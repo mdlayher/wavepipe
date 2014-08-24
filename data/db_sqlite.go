@@ -4,9 +4,10 @@ import (
 	"database/sql"
 	"log"
 	"os"
-	"os/user"
 	"path"
 	"strings"
+
+	"github.com/mdlayher/wavepipe/common"
 
 	"github.com/jmoiron/sqlx"
 
@@ -22,16 +23,8 @@ type SqliteBackend struct {
 
 // DSN sets the Path for use with sqlite3
 func (s *SqliteBackend) DSN(path string) {
-	// Get current user
-	user, err := user.Current()
-	if err != nil {
-		log.Println(err)
-		s.Path = path
-		return
-	}
-
 	// Replace the home character to set path
-	s.Path = strings.Replace(path, "~", user.HomeDir, -1)
+	s.Path = strings.Replace(path, "~", common.System.User.HomeDir, -1)
 }
 
 // Setup copies the empty sqlite database into the wavepipe configuration directory
