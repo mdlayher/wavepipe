@@ -1,6 +1,7 @@
 package data
 
 import (
+	"bytes"
 	"errors"
 	"io"
 	"os"
@@ -152,6 +153,12 @@ func (s *Song) Update() error {
 func (s Song) Stream() (io.ReadSeeker, error) {
 	// Attempt to open the file associated with this song
 	return os.Open(s.FileName)
+}
+
+// Waveform generates a binary waveform image from this Song's backing file
+func (s Song) Waveform() (io.Reader, error) {
+	// TODO(mdlayher): implement this
+	return bytes.NewBuffer(nil), nil
 }
 
 // SongSlice represents a slice of songs, and provides convenience methods to access their

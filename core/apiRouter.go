@@ -299,6 +299,10 @@ func newRouter() *mux.Router {
 	ar.HandleFunc("/users/{id}", api.PutUsers).Methods("PUT", "PATCH")
 	ar.HandleFunc("/users/{id}", api.DeleteUsers).Methods("DELETE")
 
+	// Waveform API
+	ar.HandleFunc("/waveform", api.GetWaveform).Methods("GET")
+	ar.HandleFunc("/waveform/{id}", api.GetWaveform).Methods("GET")
+
 	// Set up emulated Subsonic API routes
 	sr := router.PathPrefix("/subsonic/rest").Subrouter()
 
