@@ -82,6 +82,7 @@ update the expiration time to one week in the future.
 | [Stream](#stream) | v0 | Used to retrieve a raw, non-transcoded, binary data stream of a media file from wavepipe. |
 | [Transcode](#transcode) | v0 | Used to retrieve transcoded binary data stream of a media file from wavepipe. |
 | [Users](#users) | v0 | Used to retrieve information about users from wavepipe. |
+| [Waveform](#waveform) | v0 | Used to generate and return a waveform image of a media file from wavepipe. |
 
 ## Albums
 Used to retrieve information about albums from wavepipe.  If an ID is specified, information will be
@@ -586,4 +587,33 @@ If a user is disallowed from performing an action, they will receive a `HTTP 403
 | 403 | permission denied | The current user is forbidden from performing this action. |
 | 403 | cannot delete current user | User attempted to delete itself, which is forbidden. |
 | 404 | user ID not found | A user with the specified ID does not exist. |
+| 500 | server error | An internal error occurred. wavepipe will log these errors to its console log. |
+
+## Waveform
+Used to generate and return a waveform image of a media file from wavepipe.  An ID **must** be specified to access a
+file stream.  Successful calls with return a binary stream, and unsuccessful ones will return a JSON error.
+
+**Versions:** `v0`
+
+**URL:** `GET /api/v0/stream/:id`
+
+**Examples:**
+  - `GET http://localhost:8080/api/v0/stream/1`
+
+**Return Binary:** Binary data stream containing a waveform image generated from a media file stream.
+
+**Return JSON:**
+
+| Name | Type | Description |
+| :--: | :--: | :---------: |
+| error | [Error](http://godoc.org/github.com/mdlayher/wavepipe/api#Error) | Information about any errors that occurred. |
+
+**Possible errors:**
+
+| Code | Message | Description |
+| :--: | :-----: | :---------: |
+| 400 | unsupported API version: vX | Attempted access to an invalid version of this API, or to a version before this API existed. |
+| 400 | no integer song ID provided | No integer ID was sent in request. |
+| 400 | invalid integer song ID | A valid integer could not be parsed from the ID. |
+| 404 | song ID not found | A song with the specified ID does not exist. |
 | 500 | server error | An internal error occurred. wavepipe will log these errors to its console log. |
