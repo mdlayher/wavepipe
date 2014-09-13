@@ -88,6 +88,8 @@ func GetWaveform(w http.ResponseWriter, r *http.Request) {
 		ScaleX:     2,
 		ScaleY:     2,
 		Resolution: 2,
+		ScaleRMS:   true,
+		Sharpness:  1,
 	})
 	if err != nil {
 		log.Println(err)
