@@ -19,7 +19,7 @@ import (
 
 // waveformCache stores encoded waveform images in-memory, for re-use
 // through multiple HTTP calls
-var waveformCache = map[int]*bytes.Buffer{}
+var waveformCache = map[int][]byte{}
 
 // GetWaveform generates and returns a waveform image from wavepipe.  On success, this API will
 // return a binary stream. On failure, it will return a JSON error.
@@ -68,7 +68,7 @@ func GetWaveform(w http.ResponseWriter, r *http.Request) {
 	// Check for a cached waveform
 	if _, ok := waveformCache[id]; ok {
 		// Send cached data to HTTP writer
-		if _, err := io.Copy(w, waveformCache[id]); err != nil {
+		if _, err := io.Copy(w, bytes.NewReader(waveformCache[id])); err != nil {
 			log.Println(err)
 		}
 
@@ -97,15 +97,17 @@ func GetWaveform(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Tee image to both HTTP and buffer
+	// Encode as PNG into buffer
 	buf := bytes.NewBuffer(nil)
-	mw := io.MultiWriter(w, buf)
-
-	// Encode as PNG, teeing to both HTTP writer and buffer
-	if err := png.Encode(mw, img); err != nil {
+	if err := png.Encode(buf, img); err != nil {
 		log.Println(err)
 	}
 
 	// Store cached image
-	waveformCache[id] = buf
+	waveformCache[id] = buf.Bytes()
+
+	// Send over HTTP
+	if _, err := io.Copy(w, buf); err != nil {
+		log.Println(err)
+	}
 }
