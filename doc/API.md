@@ -617,3 +617,4 @@ file stream.  Successful calls with return a binary stream, and unsuccessful one
 | 400 | invalid integer song ID | A valid integer could not be parsed from the ID. |
 | 404 | song ID not found | A song with the specified ID does not exist. |
 | 500 | server error | An internal error occurred. wavepipe will log these errors to its console log. |
+| 501 | unsupported audio format | The song is in an unsupported format, which cannot be decoded to a waveform. |

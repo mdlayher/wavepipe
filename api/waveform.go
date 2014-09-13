@@ -92,6 +92,12 @@ func GetWaveform(w http.ResponseWriter, r *http.Request) {
 		Sharpness:  1,
 	})
 	if err != nil {
+		// If unknown format, return JSON error
+		if err == waveform.ErrFormat {
+			ren.JSON(w, 501, errRes(501, "unsupported audio format"))
+			return
+		}
+
 		log.Println(err)
 		ren.JSON(w, 500, serverErr)
 		return
