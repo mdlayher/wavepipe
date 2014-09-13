@@ -1,7 +1,9 @@
 package api
 
 import (
+	"bytes"
 	"database/sql"
+	"image/png"
 	"io"
 	"log"
 	"net/http"
@@ -11,8 +13,13 @@ import (
 
 	"github.com/gorilla/context"
 	"github.com/gorilla/mux"
+	"github.com/mdlayher/waveform"
 	"github.com/unrolled/render"
 )
+
+// waveformCache stores encoded waveform images in-memory, for re-use
+// through multiple HTTP calls
+var waveformCache = map[int]*bytes.Buffer{}
 
 // GetWaveform generates and returns a waveform image from wavepipe.  On success, this API will
 // return a binary stream. On failure, it will return a JSON error.
@@ -58,16 +65,45 @@ func GetWaveform(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Attempt to generate and access data waveform
-	waveform, err := song.Waveform()
+	// Check for a cached waveform
+	if _, ok := waveformCache[id]; ok {
+		// Send cached data to HTTP writer
+		if _, err := io.Copy(w, waveformCache[id]); err != nil {
+			log.Println(err)
+		}
+
+		return
+	}
+
+	// Open song's backing stream
+	stream, err := song.Stream()
 	if err != nil {
 		log.Println(err)
 		ren.JSON(w, 500, serverErr)
 		return
 	}
 
-	// Stream waveform image to client
-	if _, err := io.Copy(w, waveform); err != nil {
+	// Generate a waveform from this song
+	img, err := waveform.New(stream, &waveform.Options{
+		ScaleX:     2,
+		ScaleY:     2,
+		Resolution: 2,
+	})
+	if err != nil {
+		log.Println(err)
+		ren.JSON(w, 500, serverErr)
+		return
+	}
+
+	// Tee image to both HTTP and buffer
+	buf := bytes.NewBuffer(nil)
+	mw := io.MultiWriter(w, buf)
+
+	// Encode as PNG, teeing to both HTTP writer and buffer
+	if err := png.Encode(mw, img); err != nil {
 		log.Println(err)
 	}
+
+	// Store cached image
+	waveformCache[id] = buf
 }
