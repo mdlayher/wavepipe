@@ -599,16 +599,18 @@ file stream.  Successful calls with return a binary stream, and unsuccessful one
 
 **Examples:**
   - `GET http://localhost:8080/api/v0/waveform/1`
-  - `GET http://localhost:8080/api/v0/waveform/1?fgcolor=%23FF0000&bgcolor=%230000FF`
+  - `GET http://localhost:8080/api/v0/waveform/1?fg=%23FF0000&bg=%230000FF&alt=%2300FF00`
+  - `GET http://localhost:8080/api/v0/waveform/1?size=1024x256`
+  - `GET http://localhost:8080/api/v0/waveform/1?size=1024x0`
 
 **Query Parameters:**
 
 | Name | Versions | Type | Required | Description |
 | :--: | :------: | :--: | :------: | :---------: |
-| bgcolor | v0 | string | | The hex background color for the waveform image. If not specified, defaults to **#000000** (white). Invalid hex strings will be ignored, and the default will be used. |
-| fgcolor | v0 | string | | The hex foreground color for the waveform image. If not specified, defaults to **#FFFFFF** (black). Invalid hex strings will be ignored, and the default will be used. |
-| altcolor | v0 | string | | The hex alternate color for the waveform image. Creates a striping effect with the foreground color. If not specified, defaults to the foreground color. Invalid hex strings will be ignored, and the default will be used. |
-| size | v0 | integer | | Scale the waveform to the specified width in pixels. The waveform's original aspect ratio will be preserved. |
+| bg | v0 | string | | The hex background color for the waveform image. If not specified, defaults to **#000000** (white). Invalid hex strings will be ignored, and the default will be used. |
+| fg | v0 | string | | The hex foreground color for the waveform image. If not specified, defaults to **#FFFFFF** (black). Invalid hex strings will be ignored, and the default will be used. |
+| alt | v0 | string | | The hex alternate color for the waveform image. Creates a striping effect with the foreground color. If not specified, defaults to the foreground color. Invalid hex strings will be ignored, and the default will be used. |
+| size | v0 | integerxinteger | | Scale the waveform to the specified width and height in pixels. If height is 0, the waveform's original aspect ratio will be preserved. |
 
 **Return Binary:** Binary data stream containing a waveform image generated from a media file stream.
 

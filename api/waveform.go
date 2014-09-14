@@ -82,7 +82,7 @@ func GetWaveform(w http.ResponseWriter, r *http.Request) {
 	// Check for optional color parameters
 	// Background color
 	var bgColor color.Color = color.White
-	if bgColorStr := r.URL.Query().Get("bgcolor"); bgColorStr != "" {
+	if bgColorStr := r.URL.Query().Get("bg"); bgColorStr != "" {
 		// Convert %23 to #
 		bgColorStr, err := url.QueryUnescape(bgColorStr)
 		if err == nil {
@@ -93,7 +93,7 @@ func GetWaveform(w http.ResponseWriter, r *http.Request) {
 
 	// Foreground color
 	var fgColor color.Color = color.Black
-	if fgColorStr := r.URL.Query().Get("fgcolor"); fgColorStr != "" {
+	if fgColorStr := r.URL.Query().Get("fg"); fgColorStr != "" {
 		// Convert %23 to #
 		fgColorStr, err := url.QueryUnescape(fgColorStr)
 		if err == nil {
@@ -102,9 +102,9 @@ func GetWaveform(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Alternate color; ollow foreground color by default
+	// Alternate color; follow foreground color by default
 	var altColor color.Color = fgColor
-	if altColorStr := r.URL.Query().Get("altcolor"); altColorStr != "" {
+	if altColorStr := r.URL.Query().Get("alt"); altColorStr != "" {
 		// Convert %23 to #
 		altColorStr, err := url.QueryUnescape(altColorStr)
 		if err == nil {
@@ -119,7 +119,7 @@ func GetWaveform(w http.ResponseWriter, r *http.Request) {
 		BackgroundColor: bgColor,
 		AlternateColor:  altColor,
 
-		Resolution: 2,
+		Resolution: 4,
 
 		ScaleX: 2,
 		ScaleY: 2,
@@ -130,26 +130,17 @@ func GetWaveform(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// If requested, resize the image to the specified width
-	var size int
+	var sizeX, sizeY int
 	if strSize := r.URL.Query().Get("size"); strSize != "" {
-		// Ensure size is a valid integer
-		tmpSize, err := strconv.Atoi(strSize)
-		if err != nil {
-			ren.JSON(w, 400, errRes(400, "invalid integer size"))
+		// Check for dimensions in two integers
+		if _, err := fmt.Sscanf(strSize, "%dx%d", &sizeX, &sizeY); err != nil {
+			ren.JSON(w, 400, errRes(400, "invalid x-separated integer pair for size"))
 			return
 		}
-
-		// Verify positive integer
-		if tmpSize < 1 {
-			ren.JSON(w, 400, errRes(400, "negative integer size"))
-			return
-		}
-
-		size = tmpSize
 	}
 
 	// Generate waveform cache key using ID, size, and options
-	cacheKey := waveformCacheKey(id, size, options)
+	cacheKey := waveformCacheKey(id, sizeX, sizeY, options)
 
 	// Check for a cached waveform
 	if _, ok := waveformCache[cacheKey]; ok {
@@ -184,9 +175,9 @@ func GetWaveform(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// If a resize option was set, perform it now
-	if size > 0 {
-		// Perform image resize, preserving aspect ratio
-		img = resize.Resize(uint(size), 0, img, resize.NearestNeighbor)
+	if sizeX > 0 {
+		// Perform image resize
+		img = resize.Resize(uint(sizeX), uint(sizeY), img, resize.NearestNeighbor)
 	}
 
 	// Encode as PNG into buffer
@@ -214,7 +205,7 @@ func GetWaveform(w http.ResponseWriter, r *http.Request) {
 
 // waveformCacheKey generates a cache key using waveform parameters, so that
 // the waveform can be uniquely identified when cached
-func waveformCacheKey(id int, size int, options *waveform.Options) string {
+func waveformCacheKey(id int, sizeX int, sizeY int, options *waveform.Options) string {
 	// Get individual color RGB values to generate a string
 	r, g, b, _ := options.BackgroundColor.RGBA()
 	bgColorKey := fmt.Sprintf("%d%d%d", r, g, b)
@@ -226,7 +217,7 @@ func waveformCacheKey(id int, size int, options *waveform.Options) string {
 	altColorKey := fmt.Sprintf("%d%d%d", r, g, b)
 
 	// Return cache key
-	return fmt.Sprintf("%d_%d_%s_%s_%s_%d_%d_%d_%d", id, size, bgColorKey, fgColorKey, altColorKey,
+	return fmt.Sprintf("%d_%d_%d_%s_%s_%s_%d_%d_%d_%d", id, sizeX, sizeY, bgColorKey, fgColorKey, altColorKey,
 		options.Resolution, options.ScaleX, options.ScaleY, options.Sharpness)
 }
 
