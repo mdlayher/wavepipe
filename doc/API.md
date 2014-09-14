@@ -137,7 +137,7 @@ Successful calls with return a binary stream, and unsuccessful ones will return 
 
 | Name | Versions | Type | Required | Description |
 | :--: | :------: | :--: | :------: | :---------: |
-| size | v0 | integer | | Scale the art to the specified size in pixels. The art's original aspect ratio will be preserved. |
+| size | v0 | integer | | Scale the art to the specified width in pixels. The art's original aspect ratio will be preserved. |
 
 **Return Binary:** Binary data stream containing the art file stream.
 
@@ -607,6 +607,7 @@ file stream.  Successful calls with return a binary stream, and unsuccessful one
 | :--: | :------: | :--: | :------: | :---------: |
 | fgcolor | v0 | string | | The hex foreground color for the waveform image.  If not specified, defaults to **#FFFFFF** (black).  Invalid hex strings will be ignored, and the default will be used. |
 | bgcolor | v0 | string | | The hex background color for the waveform image.  If not specified, defaults to **#000000** (white).  Invalid hex strings will be ignored, and the default will be used. |
+| size | v0 | integer | | Scale the waveform to the specified width in pixels. The waveform's original aspect ratio will be preserved. |
 
 **Return Binary:** Binary data stream containing a waveform image generated from a media file stream.
 
@@ -623,6 +624,8 @@ file stream.  Successful calls with return a binary stream, and unsuccessful one
 | 400 | unsupported API version: vX | Attempted access to an invalid version of this API, or to a version before this API existed. |
 | 400 | no integer song ID provided | No integer ID was sent in request. |
 | 400 | invalid integer song ID | A valid integer could not be parsed from the ID. |
+| 400 | invalid integer size | A valid integer could not be parsed from the size parameter. |
+| 400 | negative integer size | A negative integer was passed to the size parameter. Size **must** be a positive integer. |
 | 404 | song ID not found | A song with the specified ID does not exist. |
 | 500 | server error | An internal error occurred. wavepipe will log these errors to its console log. |
 | 501 | unsupported audio format | The song is in an unsupported format, which cannot be decoded to a waveform. |

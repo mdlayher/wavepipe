@@ -17,6 +17,7 @@ import (
 	"github.com/gorilla/context"
 	"github.com/gorilla/mux"
 	"github.com/mdlayher/waveform"
+	"github.com/nfnt/resize"
 	"github.com/unrolled/render"
 )
 
@@ -114,8 +115,27 @@ func GetWaveform(w http.ResponseWriter, r *http.Request) {
 		ScaleRMS: true,
 	}
 
-	// Generate waveform cache key using ID and options
-	cacheKey := waveformCacheKey(id, options)
+	// If requested, resize the image to the specified width
+	var size int
+	if strSize := r.URL.Query().Get("size"); strSize != "" {
+		// Ensure size is a valid integer
+		tmpSize, err := strconv.Atoi(strSize)
+		if err != nil {
+			ren.JSON(w, 400, errRes(400, "invalid integer size"))
+			return
+		}
+
+		// Verify positive integer
+		if tmpSize < 1 {
+			ren.JSON(w, 400, errRes(400, "negative integer size"))
+			return
+		}
+
+		size = tmpSize
+	}
+
+	// Generate waveform cache key using ID, size, and options
+	cacheKey := waveformCacheKey(id, size, options)
 
 	// Check for a cached waveform
 	if _, ok := waveformCache[cacheKey]; ok {
@@ -149,6 +169,12 @@ func GetWaveform(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// If a resize option was set, perform it now
+	if size > 0 {
+		// Perform image resize, preserving aspect ratio
+		img = resize.Resize(uint(size), 0, img, resize.NearestNeighbor)
+	}
+
 	// Encode as PNG into buffer
 	buf := bytes.NewBuffer(nil)
 	if err := png.Encode(buf, img); err != nil {
@@ -174,7 +200,7 @@ func GetWaveform(w http.ResponseWriter, r *http.Request) {
 
 // waveformCacheKey generates a cache key using waveform parameters, so that
 // the waveform can be uniquely identified when cached
-func waveformCacheKey(id int, options *waveform.Options) string {
+func waveformCacheKey(id int, size int, options *waveform.Options) string {
 	// Get individual color RGB values to generate a string
 	r, g, b, _ := options.ForegroundColor.RGBA()
 	fgColorKey := fmt.Sprintf("%d%d%d", r, g, b)
@@ -183,7 +209,7 @@ func waveformCacheKey(id int, options *waveform.Options) string {
 	bgColorKey := fmt.Sprintf("%d%d%d", r, g, b)
 
 	// Return cache key
-	return fmt.Sprintf("%d_%s_%s_%d_%d_%d_%d", id, fgColorKey, bgColorKey, options.Resolution,
+	return fmt.Sprintf("%d_%d_%s_%s_%d_%d_%d_%d", id, size, fgColorKey, bgColorKey, options.Resolution,
 		options.ScaleX, options.ScaleY, options.Sharpness)
 }
 
