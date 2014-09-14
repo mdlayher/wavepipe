@@ -595,7 +595,7 @@ file stream.  Successful calls with return a binary stream, and unsuccessful one
 
 **Versions:** `v0`
 
-**URL:** `GET /api/v0/stream/:id`
+**URL:** `GET /api/v0/waveform/:id`
 
 **Examples:**
   - `GET http://localhost:8080/api/v0/waveform/1`
@@ -627,8 +627,7 @@ file stream.  Successful calls with return a binary stream, and unsuccessful one
 | 400 | unsupported API version: vX | Attempted access to an invalid version of this API, or to a version before this API existed. |
 | 400 | no integer song ID provided | No integer ID was sent in request. |
 | 400 | invalid integer song ID | A valid integer could not be parsed from the ID. |
-| 400 | invalid integer size | A valid integer could not be parsed from the size parameter. |
-| 400 | negative integer size | A negative integer was passed to the size parameter. Size **must** be a positive integer. |
+| 400 | invalid x-separated integer pair for size | A valid integer pair could not be parsed from the size parameter. Input must be in the form "XxY". |
 | 404 | song ID not found | A song with the specified ID does not exist. |
 | 500 | server error | An internal error occurred. wavepipe will log these errors to its console log. |
 | 501 | unsupported audio format | The song is in an unsupported format, which cannot be decoded to a waveform. |
