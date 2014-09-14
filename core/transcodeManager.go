@@ -34,22 +34,31 @@ func ffmpegSetup() {
 	// Disable transcoding until ffmpeg is available
 	transcode.Enabled = false
 
-	// Verify that ffmpeg is available for transcoding
-	path, err := exec.LookPath("ffmpeg")
-	if err != nil {
-		log.Println("transcode: cannot find ffmpeg, transcoding will be disabled")
+	// Verify that ffmpeg or avconv is available for transcoding
+	pathF, errF := exec.LookPath("ffmpeg")
+	pathA, errA := exec.LookPath("avconv")
+	if errF != nil && errA != nil {
+		log.Println("transcode: cannot find ffmpeg/avconv, transcoding will be disabled")
 		return
 	}
 
+	// Set path based upon if ffmpeg or avconv were found
+	var path string
+	if errF == nil {
+		path = pathF
+	} else if errA == nil {
+		path = pathA
+	}
+
 	// Set ffmpeg location, enable transcoding
-	log.Println("transcode: found ffmpeg:", path)
+	log.Println("transcode: found ffmpeg/avconv:", path)
 	transcode.Enabled = true
 	transcode.FFmpegPath = path
 
 	// Check for codecs which wavepipe uses that ffmpeg is able to use
 	codecs, err := exec.Command(path, "-loglevel", "quiet", "-codecs").Output()
 	if err != nil {
-		log.Println("transcode: could not detect ffmpeg codecs, transcoding will be disabled")
+		log.Println("transcode: could not detect ffmpeg/avconv codecs, transcoding will be disabled")
 		return
 	}
 
