@@ -21,6 +21,10 @@ import (
 // through multiple HTTP calls
 var waveformCache = map[int][]byte{}
 
+// waveformList tracks insertion order for cached waveforms, and enables the removal
+// of the oldest waveform once a threshold is reached
+var waveformList = []int{}
+
 // GetWaveform generates and returns a waveform image from wavepipe.  On success, this API will
 // return a binary stream. On failure, it will return a JSON error.
 func GetWaveform(w http.ResponseWriter, r *http.Request) {
@@ -109,8 +113,16 @@ func GetWaveform(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 	}
 
-	// Store cached image
+	// Store cached image, append to cache list
 	waveformCache[id] = buf.Bytes()
+	waveformList = append(waveformList, id)
+
+	// If threshold reached, remove oldest waveform from cache
+	if len(waveformList) > 2 {
+		oldest := waveformList[0]
+		waveformList = waveformList[1:]
+		delete(waveformCache, oldest)
+	}
 
 	// Send over HTTP
 	if _, err := io.Copy(w, buf); err != nil {
