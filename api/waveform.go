@@ -3,6 +3,7 @@ package api
 import (
 	"bytes"
 	"database/sql"
+	"fmt"
 	"image/color"
 	"image/png"
 	"io"
@@ -19,13 +20,19 @@ import (
 	"github.com/unrolled/render"
 )
 
+const (
+	// cacheThreshold is the number of waveform images which will be retained in-memory
+	// after generation
+	cacheThreshold = 20
+)
+
 // waveformCache stores encoded waveform images in-memory, for re-use
 // through multiple HTTP calls
-var waveformCache = map[int][]byte{}
+var waveformCache = map[string][]byte{}
 
 // waveformList tracks insertion order for cached waveforms, and enables the removal
 // of the oldest waveform once a threshold is reached
-var waveformList = []int{}
+var waveformList = []string{}
 
 // GetWaveform generates and returns a waveform image from wavepipe.  On success, this API will
 // return a binary stream. On failure, it will return a JSON error.
@@ -92,10 +99,28 @@ func GetWaveform(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// Set up options struct for waveform
+	options := &waveform.Options{
+		ForegroundColor: fgColor,
+		BackgroundColor: bgColor,
+
+		Resolution: 2,
+
+		ScaleX: 2,
+		ScaleY: 2,
+
+		Sharpness: 1,
+
+		ScaleRMS: true,
+	}
+
+	// Generate waveform cache key using ID and options
+	cacheKey := waveformCacheKey(id, options)
+
 	// Check for a cached waveform
-	if _, ok := waveformCache[id]; ok {
+	if _, ok := waveformCache[cacheKey]; ok {
 		// Send cached data to HTTP writer
-		if _, err := io.Copy(w, bytes.NewReader(waveformCache[id])); err != nil {
+		if _, err := io.Copy(w, bytes.NewReader(waveformCache[cacheKey])); err != nil {
 			log.Println(err)
 		}
 
@@ -111,19 +136,7 @@ func GetWaveform(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Generate a waveform from this song
-	img, err := waveform.New(stream, &waveform.Options{
-		ForegroundColor: fgColor,
-		BackgroundColor: bgColor,
-
-		Resolution: 2,
-
-		ScaleX: 2,
-		ScaleY: 2,
-
-		Sharpness: 1,
-
-		ScaleRMS: true,
-	})
+	img, err := waveform.New(stream, options)
 	if err != nil {
 		// If unknown format, return JSON error
 		if err == waveform.ErrFormat {
@@ -143,11 +156,11 @@ func GetWaveform(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Store cached image, append to cache list
-	waveformCache[id] = buf.Bytes()
-	waveformList = append(waveformList, id)
+	waveformCache[cacheKey] = buf.Bytes()
+	waveformList = append(waveformList, cacheKey)
 
 	// If threshold reached, remove oldest waveform from cache
-	if len(waveformList) > 2 {
+	if len(waveformList) > cacheThreshold {
 		oldest := waveformList[0]
 		waveformList = waveformList[1:]
 		delete(waveformCache, oldest)
@@ -157,6 +170,21 @@ func GetWaveform(w http.ResponseWriter, r *http.Request) {
 	if _, err := io.Copy(w, buf); err != nil {
 		log.Println(err)
 	}
+}
+
+// waveformCacheKey generates a cache key using waveform parameters, so that
+// the waveform can be uniquely identified when cached
+func waveformCacheKey(id int, options *waveform.Options) string {
+	// Get individual color RGB values to generate a string
+	r, g, b, _ := options.ForegroundColor.RGBA()
+	fgColorKey := fmt.Sprintf("%d%d%d", r, g, b)
+
+	r, g, b, _ = options.BackgroundColor.RGBA()
+	bgColorKey := fmt.Sprintf("%d%d%d", r, g, b)
+
+	// Return cache key
+	return fmt.Sprintf("%d_%s_%s_%d_%d_%d_%d", id, fgColorKey, bgColorKey, options.Resolution,
+		options.ScaleX, options.ScaleY, options.Sharpness)
 }
 
 // hexToRGB converts a hex string to a RGB triple.
