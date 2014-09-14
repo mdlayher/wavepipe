@@ -598,7 +598,15 @@ file stream.  Successful calls with return a binary stream, and unsuccessful one
 **URL:** `GET /api/v0/stream/:id`
 
 **Examples:**
-  - `GET http://localhost:8080/api/v0/stream/1`
+  - `GET http://localhost:8080/api/v0/waveform/1`
+  - `GET http://localhost:8080/api/v0/waveform/1?fgcolor=%23FF0000&bgcolor=%230000FF`
+
+**Query Parameters:**
+
+| Name | Versions | Type | Required | Description |
+| :--: | :------: | :--: | :------: | :---------: |
+| fgcolor | v0 | string | | The hex foreground color for the waveform image.  If not specified, defaults to **#FFFFFF** (black).  Invalid hex strings will be ignored, and the default will be used. |
+| bgcolor | v0 | string | | The hex background color for the waveform image.  If not specified, defaults to **#000000** (white).  Invalid hex strings will be ignored, and the default will be used. |
 
 **Return Binary:** Binary data stream containing a waveform image generated from a media file stream.
 

@@ -3,10 +3,12 @@ package api
 import (
 	"bytes"
 	"database/sql"
+	"image/color"
 	"image/png"
 	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"strconv"
 
 	"github.com/mdlayher/wavepipe/data"
@@ -69,6 +71,27 @@ func GetWaveform(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Check for optional color parameters
+	var fgColor color.Color = color.Black
+	if fgColorStr := r.URL.Query().Get("fgcolor"); fgColorStr != "" {
+		// Convert %23 to #
+		fgColorStr, err := url.QueryUnescape(fgColorStr)
+		if err == nil {
+			cR, cG, cB := hexToRGB(fgColorStr)
+			fgColor = color.RGBA{cR, cG, cB, 255}
+		}
+	}
+
+	var bgColor color.Color = color.White
+	if bgColorStr := r.URL.Query().Get("bgcolor"); bgColorStr != "" {
+		// Convert %23 to #
+		bgColorStr, err := url.QueryUnescape(bgColorStr)
+		if err == nil {
+			cR, cG, cB := hexToRGB(bgColorStr)
+			bgColor = color.RGBA{cR, cG, cB, 255}
+		}
+	}
+
 	// Check for a cached waveform
 	if _, ok := waveformCache[id]; ok {
 		// Send cached data to HTTP writer
@@ -89,11 +112,17 @@ func GetWaveform(w http.ResponseWriter, r *http.Request) {
 
 	// Generate a waveform from this song
 	img, err := waveform.New(stream, &waveform.Options{
-		ScaleX:     2,
-		ScaleY:     2,
+		ForegroundColor: fgColor,
+		BackgroundColor: bgColor,
+
 		Resolution: 2,
-		ScaleRMS:   true,
-		Sharpness:  1,
+
+		ScaleX: 2,
+		ScaleY: 2,
+
+		Sharpness: 1,
+
+		ScaleRMS: true,
 	})
 	if err != nil {
 		// If unknown format, return JSON error
@@ -128,4 +157,21 @@ func GetWaveform(w http.ResponseWriter, r *http.Request) {
 	if _, err := io.Copy(w, buf); err != nil {
 		log.Println(err)
 	}
+}
+
+// hexToRGB converts a hex string to a RGB triple.
+// Credit: https://code.google.com/p/gorilla/source/browse/color/hex.go?r=ef489f63418265a7249b1d53bdc358b09a4a2ea0
+func hexToRGB(h string) (uint8, uint8, uint8) {
+	if len(h) > 0 && h[0] == '#' {
+		h = h[1:]
+	}
+	if len(h) == 3 {
+		h = h[:1] + h[:1] + h[1:2] + h[1:2] + h[2:] + h[2:]
+	}
+	if len(h) == 6 {
+		if rgb, err := strconv.ParseUint(string(h), 16, 32); err == nil {
+			return uint8(rgb >> 16), uint8((rgb >> 8) & 0xFF), uint8(rgb & 0xFF)
+		}
+	}
+	return 0, 0, 0
 }
