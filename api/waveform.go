@@ -126,7 +126,7 @@ func GetWaveform(w http.ResponseWriter, r *http.Request) {
 
 		Sharpness: 1,
 
-		ScaleRMS: true,
+		ScaleClipping: true,
 	}
 
 	// If requested, resize the image to the specified width
