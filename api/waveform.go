@@ -80,16 +80,7 @@ func GetWaveform(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check for optional color parameters
-	var fgColor color.Color = color.Black
-	if fgColorStr := r.URL.Query().Get("fgcolor"); fgColorStr != "" {
-		// Convert %23 to #
-		fgColorStr, err := url.QueryUnescape(fgColorStr)
-		if err == nil {
-			cR, cG, cB := hexToRGB(fgColorStr)
-			fgColor = color.RGBA{cR, cG, cB, 255}
-		}
-	}
-
+	// Background color
 	var bgColor color.Color = color.White
 	if bgColorStr := r.URL.Query().Get("bgcolor"); bgColorStr != "" {
 		// Convert %23 to #
@@ -100,10 +91,33 @@ func GetWaveform(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// Foreground color
+	var fgColor color.Color = color.Black
+	if fgColorStr := r.URL.Query().Get("fgcolor"); fgColorStr != "" {
+		// Convert %23 to #
+		fgColorStr, err := url.QueryUnescape(fgColorStr)
+		if err == nil {
+			cR, cG, cB := hexToRGB(fgColorStr)
+			fgColor = color.RGBA{cR, cG, cB, 255}
+		}
+	}
+
+	// Alternate color; ollow foreground color by default
+	var altColor color.Color = fgColor
+	if altColorStr := r.URL.Query().Get("altcolor"); altColorStr != "" {
+		// Convert %23 to #
+		altColorStr, err := url.QueryUnescape(altColorStr)
+		if err == nil {
+			cR, cG, cB := hexToRGB(altColorStr)
+			altColor = color.RGBA{cR, cG, cB, 255}
+		}
+	}
+
 	// Set up options struct for waveform
 	options := &waveform.Options{
 		ForegroundColor: fgColor,
 		BackgroundColor: bgColor,
+		AlternateColor:  altColor,
 
 		Resolution: 2,
 
@@ -202,15 +216,18 @@ func GetWaveform(w http.ResponseWriter, r *http.Request) {
 // the waveform can be uniquely identified when cached
 func waveformCacheKey(id int, size int, options *waveform.Options) string {
 	// Get individual color RGB values to generate a string
-	r, g, b, _ := options.ForegroundColor.RGBA()
-	fgColorKey := fmt.Sprintf("%d%d%d", r, g, b)
-
-	r, g, b, _ = options.BackgroundColor.RGBA()
+	r, g, b, _ := options.BackgroundColor.RGBA()
 	bgColorKey := fmt.Sprintf("%d%d%d", r, g, b)
 
+	r, g, b, _ = options.ForegroundColor.RGBA()
+	fgColorKey := fmt.Sprintf("%d%d%d", r, g, b)
+
+	r, g, b, _ = options.AlternateColor.RGBA()
+	altColorKey := fmt.Sprintf("%d%d%d", r, g, b)
+
 	// Return cache key
-	return fmt.Sprintf("%d_%d_%s_%s_%d_%d_%d_%d", id, size, fgColorKey, bgColorKey, options.Resolution,
-		options.ScaleX, options.ScaleY, options.Sharpness)
+	return fmt.Sprintf("%d_%d_%s_%s_%s_%d_%d_%d_%d", id, size, bgColorKey, fgColorKey, altColorKey,
+		options.Resolution, options.ScaleX, options.ScaleY, options.Sharpness)
 }
 
 // hexToRGB converts a hex string to a RGB triple.
