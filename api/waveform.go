@@ -16,24 +16,24 @@ import (
 
 	"github.com/gorilla/context"
 	"github.com/gorilla/mux"
+	"github.com/hashicorp/golang-lru"
 	"github.com/mdlayher/waveform"
 	"github.com/nfnt/resize"
 	"github.com/unrolled/render"
 )
 
-const (
-	// cacheThreshold is the number of waveform images which will be retained in-memory
-	// after generation
-	cacheThreshold = 20
-)
+// waveformLRU is a LRU cache which stores a fixed number of recently generated waveform image
+// bytes, and evicts the least-recently-used entries when they are not used
+var waveformLRU *lru.Cache
 
-// waveformCache stores encoded waveform images in-memory, for re-use
-// through multiple HTTP calls
-var waveformCache = map[string][]byte{}
-
-// waveformList tracks insertion order for cached waveforms, and enables the removal
-// of the oldest waveform once a threshold is reached
-var waveformList = []string{}
+func init() {
+	// Initialize fixed-capacity LRU cache
+	var err error
+	waveformLRU, err = lru.New(20)
+	if err != nil {
+		panic(err)
+	}
+}
 
 // GetWaveform generates and returns a waveform image from wavepipe.  On success, this API will
 // return a binary stream. On failure, it will return a JSON error.
@@ -143,9 +143,9 @@ func GetWaveform(w http.ResponseWriter, r *http.Request) {
 	cacheKey := waveformCacheKey(id, sizeX, sizeY, options)
 
 	// Check for a cached waveform
-	if _, ok := waveformCache[cacheKey]; ok {
+	if buffer, ok := waveformLRU.Get(cacheKey); ok {
 		// Send cached data to HTTP writer
-		if _, err := io.Copy(w, bytes.NewReader(waveformCache[cacheKey])); err != nil {
+		if _, err := io.Copy(w, bytes.NewReader(buffer.([]byte))); err != nil {
 			log.Println(err)
 		}
 
@@ -186,16 +186,8 @@ func GetWaveform(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 	}
 
-	// Store cached image, append to cache list
-	waveformCache[cacheKey] = buf.Bytes()
-	waveformList = append(waveformList, cacheKey)
-
-	// If threshold reached, remove oldest waveform from cache
-	if len(waveformList) > cacheThreshold {
-		oldest := waveformList[0]
-		waveformList = waveformList[1:]
-		delete(waveformCache, oldest)
-	}
+	// Store cached image
+	waveformLRU.Add(cacheKey, buf.Bytes())
 
 	// Send over HTTP
 	if _, err := io.Copy(w, buf); err != nil {
