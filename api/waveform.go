@@ -1,12 +1,10 @@
 package api
 
 import (
-	"bytes"
 	"database/sql"
 	"fmt"
 	"image/color"
 	"image/png"
-	"io"
 	"log"
 	"net/http"
 	"net/url"
@@ -22,8 +20,8 @@ import (
 	"github.com/unrolled/render"
 )
 
-// waveformLRU is a LRU cache which stores a fixed number of recently generated waveform image
-// bytes, and evicts the least-recently-used entries when they are not used
+// waveformLRU is a LRU cache which stores a fixed number of recently computed waveform image
+// values, and evicts the least-recently-used entries when they are not used
 var waveformLRU *lru.Cache
 
 func init() {
@@ -64,29 +62,67 @@ func GetWaveform(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Attempt to load the song with matching ID
-	song := &data.Song{ID: id}
-	if err := song.Load(); err != nil {
-		// Check for invalid ID
-		if err == sql.ErrNoRows {
-			ren.JSON(w, 404, errRes(404, "song ID not found"))
+	// Check for a pre-existing set of waveform values
+	var values []float64
+	if tmpValues, ok := waveformLRU.Get(id); ok {
+		// Use existing values
+		values = tmpValues.([]float64)
+	} else {
+		// No existing waveform
+		// Attempt to load the song with matching ID
+		song := &data.Song{ID: id}
+		if err := song.Load(); err != nil {
+			// Check for invalid ID
+			if err == sql.ErrNoRows {
+				ren.JSON(w, 404, errRes(404, "song ID not found"))
+				return
+			}
+
+			// All other errors
+			log.Println(err)
+			ren.JSON(w, 500, serverErr)
 			return
 		}
 
-		// All other errors
-		log.Println(err)
-		ren.JSON(w, 500, serverErr)
-		return
+		// Open song's backing stream
+		stream, err := song.Stream()
+		if err != nil {
+			log.Println(err)
+			ren.JSON(w, 500, serverErr)
+			return
+		}
+
+		// Compute waveform values from this song
+		tmpValues, err := waveform.ComputeValues(stream, &waveform.ComputeOptions{
+			Resolution: 4,
+		})
+		if err != nil {
+			// If unknown format, return JSON error
+			if err == waveform.ErrFormat {
+				ren.JSON(w, 501, errRes(501, "unsupported audio format"))
+				return
+			}
+
+			log.Println(err)
+			ren.JSON(w, 500, serverErr)
+			return
+		}
+
+		// Cache values, and use for generating current and future images
+		waveformLRU.Add(id, tmpValues)
+		values = tmpValues
 	}
 
 	// Check for optional color parameters
+	var cR, cG, cB uint8
+
 	// Background color
 	var bgColor color.Color = color.White
 	if bgColorStr := r.URL.Query().Get("bg"); bgColorStr != "" {
 		// Convert %23 to #
 		bgColorStr, err := url.QueryUnescape(bgColorStr)
 		if err == nil {
-			cR, cG, cB := hexToRGB(bgColorStr)
+			cR, cG, cB = hexToRGB(bgColorStr)
 			bgColor = color.RGBA{cR, cG, cB, 255}
 		}
 	}
@@ -97,7 +133,7 @@ func GetWaveform(w http.ResponseWriter, r *http.Request) {
 		// Convert %23 to #
 		fgColorStr, err := url.QueryUnescape(fgColorStr)
 		if err == nil {
-			cR, cG, cB := hexToRGB(fgColorStr)
+			cR, cG, cB = hexToRGB(fgColorStr)
 			fgColor = color.RGBA{cR, cG, cB, 255}
 		}
 	}
@@ -108,25 +144,9 @@ func GetWaveform(w http.ResponseWriter, r *http.Request) {
 		// Convert %23 to #
 		altColorStr, err := url.QueryUnescape(altColorStr)
 		if err == nil {
-			cR, cG, cB := hexToRGB(altColorStr)
+			cR, cG, cB = hexToRGB(altColorStr)
 			altColor = color.RGBA{cR, cG, cB, 255}
 		}
-	}
-
-	// Set up options struct for waveform
-	options := &waveform.Options{
-		ForegroundColor: fgColor,
-		BackgroundColor: bgColor,
-		AlternateColor:  altColor,
-
-		Resolution: 4,
-
-		ScaleX: 5,
-		ScaleY: 4,
-
-		Sharpness: 1,
-
-		ScaleClipping: true,
 	}
 
 	// If requested, resize the image to the specified width
@@ -139,40 +159,19 @@ func GetWaveform(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Generate waveform cache key using ID, size, and options
-	cacheKey := waveformCacheKey(id, sizeX, sizeY, options)
+	// Generate waveform image from computed values, with specified options
+	img := waveform.ImageFromValues(values, &waveform.ImageOptions{
+		ForegroundColor: fgColor,
+		BackgroundColor: bgColor,
+		AlternateColor:  altColor,
 
-	// Check for a cached waveform
-	if buffer, ok := waveformLRU.Get(cacheKey); ok {
-		// Send cached data to HTTP writer
-		if _, err := io.Copy(w, bytes.NewReader(buffer.([]byte))); err != nil {
-			log.Println(err)
-		}
+		ScaleX: 5,
+		ScaleY: 4,
 
-		return
-	}
+		Sharpness: 1,
 
-	// Open song's backing stream
-	stream, err := song.Stream()
-	if err != nil {
-		log.Println(err)
-		ren.JSON(w, 500, serverErr)
-		return
-	}
-
-	// Generate a waveform from this song
-	img, err := waveform.New(stream, options)
-	if err != nil {
-		// If unknown format, return JSON error
-		if err == waveform.ErrFormat {
-			ren.JSON(w, 501, errRes(501, "unsupported audio format"))
-			return
-		}
-
-		log.Println(err)
-		ren.JSON(w, 500, serverErr)
-		return
-	}
+		ScaleClipping: true,
+	})
 
 	// If a resize option was set, perform it now
 	if sizeX > 0 {
@@ -180,37 +179,10 @@ func GetWaveform(w http.ResponseWriter, r *http.Request) {
 		img = resize.Resize(uint(sizeX), uint(sizeY), img, resize.NearestNeighbor)
 	}
 
-	// Encode as PNG into buffer
-	buf := bytes.NewBuffer(nil)
-	if err := png.Encode(buf, img); err != nil {
+	// Encode as PNG to HTTP writer
+	if err := png.Encode(w, img); err != nil {
 		log.Println(err)
 	}
-
-	// Store cached image
-	waveformLRU.Add(cacheKey, buf.Bytes())
-
-	// Send over HTTP
-	if _, err := io.Copy(w, buf); err != nil {
-		log.Println(err)
-	}
-}
-
-// waveformCacheKey generates a cache key using waveform parameters, so that
-// the waveform can be uniquely identified when cached
-func waveformCacheKey(id int, sizeX int, sizeY int, options *waveform.Options) string {
-	// Get individual color RGB values to generate a string
-	r, g, b, _ := options.BackgroundColor.RGBA()
-	bgColorKey := fmt.Sprintf("%d%d%d", r, g, b)
-
-	r, g, b, _ = options.ForegroundColor.RGBA()
-	fgColorKey := fmt.Sprintf("%d%d%d", r, g, b)
-
-	r, g, b, _ = options.AlternateColor.RGBA()
-	altColorKey := fmt.Sprintf("%d%d%d", r, g, b)
-
-	// Return cache key
-	return fmt.Sprintf("%d_%d_%d_%s_%s_%s_%d_%d_%d_%d", id, sizeX, sizeY, bgColorKey, fgColorKey, altColorKey,
-		options.Resolution, options.ScaleX, options.ScaleY, options.Sharpness)
 }
 
 // hexToRGB converts a hex string to a RGB triple.
