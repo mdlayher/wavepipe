@@ -121,8 +121,8 @@ func GetWaveform(w http.ResponseWriter, r *http.Request) {
 
 		Resolution: 4,
 
-		ScaleX: 2,
-		ScaleY: 2,
+		ScaleX: 5,
+		ScaleY: 4,
 
 		Sharpness: 1,
 
