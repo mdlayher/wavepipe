@@ -1,8 +1,12 @@
 package api
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
+	"image"
+	"image/jpeg"
+	"image/png"
 	"io"
 	"log"
 	"mime"
@@ -15,6 +19,8 @@ import (
 
 	"github.com/mdlayher/wavepipe/common"
 	"github.com/mdlayher/wavepipe/data"
+
+	"github.com/nfnt/resize"
 )
 
 var (
@@ -184,4 +190,71 @@ func HTTPStream(song *data.Song, mimeType string, contentLength int64, inputStre
 		// Count bytes sent to track progress
 		atomic.AddInt64(&total, int64(n))
 	}
+}
+
+var (
+	// ErrInvalidIntegerSize is returned when the input size parameter is not
+	// a valid integer.
+	ErrInvalidIntegerSize = errors.New("invalid integer size")
+
+	// ErrNegativeIntegerSize is returned when a negative integer is passed
+	// for the input size parameter.
+	ErrNegativeIntegerSize = errors.New("negative integer size")
+)
+
+// ServeArt provides a common method for serving and resizing Art, based on
+// an input HTTP request.
+func ServeArt(w http.ResponseWriter, r *http.Request, art *data.Art) error {
+	// Attempt to access art data stream
+	stream, err := art.Stream()
+	if err != nil {
+		return err
+	}
+
+	// Check for resize request, if none, serve directly
+	size := r.URL.Query().Get("size")
+	if size == "" {
+		// Serve content directly, account for range headers, and enabling caching.
+		http.ServeContent(w, r, art.FileName, time.Unix(art.LastModified, 0), stream)
+		return nil
+	}
+
+	// Ensure size is a valid integer
+	sizeInt, err := strconv.Atoi(size)
+	if err != nil {
+		return ErrInvalidIntegerSize
+	}
+
+	// Verify positive integer
+	if sizeInt < 1 {
+		return ErrNegativeIntegerSize
+	}
+
+	// Decode input image stream
+	img, imgFormat, err := image.Decode(stream)
+	if err != nil {
+		return err
+	}
+
+	// Generate a thumbnail image of the specified size
+	img = resize.Resize(uint(sizeInt), 0, img, resize.NearestNeighbor)
+
+	// Encode to original format for output
+	buffer := bytes.NewBuffer(nil)
+	if imgFormat == "jpeg" {
+		// JPEG, lossy encoding, default quality
+		if err := jpeg.Encode(buffer, img, nil); err != nil {
+			return err
+		}
+	} else {
+		// Always send PNG as a backup
+		// PNG, lossless encoding
+		if err := png.Encode(buffer, img); err != nil {
+			return err
+		}
+	}
+
+	// Serve content directly, account for range headers, and enabling caching.
+	http.ServeContent(w, r, art.FileName, time.Unix(art.LastModified, 0), bytes.NewReader(buffer.Bytes()))
+	return nil
 }

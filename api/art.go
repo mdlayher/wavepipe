@@ -1,26 +1,15 @@
 package api
 
 import (
-	"bytes"
 	"database/sql"
-	"image"
-	"image/png"
-	"io"
 	"log"
-	"mime"
 	"net/http"
-	"path"
 	"strconv"
 
-	// Extra image manipulation formats
-	_ "image/jpeg"
-
-	"github.com/mdlayher/wavepipe/common"
 	"github.com/mdlayher/wavepipe/data"
 
 	"github.com/gorilla/context"
 	"github.com/gorilla/mux"
-	"github.com/nfnt/resize"
 	"github.com/unrolled/render"
 )
 
@@ -68,89 +57,17 @@ func GetArt(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Attempt to access art data stream
-	stream, err := art.Stream()
-	if err != nil {
+	// Attempt to serve art, handling resizing from HTTP request parameters
+	if err := ServeArt(w, r, art); err != nil {
+		// Client-facing errors
+		if err == ErrInvalidIntegerSize || err == ErrNegativeIntegerSize {
+			ren.JSON(w, 400, errRes(400, err.Error()))
+			return
+		}
+
+		// Server-side errors
 		log.Println(err)
 		ren.JSON(w, 500, serverErr)
-		return
-	}
-	defer stream.Close()
-
-	// Output stream
-	var outStream io.Reader
-
-	// Output for HTTP headers
-	var length int64
-	var mimeType string
-
-	// Check for resize request
-	if size := r.URL.Query().Get("size"); size != "" {
-		// Ensure size is a valid integer
-		sizeInt, err := strconv.Atoi(size)
-		if err != nil {
-			ren.JSON(w, 400, errRes(400, "invalid integer size"))
-			return
-		}
-
-		// Verify positive integer
-		if sizeInt < 1 {
-			ren.JSON(w, 400, errRes(400, "negative integer size"))
-			return
-		}
-
-		// Decode input image stream
-		img, _, err := image.Decode(stream)
-		if err != nil {
-			log.Println(err)
-			ren.JSON(w, 500, serverErr)
-			return
-		}
-
-		// Generate a thumbnail image of the specified size
-		thumb := resize.Resize(uint(sizeInt), 0, img, resize.NearestNeighbor)
-
-		// Encode image as PNG to prevent further quality loss
-		buffer := bytes.NewBuffer(make([]byte, 0))
-		if err := png.Encode(buffer, thumb); err != nil {
-			log.Println(err)
-			ren.JSON(w, 500, serverErr)
-			return
-		}
-
-		// Set MIME type for response
-		mimeType = "image/png"
-
-		// Store the resized art stream for output
-		outStream = buffer
-	} else {
-		// If not resizing, set HTTP headers with known values
-		length = art.FileSize
-		mimeType = mime.TypeByExtension(path.Ext(art.FileName))
-
-		// Store the original art stream for output
-		outStream = stream
-	}
-
-	// Set necessary HTTP output headers
-
-	// If not resizing, set content length from file size
-	if length > 0 {
-		w.Header().Set("Content-Length", strconv.FormatInt(length, 10))
-	}
-
-	// Set content type via MIME type
-	w.Header().Set("Content-Type", mimeType)
-
-	// Set last modified time in RFC1123 format
-	w.Header().Set("Last-Modified", common.UNIXtoRFC1123(art.LastModified))
-
-	// Specify connection close on send
-	w.Header().Set("Connection", "close")
-
-	// Stream the output over HTTP
-	if _, err := io.Copy(w, outStream); err != nil {
-		log.Println(err)
 		return
 	}
 }
