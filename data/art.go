@@ -29,6 +29,6 @@ func (a *Art) Save() error {
 }
 
 // Stream returns an art stream from the art file
-func (a Art) Stream() (io.ReadCloser, error) {
+func (a Art) Stream() (io.ReadSeeker, error) {
 	return os.Open(a.FileName)
 }
