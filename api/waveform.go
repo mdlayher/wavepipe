@@ -160,7 +160,7 @@ func GetWaveform(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Generate waveform image from computed values, with specified options
-	img := waveform.ImageFromValues(values, &waveform.ImageOptions{
+	img := waveform.DrawImage(values, &waveform.ImageOptions{
 		ForegroundColor: fgColor,
 		BackgroundColor: bgColor,
 		AlternateColor:  altColor,
