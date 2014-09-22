@@ -5,10 +5,10 @@ import (
 	"errors"
 	"log"
 	"net/http"
-	"os"
 	"strings"
 
 	"github.com/mdlayher/wavepipe/data"
+	"github.com/mdlayher/wavepipe/env"
 )
 
 var (
@@ -46,7 +46,7 @@ func (f AuthenticatorFunc) Authenticate(req *http.Request) (*data.User, *data.Se
 // Factory generates the appropriate authorization method by using input parameters
 func Factory(path string) AuthenticatorFunc {
 	// Check for debug mode, and if it's set, automatically use the Simple method
-	if os.Getenv("WAVEPIPE_DEBUG") == "1" {
+	if env.IsDebug() {
 		log.Println("api: warning: authenticating user in debug mode")
 		return simpleAuthenticate
 	}

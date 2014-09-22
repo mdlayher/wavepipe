@@ -7,7 +7,6 @@ import (
 	"mime"
 	"net/http"
 	"net/http/pprof"
-	"os"
 	"path"
 	"runtime"
 	"strings"
@@ -17,6 +16,7 @@ import (
 	"github.com/mdlayher/wavepipe/api/auth"
 	"github.com/mdlayher/wavepipe/config"
 	"github.com/mdlayher/wavepipe/data"
+	"github.com/mdlayher/wavepipe/env"
 	"github.com/mdlayher/wavepipe/metrics"
 	"github.com/mdlayher/wavepipe/subsonic"
 
@@ -59,7 +59,7 @@ func apiRouter(apiKillChan chan struct{}) {
 		metricsRes := httpWMetricsLogger{res}
 
 		// On debug, log everything
-		if os.Getenv("WAVEPIPE_DEBUG") == "1" {
+		if env.IsDebug() {
 			log.Println(req.Header)
 			log.Println(req.URL)
 
@@ -88,7 +88,7 @@ func apiRouter(apiKillChan chan struct{}) {
 
 			// If debug mode, and no username or password, send a WWW-Authenticate header to prompt request
 			// This allows for manual exploration of the API if needed
-			if os.Getenv("WAVEPIPE_DEBUG") == "1" && (clientErr == auth.ErrNoUsername || clientErr == auth.ErrNoPassword) {
+			if env.IsDebug() && (clientErr == auth.ErrNoUsername || clientErr == auth.ErrNoPassword) {
 				res.Header().Set("WWW-Authenticate", "Basic")
 			}
 
@@ -174,7 +174,7 @@ func apiRouter(apiKillChan chan struct{}) {
 		// Stop API
 		case <-apiKillChan:
 			// If testing, don't wait for graceful shutdown
-			if os.Getenv("WAVEPIPE_TEST") != "1" {
+			if !env.IsTest() {
 				// Block and wait for graceful shutdown
 				log.Println("api: waiting for remaining connections to close...")
 				<-gracefulChan
@@ -207,7 +207,7 @@ func newRouter() *mux.Router {
 		}
 
 		// More information on debug
-		if os.Getenv("WAVEPIPE_DEBUG") == "1" {
+		if env.IsDebug() {
 			log.Println("web: fetching resource: res/web/" + name)
 		}
 
@@ -346,7 +346,7 @@ func newRouter() *mux.Router {
 
 	// On debug mode, enable pprof debug endpoints
 	// Thanks: https://github.com/go-martini/martini/issues/228
-	if os.Getenv("WAVEPIPE_DEBUG") == "1" {
+	if env.IsDebug() {
 		dr := router.PathPrefix("/debug/pprof").Subrouter()
 		dr.HandleFunc("/", pprof.Index)
 		dr.HandleFunc("/cmdline", pprof.Cmdline)

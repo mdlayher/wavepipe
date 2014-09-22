@@ -4,16 +4,16 @@ import (
 	"database/sql"
 	"errors"
 	"net/http"
-	"os"
 
 	"github.com/mdlayher/wavepipe/data"
+	"github.com/mdlayher/wavepipe/env"
 )
 
 // simpleAuthenticate uses the simple authentication method to log in to the API, returning
 // a session user and a pair of client/server errors.
 func simpleAuthenticate(req *http.Request) (*data.User, *data.Session, error, error) {
 	// Verify that SimpleAuth was triggered in debug mode
-	if os.Getenv("WAVEPIPE_DEBUG") != "1" {
+	if !env.IsDebug() {
 		return nil, nil, nil, errors.New("not in debug mode")
 	}
 

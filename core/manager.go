@@ -6,6 +6,7 @@ import (
 
 	"github.com/mdlayher/wavepipe/common"
 	"github.com/mdlayher/wavepipe/config"
+	"github.com/mdlayher/wavepipe/env"
 )
 
 // App is the application's name
@@ -39,7 +40,7 @@ func Manager(killChan chan struct{}, exitChan chan int) {
 
 	// Check valid media folder, unless in test mode
 	folder := conf.Media()
-	if os.Getenv("WAVEPIPE_TEST") != "1" {
+	if !env.IsTest() {
 		// Check empty folder, provide help information if not set
 		if folder == "" {
 			log.Fatal("manager: no media folder set in config: ", config.C.Help())

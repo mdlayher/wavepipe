@@ -10,6 +10,7 @@ import (
 
 	"github.com/mdlayher/wavepipe/common"
 	"github.com/mdlayher/wavepipe/core"
+	"github.com/mdlayher/wavepipe/env"
 )
 
 // testFlag invokes wavepipe in "test" mode, where it will start and exit shortly after.  Used for testing.
@@ -32,7 +33,7 @@ func main() {
 
 	// Check if running in debug mode, which will allow bypass of certain features such as
 	// API authentication.  USE THIS FOR DEVELOPMENT ONLY!
-	if os.Getenv("WAVEPIPE_DEBUG") == "1" {
+	if env.IsDebug() {
 		log.Println(core.App, ": WARNING, running in debug mode; authentication disabled!")
 	}
 
@@ -42,7 +43,7 @@ func main() {
 	// In test mode, wait for a short time, then invoke a signal shutdown
 	if *testFlag {
 		// Set an environment variable to enable mocking in other areas of the program
-		if err := os.Setenv("WAVEPIPE_TEST", "1"); err != nil {
+		if err := env.SetTest(true); err != nil {
 			log.Println(err)
 		}
 

@@ -3,10 +3,10 @@ package core
 import (
 	"errors"
 	"log"
-	"os"
 	"time"
 
 	"github.com/mdlayher/wavepipe/common"
+	"github.com/mdlayher/wavepipe/env"
 
 	"github.com/mdlayher/goset"
 	"github.com/romanoff/fsmonitor"
@@ -48,7 +48,7 @@ func fsManager(mediaFolder string, fsKillChan chan struct{}) {
 
 	// Set up the data source (typically filesystem, unless in test mode)
 	fsSource = fsFileSource{}
-	if os.Getenv("WAVEPIPE_TEST") == "1" {
+	if env.IsTest() {
 		// Mock file source
 		fsSource = memFileSource{}
 	}
