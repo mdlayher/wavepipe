@@ -92,10 +92,16 @@ func GetWaveform(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// Compute waveform values from this song
-		tmpValues, err := waveform.ComputeValues(stream, &waveform.ComputeOptions{
-			Resolution: 4,
-		})
+		// Generate a waveform object
+		wave, err := waveform.New(stream, waveform.Resolution(4))
+		if err != nil {
+			log.Println(err)
+			ren.JSON(w, 500, serverErr)
+			return
+		}
+
+		// Compute waveform values from input stream
+		tmpValues, err := wave.Compute()
 		if err != nil {
 			// If unknown format, return JSON error
 			if err == waveform.ErrFormat {
@@ -159,19 +165,21 @@ func GetWaveform(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// Generate waveform object with sane defaults and user settings
+	wave, err := waveform.New(nil,
+		waveform.Colors(fgColor, bgColor, altColor),
+		waveform.Scale(5, 4),
+		waveform.Sharpness(1),
+		waveform.ScaleClipping(true),
+	)
+	if err != nil {
+		log.Println(err)
+		ren.JSON(w, 500, serverErr)
+		return
+	}
+
 	// Generate waveform image from computed values, with specified options
-	img := waveform.DrawImage(values, &waveform.ImageOptions{
-		ForegroundColor: fgColor,
-		BackgroundColor: bgColor,
-		AlternateColor:  altColor,
-
-		ScaleX: 5,
-		ScaleY: 4,
-
-		Sharpness: 1,
-
-		ScaleClipping: true,
-	})
+	img := wave.Draw(values)
 
 	// If a resize option was set, perform it now
 	if sizeX > 0 {
