@@ -170,7 +170,7 @@ func GetWaveform(w http.ResponseWriter, r *http.Request) {
 		waveform.Colors(fgColor, bgColor, altColor),
 		waveform.Scale(5, 4),
 		waveform.Sharpness(1),
-		waveform.ScaleClipping(true),
+		waveform.ScaleClipping(),
 	)
 	if err != nil {
 		log.Println(err)
