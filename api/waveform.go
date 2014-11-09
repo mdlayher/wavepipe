@@ -167,7 +167,8 @@ func GetWaveform(w http.ResponseWriter, r *http.Request) {
 
 	// Generate waveform object with sane defaults and user settings
 	wave, err := waveform.New(nil,
-		waveform.Colors(fgColor, bgColor, altColor),
+		waveform.BGColorFunction(waveform.SolidColor(bgColor)),
+		waveform.FGColorFunction(waveform.StripeColor(fgColor, altColor)),
 		waveform.Scale(5, 4),
 		waveform.Sharpness(1),
 		waveform.ScaleClipping(),
