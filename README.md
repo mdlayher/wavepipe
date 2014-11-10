@@ -3,6 +3,9 @@ wavepipe [![Build Status](https://travis-ci.org/mdlayher/wavepipe.svg?branch=mas
 
 Cross-platform media server, written in Go.  MIT Licensed.
 
+**Rewrite in progress:** wavepipe is being rewritten from the ground up with better code practices,
+and more emphasis on decoupled code which is easy to test.  Please excuse the mess!
+
 API documentation may be found in [doc/API.md](https://github.com/mdlayher/wavepipe/blob/master/doc/API.md).
 Full code documentation may be found on [GoDoc](http://godoc.org/github.com/mdlayher/wavepipe).
 
