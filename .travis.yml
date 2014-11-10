@@ -1,6 +1,7 @@
 language: go
 go:
   - 1.3
+  - tip
 before_install:
   - sudo apt-get update
 install:
@@ -8,6 +9,5 @@ install:
 before_script:
   - go get ./...
 script:
-  - make
-  - ./bin/wavepipe -test -media /mem
-  - make test
+  - go build ./...
+  - go test -v ./...
