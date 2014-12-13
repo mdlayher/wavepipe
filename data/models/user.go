@@ -2,6 +2,7 @@ package models
 
 import (
 	"errors"
+	"time"
 
 	"code.google.com/p/go.crypto/bcrypt"
 )
@@ -24,11 +25,16 @@ var _ Validator = &User{}
 
 // User represents a user of the application.
 type User struct {
-	ID          uint64 `db:"id" json:"id"`
-	Username    string `db:"username" json:"username"`
-	Password    string `db:"password" json:"password,omitempty"`
-	RoleID      uint8  `db:"role_id" json:"roleId"`
+	ID          uint64 `db:"id"           json:"id"`
+	Username    string `db:"username"     json:"username"`
+	Password    string `db:"password"     json:"password,omitempty"`
+	RoleID      uint8  `db:"role_id"      json:"roleId"`
 	LastFMToken string `db:"lastfm_token" json:"-"`
+}
+
+// NewSession generates a new Session for this user.
+func (u *User) NewSession(client string, expire time.Time) (*Session, error) {
+	return NewSession(u.ID, u.Password, client, expire)
 }
 
 // SetPassword hashes the input password using bcrypt, storing the password
