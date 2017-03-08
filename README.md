@@ -1,10 +1,13 @@
+Deprecated: this project is no longer being maintained.
+===
+
+This was one of my first Go projects, and I am no longer maintaining it.  Feel free to fork if you'd like
+to continue working with it.
+
 wavepipe [![Build Status](https://travis-ci.org/mdlayher/wavepipe.svg?branch=master)](https://travis-ci.org/mdlayher/wavepipe) [![GoDoc](http://godoc.org/github.com/mdlayher/wavepipe?status.svg)](http://godoc.org/github.com/mdlayher/wavepipe)
 ========
 
 Cross-platform media server, written in Go.  MIT Licensed.
-
-**Rewrite in progress:** wavepipe is being rewritten from the ground up with better code practices,
-and more emphasis on decoupled code which is easy to test.  Please excuse the mess!
 
 API documentation may be found in [doc/API.md](https://github.com/mdlayher/wavepipe/blob/master/doc/API.md).
 Full code documentation may be found on [GoDoc](http://godoc.org/github.com/mdlayher/wavepipe).
